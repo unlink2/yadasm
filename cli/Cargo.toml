@@ -1,0 +1,15 @@
+[package]
+name = "yadasm-cli"
+version = "0.1.0"
+authors = ["Lukas Krickl <lukas@krickl.dev>"]
+description = ""
+license = "MIT"
+homepage = "https://github.com/unlink2/yadasm"
+edition = "2021"
+
+[[bin]]
+name = "yadasm"
+path = "src/main.rs"
+
+[dependencies]
+yadasm = {path = "../lib"}
