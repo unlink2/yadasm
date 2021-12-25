@@ -1,4 +1,4 @@
-use crate::Binary;
+use crate::{Binary, Error};
 use crate::{Float, Integer, Number};
 
 /// Mask size
@@ -33,18 +33,21 @@ impl Default for MaskComparator {
 }
 
 /// Operation to be applied for each mask
-/// TODO maybe implement a real math parser as an option? (Do we need it?)
 #[derive(Debug, Copy, Clone)]
 pub enum MaskOperation {
-    And,
-    Or,
-    Xor,
-    Not,
+    And(Integer),
+    Or(Integer),
+    Xor(Integer),
+    Add(Number),
+    Sub(Number),
+    Div(Number),
+    Mul(Number),
+    Mod(Number),
 }
 
 impl Default for MaskOperation {
     fn default() -> Self {
-        Self::And
+        Self::And(Integer::default())
     }
 }
 
@@ -67,14 +70,20 @@ impl Default for MaskResponseKind {
 #[builder(setter(into))]
 pub struct MaskParser {
     prefix: String, // prefix for the parser
-    op: MaskOperation,
+    // postfix operations that are applied to the read data e.g.
+    // data mask & = result1 (masked bits)
+    // result1 2 << = result2 (shifted bitwise)
+    op: Vec<MaskOperation>,
+    // kind reads from the stream and returns the apropriate number datatype
     kind: MaskKind,
+    // after every operation was applied the comparator needs to pass for the match
+    // to succeed
     comparator: MaskComparator,
     response: MaskResponseKind,
 }
 
 impl MaskParser {
-    pub fn parse(&self, binary: &mut Binary) -> String {
+    pub fn parse(&self, binary: &mut Binary) -> Result<String, Error> {
         todo!()
     }
 
