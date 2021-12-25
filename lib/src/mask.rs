@@ -1,3 +1,6 @@
+use crate::Binary;
+use crate::{Float, Integer, Number};
+
 /// Mask size
 #[derive(Debug, Copy, Clone)]
 pub enum MaskKind {
@@ -11,6 +14,21 @@ pub enum MaskKind {
 impl Default for MaskKind {
     fn default() -> Self {
         Self::U8(0)
+    }
+}
+
+/// Comparator for mask matching
+#[derive(Debug, Copy, Clone)]
+pub enum MaskComparator {
+    AlwaysTrue,
+    AlwaysFalse,
+    Eq(Number),
+    NotEq(Number),
+}
+
+impl Default for MaskComparator {
+    fn default() -> Self {
+        Self::AlwaysTrue
     }
 }
 
@@ -31,16 +49,14 @@ impl Default for MaskOperation {
 }
 
 #[derive(Debug, Clone)]
-pub enum MaskResponse {
+pub enum MaskResponseKind {
     None,
     Static(String),
-    Decimal,
-    Hex,
-    Binary,
-    Octal,
+    Number(Number),
+    Str,
 }
 
-impl Default for MaskResponse {
+impl Default for MaskResponseKind {
     fn default() -> Self {
         Self::None
     }
@@ -50,12 +66,26 @@ impl Default for MaskResponse {
 #[derive(Default, Builder, Debug, Clone)]
 #[builder(setter(into))]
 pub struct MaskParser {
+    prefix: String, // prefix for the parser
     op: MaskOperation,
     kind: MaskKind,
-    response: MaskResponse,
+    comparator: MaskComparator,
+    response: MaskResponseKind,
 }
 
-/// collection of masks, returns a string in the end!
+impl MaskParser {
+    pub fn parse(&self, binary: &mut Binary) -> String {
+        todo!()
+    }
+
+    pub fn matches(&self, binary: &mut Binary) -> bool {
+        todo!()
+    }
+}
+
+/// collection of masks, returns a string in the end
+#[derive(Default, Builder, Debug, Clone)]
+#[builder(setter(into))]
 pub struct Mask {
     /// Opcode parser must match the operation before the data
     /// is matched
@@ -63,4 +93,10 @@ pub struct Mask {
 
     /// Data is matched in order
     data: Vec<MaskParser>,
+}
+
+impl Mask {
+    pub fn parse(&self, binary: &mut Binary) -> String {
+        todo!()
+    }
 }
