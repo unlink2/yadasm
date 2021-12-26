@@ -1,6 +1,8 @@
 use crate::{Int, Num, Number};
 
-pub trait Operation: Default {}
+pub trait Operation: Default {
+    fn apply(&self, other: &Number) -> Number;
+}
 
 /// Operation to be applied for each mask
 #[derive(Debug, Copy, Clone)]
@@ -21,4 +23,8 @@ impl Default for BasicOperation {
     }
 }
 
-impl Operation for BasicOperation {}
+impl Operation for BasicOperation {
+    fn apply(&self, other: &Number) -> Number {
+        todo!()
+    }
+}
