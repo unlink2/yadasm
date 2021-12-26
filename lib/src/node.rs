@@ -1,4 +1,4 @@
-use crate::{BasicContext, Comparator, Integer, Operation, Response};
+use crate::{BasicContext, Comparator, Int, Operation, Response};
 use crate::{Binary, Error, Parser};
 
 /// Combination of operation, kind and return value
@@ -16,7 +16,7 @@ where
     // result1 2 << = result2 (shifted bitwise)
     op: Vec<TOperation>,
     // kind reads from the stream and returns the apropriate number datatype
-    mask: Integer,
+    mask: Int,
     // after every operation was applied the comparator needs to pass for the match
     // to succeed
     comparator: TComparator,

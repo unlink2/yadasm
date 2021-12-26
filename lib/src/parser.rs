@@ -1,4 +1,4 @@
-use crate::{BasicContext, Comparator, Float, Integer, Node, Number, Operation, Response};
+use crate::{BasicContext, Comparator, Float, Int, Node, Number, Operation, Response};
 use crate::{Binary, Error};
 
 pub trait Parser {

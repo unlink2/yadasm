@@ -1,13 +1,13 @@
-use crate::{Integer, Number};
+use crate::{Int, Num, Number};
 
 pub trait Operation: Default {}
 
 /// Operation to be applied for each mask
 #[derive(Debug, Copy, Clone)]
 pub enum BasicOperation {
-    And(Integer),
-    Or(Integer),
-    Xor(Integer),
+    And(Int),
+    Or(Int),
+    Xor(Int),
     Add(Number),
     Sub(Number),
     Div(Number),
@@ -17,7 +17,7 @@ pub enum BasicOperation {
 
 impl Default for BasicOperation {
     fn default() -> Self {
-        Self::And(Integer::default())
+        Self::And(Int::default())
     }
 }
 

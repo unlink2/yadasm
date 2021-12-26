@@ -1,5 +1,5 @@
 pub trait Binary {
-    fn read(&self, bytes: usize) -> &[u8];
+    fn read(&self, bytes: usize) -> Option<&[u8]>;
     fn advance(&mut self, bytes: usize);
 }
 
@@ -18,7 +18,7 @@ pub struct BinaryFile {
 
 impl Binary for BinaryFile {
     /// reads data from current file starting at current offset
-    fn read(&self, bytes: usize) -> &[u8] {
+    fn read(&self, bytes: usize) -> Option<&[u8]> {
         todo!()
     }
 
