@@ -1,8 +1,10 @@
 use crate::{Integer, Number};
 
+pub trait Operation: Default {}
+
 /// Operation to be applied for each mask
 #[derive(Debug, Copy, Clone)]
-pub enum Operation {
+pub enum BasicOperation {
     And(Integer),
     Or(Integer),
     Xor(Integer),
@@ -13,8 +15,10 @@ pub enum Operation {
     Mod(Number),
 }
 
-impl Default for Operation {
+impl Default for BasicOperation {
     fn default() -> Self {
         Self::And(Integer::default())
     }
 }
+
+impl Operation for BasicOperation {}

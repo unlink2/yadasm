@@ -1,6 +1,11 @@
+pub trait Binary {
+    fn read(&self, bytes: usize) -> &[u8];
+    fn advance(&mut self, bytes: usize);
+}
+
 #[derive(Default, Builder, Debug, Clone)]
 #[builder(setter(into))]
-pub struct Binary {
+pub struct BinaryFile {
     /// current offset
     current: usize,
 
@@ -11,14 +16,14 @@ pub struct Binary {
     end: usize,
 }
 
-impl Binary {
+impl Binary for BinaryFile {
     /// reads data from current file starting at current offset
-    pub fn read(&self, bytes: usize) -> &[u8] {
+    fn read(&self, bytes: usize) -> &[u8] {
         todo!()
     }
 
     /// advances the current pointer by n bytes
-    pub fn advance(&mut self, bytes: usize) {
+    fn advance(&mut self, bytes: usize) {
         self.current += bytes;
     }
 }
