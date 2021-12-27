@@ -1,7 +1,7 @@
-use crate::{Int, Num, Number};
+use crate::{Error, Int, Num, Number};
 
 pub trait Operation: Default {
-    fn apply(&self, other: &Number) -> Number;
+    fn apply(&self, other: &Number) -> Result<Number, Error>;
 }
 
 /// Operation to be applied for each mask
@@ -24,7 +24,7 @@ impl Default for BasicOperation {
 }
 
 impl Operation for BasicOperation {
-    fn apply(&self, other: &Number) -> Number {
+    fn apply(&self, other: &Number) -> Result<Number, Error> {
         todo!()
     }
 }

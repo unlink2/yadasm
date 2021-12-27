@@ -10,7 +10,8 @@ where
     TComparator: Comparator,
     TOperation: Operation,
 {
-    prefix: String, // prefix for the parser
+    prefix: String,  // prefix for the parser
+    postfix: String, // postfix for the parser
     // postfix operations that are applied to the read data e.g.
     // data mask & = result1 (masked bits)
     // result1 2 << = result2 (shifted bitwise)
@@ -20,6 +21,8 @@ where
     // after every operation was applied the comparator needs to pass for the match
     // to succeed
     comparator: TComparator,
+
+    // lastly a response is generated using a response formatter
     response: TResponse,
 }
 

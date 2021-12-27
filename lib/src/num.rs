@@ -105,7 +105,7 @@ impl Default for FloatFormat {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Number {
     Int(Num<IntKind, IntFormat>),
     Float(Num<FloatKind, FloatFormat>),
