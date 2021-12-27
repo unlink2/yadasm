@@ -36,7 +36,7 @@ impl Comparator for BasicComparator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{IntBuilder, IntKind};
+    use crate::Int;
 
     use super::*;
 
@@ -60,9 +60,7 @@ mod tests {
 
     #[test]
     fn it_should_compare_ne_numbers() {
-        let c = BasicComparator::NotEq(Number::Int(
-            IntBuilder::default().kind(IntKind::U16(0)).build().unwrap(),
-        ));
+        let c = BasicComparator::NotEq(Number::Int(Int::U16(0)));
         assert!(c.compare(&Number::default()));
     }
 

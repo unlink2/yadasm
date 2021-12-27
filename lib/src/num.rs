@@ -1,37 +1,7 @@
-pub trait NumberKind: Default + Copy + Clone + PartialEq {}
-pub trait NumberFormat<TNum>: Default + Copy + Clone {}
-
-#[derive(Debug, Copy, Clone)]
-pub enum Endianness {
-    Big,
-    Little,
-}
-
-impl Default for Endianness {
-    fn default() -> Self {
-        // contorversial default choice
-        Self::Little
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum IntFormat {
-    Octal,
-    Hex,
-    Decimal,
-    Binary,
-}
-
-impl NumberFormat<IntKind> for IntFormat {}
-
-impl Default for IntFormat {
-    fn default() -> Self {
-        Self::Binary
-    }
-}
+use crate::Error;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum IntKind {
+pub enum Int {
     U8(u8),
     U16(u16),
     U32(u32),
@@ -40,87 +10,121 @@ pub enum IntKind {
     I8(i8),
     I16(i16),
     I32(i32),
+    I64(i64),
     I128(i128),
 }
 
-impl NumberKind for IntKind {}
+impl Int {}
 
-impl Default for IntKind {
+impl Default for Int {
     fn default() -> Self {
         Self::U8(0)
     }
 }
 
-#[derive(Debug, Builder, Copy, Clone, Default)]
-#[builder(setter(into))]
-pub struct Num<TKind, TFormat>
-where
-    TKind: NumberKind,
-    TFormat: NumberFormat<TKind>,
-{
-    #[builder(default)]
-    format: TFormat,
-    #[builder(default)]
-    kind: TKind,
-    #[builder(default)]
-    endianess: Endianness,
+impl std::ops::Add<Int> for Int {
+    type Output = Result<Int, Error>;
+
+    fn add(self, rhs: Int) -> Result<Int, Error> {
+        match (self, rhs) {
+            (Self::U8(l), Self::U8(r)) => Ok(Self::U8(l + r)),
+            (Self::U16(l), Self::U16(r)) => Ok(Self::U16(l + r)),
+            (Self::U32(l), Self::U32(r)) => Ok(Self::U32(l + r)),
+            (Self::U64(l), Self::U64(r)) => Ok(Self::U64(l + r)),
+            (Self::U128(l), Self::U128(r)) => Ok(Self::U128(l + r)),
+            (Self::I8(l), Self::I8(r)) => Ok(Self::I8(l + r)),
+            (Self::I16(l), Self::I16(r)) => Ok(Self::I16(l + r)),
+            (Self::I32(l), Self::I32(r)) => Ok(Self::I32(l + r)),
+            (Self::I64(l), Self::I64(r)) => Ok(Self::I64(l + r)),
+            (Self::I128(l), Self::I128(r)) => Ok(Self::I128(l + r)),
+            _ => Err(Error::TypeError),
+        }
+    }
 }
 
-impl<TKind, TFormat> PartialEq for Num<TKind, TFormat>
-where
-    TKind: NumberKind,
-    TFormat: NumberFormat<TKind>,
-{
-    fn eq(&self, other: &Num<TKind, TFormat>) -> bool {
-        self.kind == other.kind
+impl std::ops::Sub<Int> for Int {
+    type Output = Result<Int, Error>;
+
+    fn sub(self, rhs: Int) -> Result<Int, Error> {
+        match (self, rhs) {
+            (Self::U8(l), Self::U8(r)) => Ok(Self::U8(l - r)),
+            (Self::U16(l), Self::U16(r)) => Ok(Self::U16(l - r)),
+            (Self::U32(l), Self::U32(r)) => Ok(Self::U32(l - r)),
+            (Self::U64(l), Self::U64(r)) => Ok(Self::U64(l - r)),
+            (Self::U128(l), Self::U128(r)) => Ok(Self::U128(l - r)),
+            (Self::I8(l), Self::I8(r)) => Ok(Self::I8(l - r)),
+            (Self::I16(l), Self::I16(r)) => Ok(Self::I16(l - r)),
+            (Self::I32(l), Self::I32(r)) => Ok(Self::I32(l - r)),
+            (Self::I64(l), Self::I64(r)) => Ok(Self::I64(l - r)),
+            (Self::I128(l), Self::I128(r)) => Ok(Self::I128(l - r)),
+            _ => Err(Error::TypeError),
+        }
+    }
+}
+
+impl std::ops::Mul<Int> for Int {
+    type Output = Result<Int, Error>;
+
+    fn mul(self, rhs: Int) -> Result<Int, Error> {
+        match (self, rhs) {
+            (Self::U8(l), Self::U8(r)) => Ok(Self::U8(l * r)),
+            (Self::U16(l), Self::U16(r)) => Ok(Self::U16(l * r)),
+            (Self::U32(l), Self::U32(r)) => Ok(Self::U32(l * r)),
+            (Self::U64(l), Self::U64(r)) => Ok(Self::U64(l * r)),
+            (Self::U128(l), Self::U128(r)) => Ok(Self::U128(l * r)),
+            (Self::I8(l), Self::I8(r)) => Ok(Self::I8(l * r)),
+            (Self::I16(l), Self::I16(r)) => Ok(Self::I16(l * r)),
+            (Self::I32(l), Self::I32(r)) => Ok(Self::I32(l * r)),
+            (Self::I64(l), Self::I64(r)) => Ok(Self::I64(l * r)),
+            (Self::I128(l), Self::I128(r)) => Ok(Self::I128(l * r)),
+            _ => Err(Error::TypeError),
+        }
+    }
+}
+
+impl std::ops::Div<Int> for Int {
+    type Output = Result<Int, Error>;
+
+    fn div(self, rhs: Int) -> Result<Int, Error> {
+        match (self, rhs) {
+            (Self::U8(l), Self::U8(r)) => Ok(Self::U8(l / r)),
+            (Self::U16(l), Self::U16(r)) => Ok(Self::U16(l / r)),
+            (Self::U32(l), Self::U32(r)) => Ok(Self::U32(l / r)),
+            (Self::U64(l), Self::U64(r)) => Ok(Self::U64(l / r)),
+            (Self::U128(l), Self::U128(r)) => Ok(Self::U128(l / r)),
+            (Self::I8(l), Self::I8(r)) => Ok(Self::I8(l / r)),
+            (Self::I16(l), Self::I16(r)) => Ok(Self::I16(l / r)),
+            (Self::I32(l), Self::I32(r)) => Ok(Self::I32(l / r)),
+            (Self::I64(l), Self::I64(r)) => Ok(Self::I64(l / r)),
+            (Self::I128(l), Self::I128(r)) => Ok(Self::I128(l / r)),
+            _ => Err(Error::TypeError),
+        }
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum FloatKind {
+pub enum Float {
     F32(f32),
     F64(f64),
 }
 
-impl NumberKind for FloatKind {}
-
-impl Default for FloatKind {
+impl Default for Float {
     fn default() -> Self {
         Self::F32(0.0)
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum FloatFormat {
-    Full,
-    Scientific,
-    Precision(usize),
-}
-
-impl NumberFormat<FloatKind> for FloatFormat {}
-
-impl Default for FloatFormat {
-    fn default() -> Self {
-        Self::Full
-    }
-}
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Number {
-    Int(Num<IntKind, IntFormat>),
-    Float(Num<FloatKind, FloatFormat>),
+    Int(Int),
+    Float(Float),
 }
 
 impl Default for Number {
     fn default() -> Self {
-        Self::Int(Num::<IntKind, IntFormat>::default())
+        Self::Int(Int::default())
     }
 }
-
-pub type Int = Num<IntKind, IntFormat>;
-pub type IntBuilder = NumBuilder<IntKind, IntFormat>;
-pub type Float = Num<FloatKind, FloatFormat>;
-pub type FloatBuilder = Num<FloatKind, FloatFormat>;
 
 #[cfg(test)]
 mod tests {
@@ -128,19 +132,10 @@ mod tests {
 
     #[test]
     fn it_should_compare_ints() {
-        let i1 = NumBuilder::<IntKind, IntFormat>::default()
-            .kind(IntKind::U16(100))
-            .build()
-            .unwrap();
-        let i2 = NumBuilder::default()
-            .kind(IntKind::U16(100))
-            .build()
-            .unwrap();
+        let i1 = Int::U16(100);
+        let i2 = Int::U16(100);
 
-        let i3 = NumBuilder::default()
-            .kind(IntKind::U32(100))
-            .build()
-            .unwrap();
+        let i3 = Int::U32(100);
 
         assert_eq!(i1, i2);
 
@@ -149,22 +144,38 @@ mod tests {
 
     #[test]
     fn it_should_compare_floats() {
-        let f1 = NumBuilder::<FloatKind, FloatFormat>::default()
-            .kind(FloatKind::F32(100.0))
-            .build()
-            .unwrap();
-        let f2 = NumBuilder::default()
-            .kind(FloatKind::F32(100.0))
-            .build()
-            .unwrap();
+        let f1 = Float::F32(100.0);
+        let f2 = Float::F32(100.0);
 
-        let f3 = NumBuilder::default()
-            .kind(FloatKind::F32(101.0))
-            .build()
-            .unwrap();
+        let f3 = Float::F32(101.0);
 
         assert_eq!(f1, f2);
 
         assert_ne!(f1, f3);
+    }
+
+    #[test]
+    fn it_should_add_int() {
+        assert_eq!(Int::U16(100) + Int::U16(50), Ok(Int::U16(150)));
+        assert_eq!(Int::U32(100) + Int::U16(50), Err(Error::TypeError));
+    }
+
+    #[test]
+    fn it_should_sub_int() {
+        assert_eq!(Int::U16(100) - Int::U16(50), Ok(Int::U16(50)));
+        assert_eq!(Int::U32(100) - Int::U16(50), Err(Error::TypeError));
+    }
+
+    #[test]
+    fn it_should_mul_int() {
+        assert_eq!(Int::U16(100) * Int::U16(50), Ok(Int::U16(100 * 50)));
+        assert_eq!(Int::U32(100) * Int::U16(50), Err(Error::TypeError));
+    }
+
+    #[test]
+    fn it_should_div_int() {
+        assert_eq!(Int::U16(100) / Int::U16(50), Ok(Int::U16(100 / 50)));
+        assert_eq!(Int::U32(100) / Int::U16(50), Err(Error::TypeError));
+        assert_eq!(Int::U16(100) / Int::U16(0), Err(Error::MathError));
     }
 }

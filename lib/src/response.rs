@@ -1,5 +1,6 @@
 use crate::Number;
 
+// TODO format using numfmt
 pub trait Response: Default {}
 
 #[derive(Debug, Clone)]

@@ -1,11 +1,11 @@
-use crate::{Error, Int, Num, Number};
+use crate::{Error, Int, Number};
 
 pub trait Operation: Default {
     fn apply(&self, other: &Number) -> Result<Number, Error>;
 }
 
 /// Operation to be applied for each mask
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum BasicOperation {
     And(Int),
     Or(Int),
@@ -15,6 +15,7 @@ pub enum BasicOperation {
     Div(Number),
     Mul(Number),
     Mod(Number),
+    Collection(Vec<BasicOperation>),
 }
 
 impl Default for BasicOperation {
