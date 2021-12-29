@@ -1,11 +1,9 @@
-class Response:
-    """A response is a type that can be converted to string"""
+"""
+A response function converts data provided by a node
+into a string
+"""
 
-    def __init__(self, value: str | int | None):
-        self.value = value
+from typing import Any, Callable
+from .context import Context
 
-    def to_str(self) -> str:
-        if self.value is None:
-            return ""
-        else:
-            return str(self.value)
+Response = Callable[[Any, Context], str]
