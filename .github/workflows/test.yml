@@ -23,7 +23,10 @@ jobs:
         packages: |
           wheel
           pylint
+          mypy
+    - name: Typecheck
+      run: pytype core cli test --disallow-untyped-defs
     - name: Check lint
-      run: pylint core cli tests
+      run: pylint core cli test
     - name: Run tests
-      run: python tests/test.py
+      run: python -m unittest  --verbose
