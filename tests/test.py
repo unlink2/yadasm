@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Yadasm main test runner"""
+
 import unittest
 
 if __name__ == "__main__":
