@@ -12,9 +12,11 @@ class Node:
         operation: List[Operation],
         comparator: Comparator,
         response: Response,
+        mask: int,
         prefix: str = "",
         postfix: str = "",
     ):
+        self.mask = mask
         self.prefix = prefix
         self.poxtfix = postfix
         self.operation = operation
