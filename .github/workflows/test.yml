@@ -25,7 +25,7 @@ jobs:
           pylint
           mypy
     - name: Typecheck
-      run: pytype core cli test --disallow-untyped-defs
+      run: mypy core cli test --disallow-untyped-defs
     - name: Check lint
       run: pylint core cli test
     - name: Run tests
