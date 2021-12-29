@@ -20,13 +20,6 @@ and highly configurable tool that can be applied to any project as needed.
 
 ## Installation
 
-This program requires the latest version of Rust.
-To install minutecat-cli simplt clone the repository and run:
-
-```sh
-cargo install --path ./cli
-```
-
 ## Usage
 
 
