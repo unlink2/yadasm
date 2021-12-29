@@ -24,6 +24,6 @@ jobs:
           wheel
           pylint
     - name: Check lint
-      run: pylint lib cli tests
+      run: pylint core cli tests
     - name: Run tests
       run: python tests/test.py
