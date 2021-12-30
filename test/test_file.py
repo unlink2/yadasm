@@ -3,7 +3,7 @@ import unittest
 from core.file import Binary
 
 
-class TestComparator(unittest.TestCase):
+class TestFile(unittest.TestCase):
     def test_it_should_read(self) -> None:
         file = Binary(bytes([0, 1, 2, 3, 4]))
 

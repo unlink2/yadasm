@@ -24,9 +24,10 @@ jobs:
           wheel
           pylint
           mypy
+          pytest
     - name: Typecheck
       run: mypy core cli test --disallow-untyped-defs
     - name: Check lint
       run: pylint core cli test
     - name: Run tests
-      run: python -m unittest  --verbose
+      run: pytest test/ -v
