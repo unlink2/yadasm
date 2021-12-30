@@ -20,8 +20,11 @@ class Parser:
 
             if parsed is None:
                 raise ParserNotFoundException(ctx, file, self)
+            else:
+                ctx.add_line(parsed[0])
+                ctx.advance(parsed[1])
 
-        return []
+        return ctx.collect()
 
 
 class ParserNotFoundException(Exception):
