@@ -27,3 +27,12 @@ class TestComparator(unittest.TestCase):
         self.assertTrue(file.is_at_end())
 
         self.assertEqual(file.read(1), None)
+
+    def test_it_should_rewind(self) -> None:
+        file = Binary(bytes([0, 1, 2]))
+        file.advance(2)
+        self.assertEqual(file.offset(), 2)
+        file.rewind(1)
+        self.assertEqual(file.offset(), 1)
+        file.rewind(4)
+        self.assertEqual(file.offset(), 0)

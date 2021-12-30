@@ -34,4 +34,4 @@ Both pull requests and issue reports are always appreciated.
 Please make sure that all existing tests pass before submitting a pull request.
 
 ## TODO
-
+- context needs to keep track of "seen" addresses/line numbers and add labels accordingly

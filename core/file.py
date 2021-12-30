@@ -16,6 +16,10 @@ class Binary:
     def advance(self, count: int) -> None:
         self.current += count
 
+    def rewind(self, count: int) -> None:
+        self.current -= count
+        self.current = max(self.current, 0)
+
     def is_at_end(self) -> bool:
         return self.offset() >= self.len()
 
