@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Callable, Dict, List
 
 
 class Symbol:
@@ -56,26 +56,19 @@ class Context:
         """increment the current address"""
         self.address += inc_by
 
-    def __collect_symbols(self, key: int) -> List[str]:
-        if key in self.symbols:
-            lines = []
-            for symbol in self.symbols[key]:
-                lines.append(
-                    f"{''.ljust(self.symbol_indent, self.indent_char)}"
-                    f"{symbol.name}"
+    def __collect(
+        self,
+        key: int,
+        collection: Dict[int, Any],
+        mapper: Callable[[Any], str],
+    ) -> List[str]:
+        if key in collection:
+            return list(
+                map(
+                    mapper,
+                    collection[key],
                 )
-            return lines
-        else:
-            return []
-
-    def __collect_lines(self, key: int) -> List[str]:
-        if key in self.lines:
-            lines = []
-            for line in self.lines[key]:
-                lines.append(
-                    f"{''.ljust(self.code_indent, self.indent_char)}{line}"
-                )
-            return lines
+            )
         else:
             return []
 
@@ -86,7 +79,20 @@ class Context:
         lines: List[str] = []
 
         for key in all_keys:
-            lines += self.__collect_symbols(key)
-            lines += self.__collect_lines(key)
+            lines += self.__collect(
+                key,
+                self.symbols,
+                lambda symbol: (
+                    f"{''.ljust(self.symbol_indent, self.indent_char)}"
+                    f"{symbol.name}"
+                ),
+            )
+            lines += self.__collect(
+                key,
+                self.lines,
+                lambda line: (
+                    f"{''.ljust(self.code_indent, self.indent_char)}{line}"
+                ),
+            )
 
         return lines
