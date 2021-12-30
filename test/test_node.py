@@ -7,9 +7,9 @@ from core.node import Node
 from core.reader import read_i8_le, read_i16_le
 
 
-class TestComparator(unittest.TestCase):
+class TestNode(unittest.TestCase):
     def test_it_should_parse_1_byte_instruction(self) -> None:
-        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda i, ctx: "nop")
+        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda ctx, i: "nop")
 
         result = node.parse(Context(), Binary(bytes([0xEA])))
 
@@ -19,7 +19,7 @@ class TestComparator(unittest.TestCase):
             self.assertEqual(result[1], 1)
 
     def test_it_should_not_parse_1_byte_instruction(self) -> None:
-        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda i, ctx: "nop")
+        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda ctx, i: "nop")
 
         result = node.parse(Context(), Binary(bytes([0xEB])))
 
@@ -30,13 +30,13 @@ class TestComparator(unittest.TestCase):
             read_i8_le,
             [],
             lambda i: i == 0x09,
-            lambda i, ctx: "ora ",
+            lambda ctx, i: "ora ",
             [
                 Node(
                     read_i8_le,
                     [],
                     always_true,
-                    lambda i, ctx: f"#${hex(i)[2:]}",
+                    lambda ctx, i: f"#${hex(i)[2:]}",
                 )
             ],
         )
@@ -55,13 +55,13 @@ class TestComparator(unittest.TestCase):
             read_i8_le,
             [],
             lambda i: i == 0x09,
-            lambda i, ctx: "ora ",
+            lambda ctx, i: "ora ",
             [
                 Node(
                     read_i8_le,
                     [],
                     always_true,
-                    lambda i, ctx: f"#${hex(i)[2:]}",
+                    lambda ctx, i: f"#${hex(i)[2:]}",
                 )
             ],
         )
@@ -77,13 +77,13 @@ class TestComparator(unittest.TestCase):
             read_i8_le,
             [],
             lambda i: i == 0x19,
-            lambda i, ctx: "ora ",
+            lambda ctx, i: "ora ",
             [
                 Node(
                     read_i16_le,
                     [],
                     always_true,
-                    lambda i, ctx: f"#${hex(i)[2:]}",
+                    lambda ctx, i: f"#${hex(i)[2:]}",
                 )
             ],
         )

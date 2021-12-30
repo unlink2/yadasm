@@ -65,7 +65,7 @@ class Node:
             return None
 
         for modifier in self.modifiers:
-            data = modifier(data)
+            data = modifier(ctx, data)
 
         if self.comparator(data):
             file.advance(size)
@@ -74,7 +74,7 @@ class Node:
                 file,
                 prefix=(
                     f"{self.prefix}{prefix}"
-                    f"{self.response(data, ctx)}{postfix}{self.postfix}"
+                    f"{self.response(ctx, data)}{postfix}{self.postfix}"
                 ),
                 postfix="",
                 size=size,

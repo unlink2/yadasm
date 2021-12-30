@@ -6,4 +6,4 @@ into a string
 from typing import Any, Callable
 from .context import Context
 
-Response = Callable[[Any, Context], str]
+Response = Callable[[Context, Any], str]
