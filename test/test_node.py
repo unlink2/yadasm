@@ -9,7 +9,9 @@ from core.reader import read_i8_le, read_i16_le
 
 class TestNode(unittest.TestCase):
     def test_it_should_parse_1_byte_instruction(self) -> None:
-        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda ctx, i: "nop")
+        node = Node(
+            read_i8_le, [], lambda ctx, i: i == 0xEA, lambda ctx, i: "nop"
+        )
 
         result = node.parse(Context(), Binary(bytes([0xEA])))
 
@@ -19,7 +21,9 @@ class TestNode(unittest.TestCase):
             self.assertEqual(result[1], 1)
 
     def test_it_should_not_parse_1_byte_instruction(self) -> None:
-        node = Node(read_i8_le, [], lambda i: i == 0xEA, lambda ctx, i: "nop")
+        node = Node(
+            read_i8_le, [], lambda ctx, i: i == 0xEA, lambda ctx, i: "nop"
+        )
 
         result = node.parse(Context(), Binary(bytes([0xEB])))
 
@@ -29,7 +33,7 @@ class TestNode(unittest.TestCase):
         node = Node(
             read_i8_le,
             [],
-            lambda i: i == 0x09,
+            lambda ctx, i: i == 0x09,
             lambda ctx, i: "ora ",
             [
                 Node(
@@ -54,7 +58,7 @@ class TestNode(unittest.TestCase):
         node = Node(
             read_i8_le,
             [],
-            lambda i: i == 0x09,
+            lambda ctx, i: i == 0x09,
             lambda ctx, i: "ora ",
             [
                 Node(
@@ -76,7 +80,7 @@ class TestNode(unittest.TestCase):
         node = Node(
             read_i8_le,
             [],
-            lambda i: i == 0x19,
+            lambda ctx, i: i == 0x19,
             lambda ctx, i: "ora ",
             [
                 Node(
@@ -96,3 +100,18 @@ class TestNode(unittest.TestCase):
         if result is not None:
             self.assertEqual(result[0], "ora #$fb")
             self.assertEqual(result[1], 3)
+
+    def test_it_should_apply_modifiers(self) -> None:
+        node = Node(
+            read_i8_le,
+            [lambda ctx, i: i + 1, lambda ctx, i: i + 1],
+            lambda ctx, i: i == 0xEA,
+            lambda ctx, i: "nop",
+        )
+
+        result = node.parse(Context(), Binary(bytes([0xE8])))
+
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(result[0], "nop")
+            self.assertEqual(result[1], 1)

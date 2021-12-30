@@ -67,7 +67,7 @@ class Node:
         for modifier in self.modifiers:
             data = modifier(ctx, data)
 
-        if self.comparator(data):
+        if self.comparator(ctx, data):
             file.advance(size)
             res = self.__parse_children(
                 ctx,
