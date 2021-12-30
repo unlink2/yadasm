@@ -3,7 +3,7 @@ import unittest
 from core.arch.arch6502 import arch6502
 from core.context import Context
 from core.file import Binary
-from core.parser import Parser
+from core.parser import Parser, ParsersExhaustedException
 
 
 class TestParser(unittest.TestCase):
@@ -50,3 +50,37 @@ class TestParser(unittest.TestCase):
                     "    sta $0202",
                 ],
             )
+
+    def test_it_should_fail_when_all_nodes_are_exhausted(self) -> None:
+        parser = Parser(arch6502)
+        ctx = Context(0x600)
+        self.assertRaises(
+            ParsersExhaustedException,
+            lambda: parser.parse(
+                ctx,
+                Binary(
+                    bytes(
+                        [
+                            0xA9,
+                            0x01,
+                            0x8D,
+                            0x00,
+                            0x02,
+                            0xA9,
+                            0x05,
+                            0x8D,
+                            0x01,
+                            0x02,
+                            0xA9,
+                            0x08,
+                            0xFF,
+                            0x02,
+                            0x02,
+                        ]
+                    )
+                ),
+            ),
+        )
+
+        # data was 15 bytes long, but the error was raised after 12!
+        self.assertEqual(ctx.address, 0x60C)

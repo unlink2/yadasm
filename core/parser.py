@@ -19,7 +19,7 @@ class Parser:
                     break
 
             if parsed is None:
-                raise ParserNotFoundException(ctx, file, self)
+                raise ParsersExhaustedException(ctx, file, self)
             else:
                 ctx.add_line(parsed[0])
                 ctx.advance(parsed[1])
@@ -27,7 +27,7 @@ class Parser:
         return ctx.collect()
 
 
-class ParserNotFoundException(Exception):
+class ParsersExhaustedException(Exception):
     def __init__(
         self,
         ctx: Context,
