@@ -72,7 +72,10 @@ class Node:
             res = self.__parse_children(
                 ctx,
                 file,
-                prefix=f"{self.prefix}{prefix}{self.response(data, ctx)}{postfix}{self.postfix}",
+                prefix=(
+                    f"{self.prefix}{prefix}"
+                    f"{self.response(data, ctx)}{postfix}{self.postfix}"
+                ),
                 postfix="",
                 size=size,
             )

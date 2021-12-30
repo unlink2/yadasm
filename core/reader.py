@@ -23,3 +23,7 @@ def read_int_generic(
 
 def read_i8_le(file: Binary) -> Optional[Tuple[Any, int]]:
     return read_int_generic(file, 1, Endianess.LITTLE)
+
+
+def read_i16_le(file: Binary) -> Optional[Tuple[Any, int]]:
+    return read_int_generic(file, 2, Endianess.LITTLE)
