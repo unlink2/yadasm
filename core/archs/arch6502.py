@@ -6,6 +6,7 @@ from ..context import Context
 from ..node import Node
 from ..numfmt import IntFmt
 from ..reader import read_i8_le, read_i16_le, read_none
+from ..parser import Parser
 
 
 class InstructionModes(Enum):
@@ -17,6 +18,28 @@ class InstructionModes(Enum):
     ABSOLUTEY = 5
     INDIRECTX = 6
     INDIRECTY = 7
+
+
+class Parser6502(Parser):
+    def __init__(self) -> None:
+        nodes: List[Node] = (
+            _make_instruction(
+                "lda",
+                {
+                    InstructionModes.IMMEDIATE: 0xA9,
+                    InstructionModes.ZEROPAGE: 0xA5,
+                    InstructionModes.ZEROPAGEX: 0xB5,
+                    InstructionModes.ABSOLUTE: 0xAD,
+                    InstructionModes.ABSOLUTEX: 0xBD,
+                    InstructionModes.ABSOLUTEY: 0xB9,
+                    InstructionModes.INDIRECTX: 0xA1,
+                    InstructionModes.INDIRECTY: 0xB1,
+                },
+            )
+            + _make_instruction("sta", {InstructionModes.ABSOLUTE: 0x8D})
+        )
+
+        Parser.__init__(self, nodes)
 
 
 def _get_prefix(mode: IntFmt) -> str:
@@ -164,21 +187,3 @@ def _make_instruction(
             )
 
     return nodes
-
-
-arch6502: List[Node] = (
-    _make_instruction(
-        "lda",
-        {
-            InstructionModes.IMMEDIATE: 0xA9,
-            InstructionModes.ZEROPAGE: 0xA5,
-            InstructionModes.ZEROPAGEX: 0xB5,
-            InstructionModes.ABSOLUTE: 0xAD,
-            InstructionModes.ABSOLUTEX: 0xBD,
-            InstructionModes.ABSOLUTEY: 0xB9,
-            InstructionModes.INDIRECTX: 0xA1,
-            InstructionModes.INDIRECTY: 0xB1,
-        },
-    )
-    + _make_instruction("sta", {InstructionModes.ABSOLUTE: 0x8D})
-)
