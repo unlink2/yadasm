@@ -37,7 +37,7 @@ class Node:
     ) -> Optional[Tuple[str, int]]:
         result = f"{prefix}{postfix}"
         for child in self.children:
-            next_res = child.parse(ctx, file, prefix, postfix)
+            next_res = child.parse(ctx, file, result, postfix)
             if next_res is None:
                 return None
             else:

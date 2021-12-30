@@ -19,6 +19,18 @@ class IntFmt(Enum):
     OCTAL = 2
     HEX = 3
 
+    def to_literal(
+        self,
+    ) -> Literal["x"] | Literal["b"] | Literal["o"] | Literal[""]:
+        if self == IntFmt.BINARY:
+            return "b"
+        elif self == IntFmt.OCTAL:
+            return "o"
+        elif self == IntFmt.HEX:
+            return "x"
+        else:
+            return ""
+
 
 class FloatFmt(Enum):
     FULL = 0
