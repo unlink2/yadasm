@@ -1,11 +1,12 @@
+import ctypes
 from enum import Enum
-from typing import Callable, Dict, List, Any
+from typing import Any, Callable, Dict, List
 
 from ..comparator import always_true
-from ..operation import grab_label, rel_i8_to_addr
 from ..context import Context
 from ..node import Node
 from ..numfmt import IntFmt
+from ..operation import grab_label
 from ..parser import Parser
 from ..reader import read_i8_le, read_i16_le, read_none
 
@@ -15,8 +16,14 @@ from ..reader import read_i8_le, read_i16_le, read_none
 # bbb bits determine addressing mode;
 
 
+def rel_i8_to_addr(ctx: Context, i: Any) -> int:
+    """converts a python int to a relative 8 bit value"""
+    return ctx.address + int(ctypes.c_int8(i).value) + 2
+
+
 def grab_label_i8_rel(ctx: Context, i: Any) -> Any:
-    return grab_label(ctx, i + 2)
+    addr = rel_i8_to_addr(ctx, i)
+    return grab_label(ctx, addr)
 
 
 class InstructionModes(Enum):
@@ -139,7 +146,7 @@ class Parser6502(Parser):
             read_i8_le,
             [grab_label_i8_rel],
             always_true,
-            lambda ctx, i: f"label_{hex(rel_i8_to_addr(ctx, i))[2:]}",
+            lambda ctx, i: f"label_{hex(i)[2:]}",
             [],
         )
 

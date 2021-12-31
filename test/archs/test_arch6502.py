@@ -141,7 +141,6 @@ class TestArch6502(unittest.TestCase):
 
         self.assertEqual(ctx.address, 1550)
         self.assertNotEqual(result, None)
-        print(result)
         if result is not None:
             self.assertEqual(
                 result,
