@@ -91,7 +91,8 @@ disable=raw-checker-failed,
         too-many-arguments,
         no-self-use,
         no-else-return,
-        no-else-raise
+        no-else-raise,
+        too-many-return-statements
 
 
 # Enable the message, report, category or checker with the given id(s). You can
