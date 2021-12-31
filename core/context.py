@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 class Symbol:
@@ -27,8 +27,10 @@ class Context:
         symbol_indent: int = 0,
         indent_char: str = " ",
         symbol_poxtfix: str = "",
+        end_address: Optional[int] = None,
     ):
         self.address = address
+        self.end_address = end_address
         self.start_address = address
         # buffer for all addresses in symbols and keys
         self.all_addresses: List[int] = []
@@ -38,6 +40,11 @@ class Context:
         self.symbol_indent = symbol_indent
         self.indent_char = indent_char
         self.symbol_postfix = symbol_poxtfix
+
+    def is_in_address_range(self, addr: int) -> bool:
+        return self.start_address <= addr and (
+            self.end_address is None or self.end_address >= addr
+        )
 
     def add_symbol(self, symbol: Symbol) -> None:
         """Add a label for a certain address"""

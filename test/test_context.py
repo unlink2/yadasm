@@ -66,3 +66,14 @@ class TestContext(unittest.TestCase):
                 "    line3",
             ],
         )
+
+    def test_is_int_address_range(self) -> None:
+        ctx = Context(address=100, end_address=150)
+
+        self.assertTrue(ctx.is_in_address_range(150))
+        self.assertTrue(ctx.is_in_address_range(100))
+        self.assertTrue(ctx.is_in_address_range(110))
+        self.assertFalse(ctx.is_in_address_range(99))
+        self.assertFalse(ctx.is_in_address_range(2))
+        self.assertFalse(ctx.is_in_address_range(151))
+        self.assertFalse(ctx.is_in_address_range(251))

@@ -61,7 +61,7 @@ class InstructionModes(Enum):
         elif self == self.IMPLIED:
             return self._apply(0x00)
         elif self == self.RELATIVE:
-            return self._apply(0x10)
+            return self._apply(0x00)
         else:
             return 0x00
 
@@ -88,11 +88,17 @@ class Parser6502(Parser):
                 "asl", self._make_logic(self._opcode(0x1E))
             )
             + self._make_instruction("bit", self._make_bit(self._opcode(0x24)))
+            + self._make_instruction("bpl", self._make_branch(0x10))
+            + self._make_instruction("bmi", self._make_branch(0x30))
+            + self._make_instruction("bvc", self._make_branch(0x50))
+            + self._make_instruction("bvs", self._make_branch(0x70))
+            + self._make_instruction("bcc", self._make_branch(0x90))
+            + self._make_instruction("bcs", self._make_branch(0xB0))
+            + self._make_instruction("bne", self._make_branch(0xD0))
+            + self._make_instruction("beq", self._make_branch(0xF0))
+            + self._make_instruction("brk", self._make_implied(0x00))
             + self._make_instruction(
-                "bpl", self._make_branch(self._opcode(0x10))
-            )
-            + self._make_instruction(
-                "brk", self._make_implied(self._opcode(0x00))
+                "cmp", self._make_load(self._opcode(0xC9))
             )
         )
 
