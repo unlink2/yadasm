@@ -211,3 +211,24 @@ class TestArch6502(unittest.TestCase):
                     "    dec $4400, x",
                 ],
             )
+
+    def test_it_should_parse_jmp(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x4C, 0x20, 0x54, 0x6C, 0x20, 0x54])),
+        )
+
+        self.assertEqual(ctx.address, 1542)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    jmp label_5420",
+                    "    jmp (label_5420)",
+                    "label_5420",
+                ],
+            )

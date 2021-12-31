@@ -21,6 +21,10 @@ def grab_label_i8_rel(ctx: Context, i: Any) -> Any:
     return grab_label(ctx, addr)
 
 
+class InstructionModeException(Exception):
+    pass
+
+
 class InstructionMode(Enum):
     IMMEDIATE = 1
     ZEROPAGE = 2
@@ -33,6 +37,8 @@ class InstructionMode(Enum):
     ACCUMULATOR = 9
     IMPLIED = 10
     RELATIVE = 11
+    ABSOLUTE_JMP = 12
+    INDIRECT_JMP = 13
 
     def mask(self, opcode: int) -> int:
         """returns the mask used to create the final instruction"""
@@ -50,12 +56,17 @@ class InstructionMode(Enum):
             return self._apply(0xE0)
         elif self == self.ZEROPAGE:
             return self._apply(0xE4)
-        elif self == self.ABSOLUTE:
+        elif self in (self.ABSOLUTE, self.ABSOLUTE_JMP):
             return self._apply(0xEC)
         elif self == self.RELATIVE:
             return self._apply(0x10)
+        elif self == self.INDIRECT_JMP:
+            # jmp indirect breaks the rules!
+            return 0x6C
+        elif self == self.IMPLIED:
+            return self._apply(0x00)
         else:
-            return 0
+            raise InstructionModeException()
 
     def mask_cc10(self) -> int:
         if self == self.IMMEDIATE:
@@ -67,7 +78,7 @@ class InstructionMode(Enum):
         elif self == self.ABSOLUTEY:
             return self._apply(0xBE)
         else:
-            return 0
+            raise InstructionModeException()
 
     def mask_cc01(self) -> int:
         if self == self.IMMEDIATE:
@@ -194,6 +205,9 @@ class Parser6502(Parser):
                 "sed", self._make_implied(self._opcode(0xF8))
             )
             + self._make_instruction("inc", self._make_dec(self._opcode(0xE6)))
+            + self._make_instruction(
+                "jmp", self._make_jump(self._opcode(0x4C))
+            )
         )
 
         Parser.__init__(self, nodes)
@@ -245,6 +259,15 @@ class Parser6502(Parser):
         return Node(
             read_i8_le,
             [grab_label_i8_rel],
+            always_true,
+            lambda ctx, i: f"label_{hex(i)[2:]}",
+            [],
+        )
+
+    def _read_i16_abs_label_node(self) -> Node:
+        return Node(
+            read_i16_le,
+            [grab_label],
             always_true,
             lambda ctx, i: f"label_{hex(i)[2:]}",
             [],
@@ -338,6 +361,15 @@ class Parser6502(Parser):
             | InstructionMode.ABSOLUTEX.mask(mask),
         }
 
+    def _make_jump(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.ABSOLUTE_JMP: mask
+            | InstructionMode.ABSOLUTE_JMP.mask(mask),
+            InstructionMode.INDIRECT_JMP: InstructionMode.INDIRECT_JMP.mask(
+                mask
+            ),
+        }
+
     # helper to create instruction nodes for the most common
     # instruction modes
     def _make_instruction(
@@ -346,123 +378,169 @@ class Parser6502(Parser):
         nodes: List[Node] = []
 
         for mode, opcode in modes.items():
-            if mode == InstructionMode.IMPLIED:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name}",
-                        [],
-                    )
+            nodes += self._make_instruction_immediate(name, mode, opcode)
+            nodes += self._make_instruction_absolute(name, mode, opcode)
+            nodes += self._make_instruction_indirect(name, mode, opcode)
+
+        return nodes
+
+    def _make_instruction_immediate(
+        self, name: str, mode: InstructionMode, opcode: int
+    ) -> List[Node]:
+        nodes = []
+        if mode == InstructionMode.IMPLIED:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name}",
+                    [],
                 )
-            elif mode == InstructionMode.RELATIVE:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i8_rel_label_node()],
-                    )
+            )
+        elif mode == InstructionMode.RELATIVE:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i8_rel_label_node()],
                 )
-            elif mode == InstructionMode.ACCUMULATOR:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} A",
-                        [],
-                    )
+            )
+        elif mode == InstructionMode.ACCUMULATOR:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} A",
+                    [],
                 )
-            elif mode == InstructionMode.IMMEDIATE:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i8_hex_node("#")],
-                    )
+            )
+        elif mode == InstructionMode.IMMEDIATE:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i8_hex_node("#")],
                 )
-            elif mode == InstructionMode.ZEROPAGE:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i8_hex_node()],
-                    )
+            )
+        elif mode == InstructionMode.ZEROPAGE:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i8_hex_node()],
                 )
-            elif mode == InstructionMode.ZEROPAGEX:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i8_hex_node(), self._append_str(", x")],
-                    )
+            )
+        elif mode == InstructionMode.ZEROPAGEX:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i8_hex_node(), self._append_str(", x")],
                 )
-            elif mode == InstructionMode.ABSOLUTE:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i16_hex_node()],
-                    )
+            )
+        return nodes
+
+    def _make_instruction_absolute(
+        self, name: str, mode: InstructionMode, opcode: int
+    ) -> List[Node]:
+        nodes = []
+        if mode == InstructionMode.ABSOLUTE:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i16_hex_node()],
                 )
-            elif mode == InstructionMode.ABSOLUTEX:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i16_hex_node(), self._append_str(", x")],
-                    )
+            )
+        elif mode == InstructionMode.ABSOLUTE_JMP:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i16_abs_label_node()],
                 )
-            elif mode == InstructionMode.ABSOLUTEY:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [self._read_i16_hex_node(), self._append_str(", y")],
-                    )
+            )
+        elif mode == InstructionMode.ABSOLUTEX:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i16_hex_node(), self._append_str(", x")],
                 )
-            elif mode == InstructionMode.INDIRECTX:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [
-                            self._append_str("("),
-                            self._read_i8_hex_node(),
-                            self._append_str(", x)"),
-                        ],
-                    )
+            )
+        elif mode == InstructionMode.ABSOLUTEY:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i16_hex_node(), self._append_str(", y")],
                 )
-            elif mode == InstructionMode.INDIRECTY:
-                nodes.append(
-                    Node(
-                        read_i8_le,
-                        [],
-                        self._make_comparator(opcode),
-                        lambda ctx, i: f"{name} ",
-                        [
-                            self._append_str("("),
-                            self._read_i8_hex_node(),
-                            self._append_str("), y"),
-                        ],
-                    )
+            )
+        return nodes
+
+    def _make_instruction_indirect(
+        self, name: str, mode: InstructionMode, opcode: int
+    ) -> List[Node]:
+        nodes = []
+        if mode == InstructionMode.INDIRECTX:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [
+                        self._append_str("("),
+                        self._read_i8_hex_node(),
+                        self._append_str(", x)"),
+                    ],
                 )
+            )
+        elif mode == InstructionMode.INDIRECTY:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [
+                        self._append_str("("),
+                        self._read_i8_hex_node(),
+                        self._append_str("), y"),
+                    ],
+                )
+            )
+        elif mode == InstructionMode.INDIRECT_JMP:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [
+                        self._append_str("("),
+                        self._read_i16_abs_label_node(),
+                        self._append_str(")"),
+                    ],
+                )
+            )
 
         return nodes

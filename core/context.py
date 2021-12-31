@@ -51,7 +51,7 @@ class Context:
         self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
-        else:
+        elif symbol not in self.symbols[symbol.address]:
             self.symbols[symbol.address].append(symbol)
 
     def add_line(self, line: str) -> None:
