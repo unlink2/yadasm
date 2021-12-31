@@ -111,3 +111,53 @@ class TestArch6502(unittest.TestCase):
                     "    bit $4400",
                 ],
             )
+
+    def test_it_should_parse_branch(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x10,
+                        0xFB,
+                        0x10,
+                        0xFA,
+                        0x10,
+                        0x03,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x10,
+                        0xE0,
+                    ]
+                )
+            ),
+        )
+
+        self.assertEqual(ctx.address, 1550)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "label_600",
+                    "    brk",
+                    "label_601",
+                    "    brk",
+                    "    brk",
+                    "    bpl label_600",
+                    "    bpl label_601",
+                    "    bpl label_60c",
+                    "    brk",
+                    "    brk",
+                    "    brk",
+                    "label_60c",
+                    "    bpl label_5ee",
+                ],
+            )

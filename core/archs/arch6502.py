@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Any
 
 from ..comparator import always_true
+from ..operation import grab_label, rel_i8_to_addr
 from ..context import Context
 from ..node import Node
 from ..numfmt import IntFmt
@@ -12,6 +13,10 @@ from ..reader import read_i8_le, read_i16_le, read_none
 # aaabbbcc;
 # aaa and cc bits determine opcode;
 # bbb bits determine addressing mode;
+
+
+def grab_label_i8_rel(ctx: Context, i: Any) -> Any:
+    return grab_label(ctx, i + 2)
 
 
 class InstructionModes(Enum):
@@ -49,7 +54,7 @@ class InstructionModes(Enum):
         elif self == self.IMPLIED:
             return self._apply(0x00)
         elif self == self.RELATIVE:
-            return self._apply(0x00)
+            return self._apply(0x10)
         else:
             return 0x00
 
@@ -80,7 +85,7 @@ class Parser6502(Parser):
                 "bpl", self._make_branch(self._opcode(0x10))
             )
             + self._make_instruction(
-                "bmi", self._make_branch(self._opcode(0x10))
+                "brk", self._make_implied(self._opcode(0x00))
             )
         )
 
@@ -127,6 +132,15 @@ class Parser6502(Parser):
             always_true,
             lambda ctx, i: f"{prefix}{self._get_prefix(mode)}"
             f"{i:0{padding}{mode.to_literal()}}",
+        )
+
+    def _read_i8_rel_label_node(self) -> Node:
+        return Node(
+            read_i8_le,
+            [grab_label_i8_rel],
+            always_true,
+            lambda ctx, i: f"label_{hex(rel_i8_to_addr(ctx, i))[2:]}",
+            [],
         )
 
     def _append_str(self, value: str = "") -> Node:
@@ -183,6 +197,11 @@ class Parser6502(Parser):
             InstructionModes.RELATIVE: mask | InstructionModes.RELATIVE.mask()
         }
 
+    def _make_implied(self, mask: int) -> Dict[InstructionModes, int]:
+        return {
+            InstructionModes.IMPLIED: mask | InstructionModes.IMPLIED.mask()
+        }
+
     # helper to create instruction nodes for the most common
     # instruction modes
     def _make_instruction(
@@ -191,8 +210,7 @@ class Parser6502(Parser):
         nodes: List[Node] = []
 
         for mode, opcode in modes.items():
-            if mode == InstructionModes.RELATIVE:
-                # TODO incomplete implementation
+            if mode == InstructionModes.IMPLIED:
                 nodes.append(
                     Node(
                         read_i8_le,
@@ -200,6 +218,16 @@ class Parser6502(Parser):
                         self._make_comparator(opcode),
                         lambda ctx, i: f"{name}",
                         [],
+                    )
+                )
+            elif mode == InstructionModes.RELATIVE:
+                nodes.append(
+                    Node(
+                        read_i8_le,
+                        [],
+                        self._make_comparator(opcode),
+                        lambda ctx, i: f"{name} ",
+                        [self._read_i8_rel_label_node()],
                     )
                 )
             elif mode == InstructionModes.ACCUMULATOR:

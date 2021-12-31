@@ -26,8 +26,10 @@ class Context:
         code_indent: int = 4,
         symbol_indent: int = 0,
         indent_char: str = " ",
+        symbol_poxtfix: str = "",
     ):
         self.address = address
+        self.start_address = address
         # buffer for all addresses in symbols and keys
         self.all_addresses: List[int] = []
         self.symbols: Dict[int, List[Symbol]] = {}
@@ -35,6 +37,7 @@ class Context:
         self.code_indent = code_indent
         self.symbol_indent = symbol_indent
         self.indent_char = indent_char
+        self.symbol_postfix = symbol_poxtfix
 
     def add_symbol(self, symbol: Symbol) -> None:
         """Add a label for a certain address"""
@@ -85,6 +88,7 @@ class Context:
                 lambda symbol: (
                     f"{''.ljust(self.symbol_indent, self.indent_char)}"
                     f"{symbol.name}"
+                    f"{self.symbol_postfix}"
                 ),
             )
             lines += self.__collect(
