@@ -24,6 +24,8 @@ class InstructionModes(Enum):
     INDIRECTX = 7
     INDIRECTY = 8
     ACCUMULATOR = 9
+    IMPLIED = 10
+    RELATIVE = 11
 
     def mask(self) -> int:
         if self == self.IMMEDIATE:
@@ -44,6 +46,10 @@ class InstructionModes(Enum):
             return self._apply(0x71)
         elif self == self.ACCUMULATOR:
             return self._apply(0x0A)
+        elif self == self.IMPLIED:
+            return self._apply(0x00)
+        elif self == self.RELATIVE:
+            return self._apply(0x00)
         else:
             return 0x00
 
@@ -68,6 +74,13 @@ class Parser6502(Parser):
             )
             + self._make_instruction(
                 "asl", self._make_logic(self._opcode(0x1E))
+            )
+            + self._make_instruction("bit", self._make_bit(self._opcode(0x24)))
+            + self._make_instruction(
+                "bpl", self._make_branch(self._opcode(0x10))
+            )
+            + self._make_instruction(
+                "bmi", self._make_branch(self._opcode(0x10))
             )
         )
 
@@ -159,6 +172,17 @@ class Parser6502(Parser):
             | InstructionModes.ABSOLUTEX.mask(),
         }
 
+    def _make_bit(self, mask: int) -> Dict[InstructionModes, int]:
+        return {
+            InstructionModes.ZEROPAGE: mask | InstructionModes.ZEROPAGE.mask(),
+            InstructionModes.ABSOLUTE: mask | InstructionModes.ABSOLUTE.mask(),
+        }
+
+    def _make_branch(self, mask: int) -> Dict[InstructionModes, int]:
+        return {
+            InstructionModes.RELATIVE: mask | InstructionModes.RELATIVE.mask()
+        }
+
     # helper to create instruction nodes for the most common
     # instruction modes
     def _make_instruction(
@@ -167,7 +191,18 @@ class Parser6502(Parser):
         nodes: List[Node] = []
 
         for mode, opcode in modes.items():
-            if mode == InstructionModes.ACCUMULATOR:
+            if mode == InstructionModes.RELATIVE:
+                # TODO incomplete implementation
+                nodes.append(
+                    Node(
+                        read_i8_le,
+                        [],
+                        self._make_comparator(opcode),
+                        lambda ctx, i: f"{name}",
+                        [],
+                    )
+                )
+            elif mode == InstructionModes.ACCUMULATOR:
                 nodes.append(
                     Node(
                         read_i8_le,

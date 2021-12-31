@@ -92,3 +92,22 @@ class TestArch6502(unittest.TestCase):
                     "    asl $4400, x",
                 ],
             )
+
+    def test_it_should_parse_bit(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x24, 0x44, 0x2C, 0x00, 0x44])),
+        )
+
+        self.assertEqual(ctx.address, 1541)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    bit $44",
+                    "    bit $4400",
+                ],
+            )
