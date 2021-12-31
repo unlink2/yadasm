@@ -160,3 +160,54 @@ class TestArch6502(unittest.TestCase):
                     "    bpl label_5ee",
                 ],
             )
+
+    def test_it_should_parse_compare_index(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xE0, 0x44, 0xE4, 0x44, 0xEC, 0x00, 0x44])),
+        )
+
+        self.assertEqual(ctx.address, 1543)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result, ["    cpx #$44", "    cpx $44", "    cpx $4400"]
+            )
+
+    def test_it_should_parse_dec(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0xC6,
+                        0x44,
+                        0xD6,
+                        0x44,
+                        0xCE,
+                        0x00,
+                        0x44,
+                        0xDE,
+                        0x00,
+                        0x44,
+                    ]
+                )
+            ),
+        )
+
+        self.assertEqual(ctx.address, 1546)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    dec $44",
+                    "    dec $44, x",
+                    "    dec $4400",
+                    "    dec $4400, x",
+                ],
+            )
