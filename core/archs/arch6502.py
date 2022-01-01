@@ -133,7 +133,7 @@ class InstructionMode(Enum):
 
 
 class Parser6502(Parser):
-    def __init__(self) -> None:
+    def __init__(self, nodes: List[Node] = None) -> None:
         # the opcode that is passed in is usually the aaaa and cc bits
         # apart from a few exceptions that is ored with the apropriate bbb bits
         # to make a full opcode.
@@ -148,7 +148,9 @@ class Parser6502(Parser):
         # aaa and cc bits determine opcode;
         # bbb bits determine addressing mode;
         # cc bits change addressing mode bits;
-        nodes: List[Node] = (
+        if nodes is None:
+            nodes = []
+        nodes += (
             self._make_instruction("adc", self._make_load(self._opcode(0x69)))
             + self._make_instruction(
                 "and", self._make_load(self._opcode(0x29))
@@ -652,3 +654,12 @@ class Parser6502(Parser):
             )
 
         return nodes
+
+
+class Parser6502Bytes(Parser6502):
+    """A 6502 parser that defaults to parsing unknown opcodes as bytes"""
+
+    def __init__(self, nodes: List[Node] = None):
+        Parser6502.__init__(self, nodes)
+
+        self.nodes.append(self._read_i8_hex_node("!byte "))

@@ -1,6 +1,6 @@
 import unittest
 
-from core.archs.arch6502 import Parser6502
+from core.archs.arch6502 import Parser6502, Parser6502Bytes
 from core.context import Context
 from core.file import Binary
 
@@ -360,3 +360,17 @@ class TestArch6502(unittest.TestCase):
             self.assertEqual(
                 result, ["    sty $44", "    sty $44, x", "    sty $4455"]
             )
+
+    def test_it_should_parse_default(self) -> None:
+        parser = Parser6502Bytes()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xFF])),
+        )
+
+        self.assertEqual(ctx.address, 1537)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(result, ["    !byte $ff"])
