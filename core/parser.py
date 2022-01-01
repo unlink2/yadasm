@@ -1,6 +1,6 @@
 from typing import List
 
-from .context import Context
+from .context import Context, Line
 from .file import Binary
 from .node import Node
 
@@ -21,7 +21,7 @@ class Parser:
             if parsed is None:
                 raise ParsersExhaustedException(ctx, file, self)
             else:
-                ctx.add_line(parsed[0])
+                ctx.add_line(Line(parsed[0]))
                 ctx.advance(parsed[1])
 
         return ctx.collect()

@@ -1,6 +1,6 @@
 import unittest
 
-from core.context import Context, Symbol
+from core.context import Context, Symbol, Line
 
 
 class TestContext(unittest.TestCase):
@@ -27,10 +27,10 @@ class TestContext(unittest.TestCase):
 
     def test_it_should_add_lines(self) -> None:
         ctx = Context()
-        ctx.add_line("line1")
+        ctx.add_line(Line("line1"))
         ctx.advance(2)
-        ctx.add_line("line2.0")
-        ctx.add_line("line2.1")
+        ctx.add_line(Line("line2.0"))
+        ctx.add_line(Line("line2.1"))
 
         self.assertEqual(len(ctx.lines.keys()), 2)
         self.assertNotEqual(ctx.lines[0], None)
@@ -39,20 +39,20 @@ class TestContext(unittest.TestCase):
         self.assertEqual(len(ctx.lines[0]), 1)
         self.assertEqual(len(ctx.lines[2]), 2)
 
-        self.assertEqual(ctx.lines[0], ["line1"])
-        self.assertEqual(ctx.lines[2], ["line2.0", "line2.1"])
+        self.assertEqual(ctx.lines[0], [Line("line1")])
+        self.assertEqual(ctx.lines[2], [Line("line2.0"), Line("line2.1")])
 
     def test_it_should_collect_lines(self) -> None:
         ctx = Context()
         ctx.add_symbol(Symbol(0, "begin:"))
-        ctx.add_line("line1")
+        ctx.add_line(Line("line1"))
         ctx.advance(2)
         ctx.add_symbol(Symbol(1, "middle:"))
-        ctx.add_line("line2.0")
-        ctx.add_line("line2.1")
+        ctx.add_line(Line("line2.0"))
+        ctx.add_line(Line("line2.1"))
         ctx.add_symbol(Symbol(3, "end:"))
         ctx.advance(2)
-        ctx.add_line("line3")
+        ctx.add_line(Line("line3"))
 
         self.assertEqual(
             ctx.collect(),

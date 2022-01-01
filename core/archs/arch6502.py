@@ -6,14 +6,21 @@ from ..comparator import always_true
 from ..context import Context
 from ..node import Node
 from ..numfmt import IntFmt
-from ..operation import grab_label
 from ..parser import Parser
 from ..reader import read_i8_le, read_i16_le, read_none
+from ..context import Symbol
 
 
 def rel_i8_to_addr(ctx: Context, i: Any) -> int:
     """converts a python int to a relative 8 bit value"""
     return ctx.address + int(ctypes.c_int8(i).value) + 2
+
+
+def grab_label(ctx: Context, i: Any) -> Any:
+    """Grab a label and add it as a symbol"""
+    if ctx.is_in_address_range(i):
+        ctx.add_symbol(Symbol(i, f"label_{hex(i)[2:]}"))
+    return i
 
 
 def grab_label_i8_rel(ctx: Context, i: Any) -> Any:

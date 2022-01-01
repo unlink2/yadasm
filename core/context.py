@@ -13,6 +13,37 @@ class Symbol:
             return False
 
 
+class Line:
+    def __init__(self, text: str):
+        self.text = text
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Line):
+            return other.text == self.text
+        else:
+            return False
+
+
+class Middleware:
+    """
+    A middleware is called whenever a line or symbol is added.
+    It has the ability to modify the recorded content dynamically.
+    Intended usecases:
+        - rename labels
+        - replace addresses with variable names
+    The middleware operates using simple string manipulation.
+    """
+
+    def on_collect(self, ctx: "Context", lines: List[str]) -> None:
+        pass
+
+    def on_symbol(self, ctx: "Context", symbol: Symbol) -> None:
+        pass
+
+    def on_line(self, ctx: "Context", line: Line) -> None:
+        pass
+
+
 class Context:
     """
     The context class is the global result object.
@@ -28,6 +59,7 @@ class Context:
         indent_char: str = " ",
         symbol_poxtfix: str = "",
         end_address: Optional[int] = None,
+        middlewares: List[Middleware] = None,
     ):
         self.address = address
         self.end_address = end_address
@@ -35,11 +67,12 @@ class Context:
         # buffer for all addresses in symbols and keys
         self.all_addresses: List[int] = []
         self.symbols: Dict[int, List[Symbol]] = {}
-        self.lines: Dict[int, List[str]] = {}
+        self.lines: Dict[int, List[Line]] = {}
         self.code_indent = code_indent
         self.symbol_indent = symbol_indent
         self.indent_char = indent_char
         self.symbol_postfix = symbol_poxtfix
+        self.middlewares = middlewares
 
     def is_in_address_range(self, addr: int) -> bool:
         return self.start_address <= addr and (
@@ -48,14 +81,20 @@ class Context:
 
     def add_symbol(self, symbol: Symbol) -> None:
         """Add a label for a certain address"""
+
+        self.emit_on_symbol(symbol)
+
         self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
         elif symbol not in self.symbols[symbol.address]:
             self.symbols[symbol.address].append(symbol)
 
-    def add_line(self, line: str) -> None:
+    def add_line(self, line: Line) -> None:
         """Add a line at the current address"""
+
+        self.emit_on_line(line)
+
         self.all_addresses.append(self.address)
         if self.address not in self.lines:
             self.lines[self.address] = [line]
@@ -88,6 +127,8 @@ class Context:
         all_keys = sorted(list(set(self.all_addresses)))
         lines: List[str] = []
 
+        self.emit_on_collect(lines)
+
         for key in all_keys:
             lines += self.__collect(
                 key,
@@ -102,8 +143,27 @@ class Context:
                 key,
                 self.lines,
                 lambda line: (
-                    f"{''.ljust(self.code_indent, self.indent_char)}{line}"
+                    f"{''.ljust(self.code_indent, self.indent_char)}"
+                    f"{line.text}"
                 ),
             )
 
         return lines
+
+    def emit_on_symbol(self, symbol: Symbol) -> None:
+        if self.middlewares is None:
+            return
+        for middleware in self.middlewares:
+            middleware.on_symbol(self, symbol)
+
+    def emit_on_line(self, line: Line) -> None:
+        if self.middlewares is None:
+            return
+        for middleware in self.middlewares:
+            middleware.on_line(self, line)
+
+    def emit_on_collect(self, lines: List[str]) -> None:
+        if self.middlewares is None:
+            return
+        for middleware in self.middlewares:
+            middleware.on_collect(self, lines)
