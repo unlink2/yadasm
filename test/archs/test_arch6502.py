@@ -328,3 +328,35 @@ class TestArch6502(unittest.TestCase):
                     "    ldy $4455, x",
                 ],
             )
+
+    def test_it_should_parse_stx(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x86, 0x44, 0x96, 0x44, 0x8E, 0x55, 0x44])),
+        )
+
+        self.assertEqual(ctx.address, 1543)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result, ["    stx $44", "    stx $44, y", "    stx $4455"]
+            )
+
+    def test_it_should_parse_sty(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x84, 0x44, 0x94, 0x44, 0x8C, 0x55, 0x44])),
+        )
+
+        self.assertEqual(ctx.address, 1543)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result, ["    sty $44", "    sty $44, x", "    sty $4455"]
+            )

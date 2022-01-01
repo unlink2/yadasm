@@ -149,10 +149,7 @@ class Parser6502(Parser):
         # bbb bits determine addressing mode;
         # cc bits change addressing mode bits;
         nodes: List[Node] = (
-            self._make_instruction("sta", self._make_store(self._opcode(0x85)))
-            + self._make_instruction(
-                "adc", self._make_load(self._opcode(0x69))
-            )
+            self._make_instruction("adc", self._make_load(self._opcode(0x69)))
             + self._make_instruction(
                 "and", self._make_load(self._opcode(0x29))
             )
@@ -217,6 +214,43 @@ class Parser6502(Parser):
             )
             + self._make_instruction("ldx", self._make_ldx(self._opcode(0xA2)))
             + self._make_instruction("ldy", self._make_ldy(self._opcode(0xA0)))
+            + self._make_instruction(
+                "lsr", self._make_logic(self._opcode(0x4A))
+            )
+            + self._make_instruction("nop", self._make_implied(0xEA))
+            + self._make_instruction(
+                "ora", self._make_load(self._opcode(0x09))
+            )
+            + self._make_instruction("tax", self._make_implied(0xAA))
+            + self._make_instruction("txa", self._make_implied(0x8A))
+            + self._make_instruction("dex", self._make_implied(0xCA))
+            + self._make_instruction("inx", self._make_implied(0xE8))
+            + self._make_instruction("tay", self._make_implied(0xA8))
+            + self._make_instruction("tya", self._make_implied(0x98))
+            + self._make_instruction("dey", self._make_implied(0x88))
+            + self._make_instruction("iny", self._make_implied(0xC8))
+            + self._make_instruction(
+                "rol", self._make_logic(self._opcode(0x2A))
+            )
+            + self._make_instruction(
+                "ror", self._make_logic(self._opcode(0x6A))
+            )
+            + self._make_instruction("rti", self._make_implied(0x40))
+            + self._make_instruction("rts", self._make_implied(0x60))
+            + self._make_instruction(
+                "sbc", self._make_load(self._opcode(0xE9))
+            )
+            + self._make_instruction(
+                "sta", self._make_store(self._opcode(0x85))
+            )
+            + self._make_instruction("txs", self._make_implied(0x9A))
+            + self._make_instruction("tsx", self._make_implied(0xBA))
+            + self._make_instruction("pha", self._make_implied(0x48))
+            + self._make_instruction("pla", self._make_implied(0x68))
+            + self._make_instruction("php", self._make_implied(0x08))
+            + self._make_instruction("plp", self._make_implied(0x28))
+            + self._make_instruction("stx", self._make_stx(self._opcode(0x86)))
+            + self._make_instruction("sty", self._make_sty(self._opcode(0x84)))
         )
 
         Parser.__init__(self, nodes)
@@ -412,6 +446,26 @@ class Parser6502(Parser):
             | InstructionMode.ABSOLUTE.mask(mask),
             InstructionMode.ABSOLUTEX: mask
             | InstructionMode.ABSOLUTEX.mask(mask),
+        }
+
+    def _make_stx(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.ZEROPAGE: mask
+            | InstructionMode.ZEROPAGE.mask(mask),
+            InstructionMode.ZEROPAGEY: mask
+            | InstructionMode.ZEROPAGEY.mask(mask),
+            InstructionMode.ABSOLUTE: mask
+            | InstructionMode.ABSOLUTE.mask(mask),
+        }
+
+    def _make_sty(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.ZEROPAGE: mask
+            | InstructionMode.ZEROPAGE.mask(mask),
+            InstructionMode.ZEROPAGEX: mask
+            | InstructionMode.ZEROPAGEX.mask(mask),
+            InstructionMode.ABSOLUTE: mask
+            | InstructionMode.ABSOLUTE.mask(mask),
         }
 
     # helper to create instruction nodes for the most common
