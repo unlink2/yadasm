@@ -34,7 +34,15 @@ class Middleware:
     The middleware operates using simple string manipulation.
     """
 
-    def on_collect(self, ctx: "Context", lines: List[str]) -> None:
+    def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
+        pass
+
+    def on_collect_line(
+        self, ctx: "Context", lines: List[str], line: str, line_num: int
+    ) -> None:
+        pass
+
+    def on_collect_end(self, ctx: "Context", lines: List[str]) -> None:
         pass
 
     def on_symbol(self, ctx: "Context", symbol: Symbol) -> None:
@@ -127,7 +135,7 @@ class Context:
         all_keys = sorted(list(set(self.all_addresses)))
         lines: List[str] = []
 
-        self.emit_on_collect(lines)
+        self.emit_on_collect_begin(lines)
 
         for key in all_keys:
             lines += self.__collect(
@@ -148,6 +156,8 @@ class Context:
                 ),
             )
 
+        self.emit_on_collect_end(lines)
+
         return lines
 
     def emit_on_symbol(self, symbol: Symbol) -> None:
@@ -162,8 +172,14 @@ class Context:
         for middleware in self.middlewares:
             middleware.on_line(self, line)
 
-    def emit_on_collect(self, lines: List[str]) -> None:
+    def emit_on_collect_begin(self, lines: List[str]) -> None:
         if self.middlewares is None:
             return
         for middleware in self.middlewares:
-            middleware.on_collect(self, lines)
+            middleware.on_collect_begin(self, lines)
+
+    def emit_on_collect_end(self, lines: List[str]) -> None:
+        if self.middlewares is None:
+            return
+        for middleware in self.middlewares:
+            middleware.on_collect_end(self, lines)

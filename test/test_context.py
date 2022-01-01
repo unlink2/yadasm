@@ -1,6 +1,21 @@
 import unittest
+from typing import List
 
-from core.context import Context, Symbol, Line
+from core.context import Context, Line, Middleware, Symbol
+
+
+class TestMiddleware(Middleware):
+    def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
+        lines.append("middleware_begin")
+
+    def on_collect_end(self, ctx: "Context", lines: List[str]) -> None:
+        lines.append("middleware_end")
+
+    def on_symbol(self, ctx: "Context", symbol: Symbol) -> None:
+        symbol.name += "_middleware_symbol"
+
+    def on_line(self, ctx: "Context", line: Line) -> None:
+        line.text += "_middleware_line"
 
 
 class TestContext(unittest.TestCase):
@@ -77,3 +92,17 @@ class TestContext(unittest.TestCase):
         self.assertFalse(ctx.is_in_address_range(2))
         self.assertFalse(ctx.is_in_address_range(151))
         self.assertFalse(ctx.is_in_address_range(251))
+
+    def test_it_should_call_middleware(self) -> None:
+        ctx = Context(middlewares=[TestMiddleware()])
+        ctx.add_symbol(Symbol(0, "test"))
+        ctx.add_line(Line("text"))
+        self.assertEqual(
+            ctx.collect(),
+            [
+                "middleware_begin",
+                "test_middleware_symbol",
+                "    text_middleware_line",
+                "middleware_end",
+            ],
+        )
