@@ -1,13 +1,13 @@
 import argparse
 from typing import List
 from core.archs.arch6502 import Parser6502, Parser6502Bytes
-from core.context import Context
+from core.context import Context, Middleware
 from core.file import Binary
 
 _archs = {"6502": Parser6502(), "6502-byte": Parser6502Bytes()}
 
 
-def main(argv: List[str]) -> int:
+def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     parser = argparse.ArgumentParser(description="yadasm")
     parser.add_argument("file", type=str, help="the input file")
     parser.add_argument(
@@ -61,6 +61,7 @@ def main(argv: List[str]) -> int:
             args.start_addr,
             symbol_poxtfix=args.label_postfix,
             end_address=args.end_addr,
+            middlewares=middlewares,
         )
         lines = _archs[args.arch].parse(ctx, bin_file)
 

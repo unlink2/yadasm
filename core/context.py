@@ -37,11 +37,6 @@ class Middleware:
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
         pass
 
-    def on_collect_line(
-        self, ctx: "Context", lines: List[str], line: str, line_num: int
-    ) -> None:
-        pass
-
     def on_collect_end(self, ctx: "Context", lines: List[str]) -> None:
         pass
 
