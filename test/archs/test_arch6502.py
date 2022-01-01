@@ -222,7 +222,6 @@ class TestArch6502(unittest.TestCase):
 
         self.assertEqual(ctx.address, 1542)
         self.assertNotEqual(result, None)
-        print(result)
         if result is not None:
             self.assertEqual(
                 result,
@@ -230,5 +229,102 @@ class TestArch6502(unittest.TestCase):
                     "    jmp label_5420",
                     "    jmp (label_5420)",
                     "label_5420",
+                ],
+            )
+
+    def test_it_should_parse_jsr(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x20, 0x20, 0x54])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    jsr label_5420",
+                    "label_5420",
+                ],
+            )
+
+    def test_it_should_parse_ldx(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0xA2,
+                        0x44,
+                        0xA6,
+                        0x44,
+                        0xB6,
+                        0x44,
+                        0xAE,
+                        0x55,
+                        0x44,
+                        0xBE,
+                        0x55,
+                        0x44,
+                    ]
+                )
+            ),
+        )
+
+        self.assertEqual(ctx.address, 1548)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    ldx #$44",
+                    "    ldx $44",
+                    "    ldx $44, y",
+                    "    ldx $4455",
+                    "    ldx $4455, y",
+                ],
+            )
+
+    def test_it_should_parse_ldy(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0xA0,
+                        0x44,
+                        0xA4,
+                        0x44,
+                        0xB4,
+                        0x44,
+                        0xAC,
+                        0x55,
+                        0x44,
+                        0xBC,
+                        0x55,
+                        0x44,
+                    ]
+                )
+            ),
+        )
+
+        self.assertEqual(ctx.address, 1548)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    ldy #$44",
+                    "    ldy $44",
+                    "    ldy $44, x",
+                    "    ldy $4455",
+                    "    ldy $4455, x",
                 ],
             )

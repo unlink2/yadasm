@@ -39,14 +39,20 @@ class InstructionMode(Enum):
     RELATIVE = 11
     ABSOLUTE_JMP = 12
     INDIRECT_JMP = 13
+    ZEROPAGEY = 14
 
     def mask(self, opcode: int) -> int:
-        """returns the mask used to create the final instruction"""
+        """returns the mask used to create the final instruction (bits bbbb)"""
+        # the hex numbers here are instructions that are being makes
+        # to make it easier to compare to hexdumps
         ccbits = self._extract_ccbits(opcode)
         # 11 does not exist on the 6502!
-        if ccbits == 0x10:
+        if self == self.IMPLIED:
+            # implied is an exception, just return the input
+            return opcode
+        elif ccbits == 0b10:
             return self.mask_cc10()
-        elif ccbits == 0x00:
+        elif ccbits == 0b00:
             return self.mask_cc00()
         else:
             return self.mask_cc01()
@@ -56,6 +62,10 @@ class InstructionMode(Enum):
             return self._apply(0xE0)
         elif self == self.ZEROPAGE:
             return self._apply(0xE4)
+        elif self == self.ZEROPAGEX:
+            return self._apply(0xB4)
+        elif self == self.ABSOLUTEX:
+            return self._apply(0xBC)
         elif self in (self.ABSOLUTE, self.ABSOLUTE_JMP):
             return self._apply(0xEC)
         elif self == self.RELATIVE:
@@ -73,10 +83,18 @@ class InstructionMode(Enum):
             return self._apply(0xA2)
         elif self == self.ZEROPAGE:
             return self._apply(0xA6)
+        elif self == self.ZEROPAGEX:
+            return self._apply(0x75)
+        elif self == self.ZEROPAGEY:
+            return self._apply(0xB6)
         elif self == self.ABSOLUTE:
             return self._apply(0xAE)
+        elif self == self.ABSOLUTEX:
+            return self._apply(0x7D)
         elif self == self.ABSOLUTEY:
             return self._apply(0xBE)
+        elif self == self.ACCUMULATOR:
+            return self._apply(0x0A)
         else:
             raise InstructionModeException()
 
@@ -97,14 +115,12 @@ class InstructionMode(Enum):
             return self._apply(0x61)
         elif self == self.INDIRECTY:
             return self._apply(0x71)
-        elif self == self.ACCUMULATOR:
-            return self._apply(0x0A)
         elif self == self.IMPLIED:
             return self._apply(0x00)
         elif self == self.RELATIVE:
             return self._apply(0x00)
         else:
-            return 0x00
+            raise InstructionModeException()
 
     def _extract_ccbits(self, opcode: int) -> int:
         ccbits_mask = 0b00000011
@@ -118,21 +134,22 @@ class InstructionMode(Enum):
 
 class Parser6502(Parser):
     def __init__(self) -> None:
+        # the opcode that is passed in is usually the aaaa and cc bits
+        # apart from a few exceptions that is ored with the apropriate bbb bits
+        # to make a full opcode.
         # builds a list of all instructions
         # the make functions are common instruction patterns that can be
         # re-used
         # the final opcode is a result of the combination
         # of the address mode  mask, the cc bits and the actual opcode bits
+        # the opcodes are being makes as needed
         # instruction encoding:
         # aaabbbcc;
         # aaa and cc bits determine opcode;
         # bbb bits determine addressing mode;
         # cc bits change addressing mode bits;
         nodes: List[Node] = (
-            self._make_instruction("lda", self._make_load(self._opcode(0xA9)))
-            + self._make_instruction(
-                "sta", self._make_store(self._opcode(0x85))
-            )
+            self._make_instruction("sta", self._make_store(self._opcode(0x85)))
             + self._make_instruction(
                 "adc", self._make_load(self._opcode(0x69))
             )
@@ -183,31 +200,23 @@ class Parser6502(Parser):
             + self._make_instruction(
                 "eor", self._make_load(self._opcode(0x49))
             )
-            + self._make_instruction(
-                "clc", self._make_implied(self._opcode(0x18))
-            )
-            + self._make_instruction(
-                "sec", self._make_implied(self._opcode(0x38))
-            )
-            + self._make_instruction(
-                "cli", self._make_implied(self._opcode(0x58))
-            )
-            + self._make_instruction(
-                "sei", self._make_implied(self._opcode(0x78))
-            )
-            + self._make_instruction(
-                "clv", self._make_implied(self._opcode(0xB8))
-            )
-            + self._make_instruction(
-                "cld", self._make_implied(self._opcode(0xD8))
-            )
-            + self._make_instruction(
-                "sed", self._make_implied(self._opcode(0xF8))
-            )
+            + self._make_instruction("clc", self._make_implied(0x18))
+            + self._make_instruction("sec", self._make_implied(0x38))
+            + self._make_instruction("cli", self._make_implied(0x58))
+            + self._make_instruction("sei", self._make_implied(0x78))
+            + self._make_instruction("clv", self._make_implied(0xB8))
+            + self._make_instruction("cld", self._make_implied(0xD8))
+            + self._make_instruction("sed", self._make_implied(0xF8))
             + self._make_instruction("inc", self._make_dec(self._opcode(0xE6)))
             + self._make_instruction(
                 "jmp", self._make_jump(self._opcode(0x4C))
             )
+            + self._make_instruction("jsr", self._make_jsr(self._opcode(0x20)))
+            + self._make_instruction(
+                "lda", self._make_load(self._opcode(0xA9))
+            )
+            + self._make_instruction("ldx", self._make_ldx(self._opcode(0xA2)))
+            + self._make_instruction("ldy", self._make_ldy(self._opcode(0xA0)))
         )
 
         Parser.__init__(self, nodes)
@@ -335,6 +344,7 @@ class Parser6502(Parser):
         }
 
     def _make_implied(self, mask: int) -> Dict[InstructionMode, int]:
+        """implied should just receive the whole opcode"""
         return {
             InstructionMode.IMPLIED: mask | InstructionMode.IMPLIED.mask(mask)
         }
@@ -368,6 +378,40 @@ class Parser6502(Parser):
             InstructionMode.INDIRECT_JMP: InstructionMode.INDIRECT_JMP.mask(
                 mask
             ),
+        }
+
+    def _make_jsr(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            # jsr breaks the rules
+            InstructionMode.ABSOLUTE_JMP: mask,
+        }
+
+    def _make_ldx(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.IMMEDIATE: mask
+            | InstructionMode.IMMEDIATE.mask(mask),
+            InstructionMode.ZEROPAGE: mask
+            | InstructionMode.ZEROPAGE.mask(mask),
+            InstructionMode.ZEROPAGEY: mask
+            | InstructionMode.ZEROPAGEY.mask(mask),
+            InstructionMode.ABSOLUTE: mask
+            | InstructionMode.ABSOLUTE.mask(mask),
+            InstructionMode.ABSOLUTEY: mask
+            | InstructionMode.ABSOLUTEY.mask(mask),
+        }
+
+    def _make_ldy(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.IMMEDIATE: mask
+            | InstructionMode.IMMEDIATE.mask(mask),
+            InstructionMode.ZEROPAGE: mask
+            | InstructionMode.ZEROPAGE.mask(mask),
+            InstructionMode.ZEROPAGEX: mask
+            | InstructionMode.ZEROPAGEX.mask(mask),
+            InstructionMode.ABSOLUTE: mask
+            | InstructionMode.ABSOLUTE.mask(mask),
+            InstructionMode.ABSOLUTEX: mask
+            | InstructionMode.ABSOLUTEX.mask(mask),
         }
 
     # helper to create instruction nodes for the most common
@@ -446,6 +490,16 @@ class Parser6502(Parser):
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
                     [self._read_i8_hex_node(), self._append_str(", x")],
+                )
+            )
+        elif mode == InstructionMode.ZEROPAGEY:
+            nodes.append(
+                Node(
+                    read_i8_le,
+                    [],
+                    self._make_comparator(opcode),
+                    lambda ctx, i: f"{name} ",
+                    [self._read_i8_hex_node(), self._append_str(", y")],
                 )
             )
         return nodes
