@@ -73,7 +73,9 @@ class Node:
             # emit data parsed event
             # allowing the middleware to
             # modify the data
-            modified = ctx.emit_on_node_parsed(self, data)
+            modified = ctx.emit_on_node_parsed(
+                self, file, prefix, postfix, data
+            )
             # apply modification is there is one
             if modified is not None:
                 data = modified

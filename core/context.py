@@ -1,8 +1,9 @@
 from typing import Any, Callable, Dict, List, Optional
 
-# avoids cyclic import; always False at runtime!
 from typing import TYPE_CHECKING
+from .file import Binary
 
+# avoids cyclic import; always False at runtime!
 if TYPE_CHECKING:
     from .node import Node
 
@@ -53,7 +54,13 @@ class Middleware:
         pass
 
     def on_node_parsed(
-        self, ctx: "Context", node: "Node", data: Any
+        self,
+        ctx: "Context",
+        node: "Node",
+        file: Binary,
+        prefix: str,
+        postfix: str,
+        data: Any,
     ) -> Optional[Any]:
         """
         Called for ever node that has successfully applied its comparator.
@@ -196,13 +203,22 @@ class Context:
         for middleware in self.middlewares:
             middleware.on_collect_end(self, lines)
 
-    def emit_on_node_parsed(self, node: "Node", data: Any) -> Optional[Any]:
+    def emit_on_node_parsed(
+        self,
+        node: "Node",
+        file: Binary,
+        prefix: str,
+        postfix: str,
+        data: Any,
+    ) -> Optional[Any]:
         """
         Calls node parser middleware.
         Returns the first not None value to the caller.
         """
         for middleware in self.middlewares:
-            res = middleware.on_node_parsed(self, node, data)
+            res = middleware.on_node_parsed(
+                self, node, file, prefix, postfix, data
+            )
             if res is not None:
                 return res
 

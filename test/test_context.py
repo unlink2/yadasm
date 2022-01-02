@@ -20,7 +20,15 @@ class TestMiddleware(Middleware):
     def on_line(self, ctx: "Context", line: Line) -> None:
         line.text += "_middleware_line"
 
-    def on_node_parsed(self, ctx: "Context", node: Node, data: Any) -> Any:
+    def on_node_parsed(
+        self,
+        ctx: "Context",
+        node: Node,
+        file: Binary,
+        prefix: str,
+        postfix: str,
+        data: Any,
+    ) -> Any:
         if data == 0xEA:
             return data + 1
         else:
