@@ -17,8 +17,8 @@ class TestNode(unittest.TestCase):
 
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result[0], "nop")
-            self.assertEqual(result[1], 1)
+            self.assertEqual(result.text, "nop")
+            self.assertEqual(result.size, 1)
 
     def test_it_should_not_parse_1_byte_instruction(self) -> None:
         node = Node(
@@ -51,8 +51,8 @@ class TestNode(unittest.TestCase):
         self.assertEqual(file.offset(), 2)
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result[0], "ora #$fb")
-            self.assertEqual(result[1], 2)
+            self.assertEqual(result.text, "ora #$fb")
+            self.assertEqual(result.size, 2)
 
     def test_it_should_not_parse_2_byte_instruction(self) -> None:
         node = Node(
@@ -98,8 +98,8 @@ class TestNode(unittest.TestCase):
         self.assertEqual(file.offset(), 3)
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result[0], "ora #$fb")
-            self.assertEqual(result[1], 3)
+            self.assertEqual(result.text, "ora #$fb")
+            self.assertEqual(result.size, 3)
 
     def test_it_should_apply_modifiers(self) -> None:
         node = Node(
@@ -113,5 +113,5 @@ class TestNode(unittest.TestCase):
 
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result[0], "nop")
-            self.assertEqual(result[1], 1)
+            self.assertEqual(result.text, "nop")
+            self.assertEqual(result.size, 1)

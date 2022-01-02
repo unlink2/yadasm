@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 
 from .comparator import Comparator
-from .context import Context
+from .context import Context, Line
 from .file import Binary
 from .operation import Operation
 from .reader import Reader
@@ -34,17 +34,17 @@ class Node:
         prefix: str = "",
         postfix: str = "",
         size: int = 0,
-    ) -> Optional[Tuple[str, int]]:
-        result = f"{prefix}{postfix}"
+    ) -> Optional[Line]:
+        result = Line(f"{prefix}{postfix}", size)
         for child in self.children:
-            next_res = child.parse(ctx, file, result, postfix)
+            next_res = child.parse(ctx, file, result.text, postfix)
             if next_res is None:
                 return None
             else:
-                (next_value, next_size) = next_res
-                result = next_value
-                size += next_size
-        return (result, size)
+                size = result.size  # previous size
+                result = next_res
+                result.size += size
+        return result
 
     def parse(
         self,
@@ -52,7 +52,7 @@ class Node:
         file: Binary,
         prefix: str = "",
         postfix: str = "",
-    ) -> Optional[Tuple[str, int]]:
+    ) -> Optional[Line]:
         """
         A node reads data from a reader objects and
         compares the read data to the mask using an operation.
@@ -95,7 +95,6 @@ class Node:
                 file.rewind(size)
                 return None
             else:
-                value, size = res
-                return (value, size)
+                return res
         else:
             return None

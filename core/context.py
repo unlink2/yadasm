@@ -21,8 +21,9 @@ class Symbol:
 
 
 class Line:
-    def __init__(self, text: str):
+    def __init__(self, text: str, size: int = 0):
         self.text = text
+        self.size = size
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Line):
