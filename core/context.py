@@ -1,5 +1,11 @@
 from typing import Any, Callable, Dict, List, Optional
 
+# avoids cyclic import; always False at runtime!
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .node import Node
+
 
 class Symbol:
     def __init__(self, address: int, name: str):
@@ -46,6 +52,22 @@ class Middleware:
     def on_line(self, ctx: "Context", line: Line) -> None:
         pass
 
+    def on_node_parsed(
+        self, ctx: "Context", node: "Node", data: Any
+    ) -> Optional[Any]:
+        """
+        Called for ever node that has successfully applied its comparator.
+        The first node that does not return None will return its updated value
+        to the caller.
+        Note:
+            A node's children may still fail parsing even if this event is
+            emmitted!
+            If the fully parsed node is required use on_line instead!
+            Sometimes the changed result is fully ignored by the parser
+            after the compare step (e.g. if an opcode is replaced with a
+            textual representation)
+        """
+
 
 class Context:
     """
@@ -64,6 +86,9 @@ class Context:
         end_address: Optional[int] = None,
         middlewares: List[Middleware] = None,
     ):
+        if middlewares is None:
+            middlewares = []
+
         self.address = address
         self.end_address = end_address
         self.start_address = address
@@ -156,25 +181,29 @@ class Context:
         return lines
 
     def emit_on_symbol(self, symbol: Symbol) -> None:
-        if self.middlewares is None:
-            return
         for middleware in self.middlewares:
             middleware.on_symbol(self, symbol)
 
     def emit_on_line(self, line: Line) -> None:
-        if self.middlewares is None:
-            return
         for middleware in self.middlewares:
             middleware.on_line(self, line)
 
     def emit_on_collect_begin(self, lines: List[str]) -> None:
-        if self.middlewares is None:
-            return
         for middleware in self.middlewares:
             middleware.on_collect_begin(self, lines)
 
     def emit_on_collect_end(self, lines: List[str]) -> None:
-        if self.middlewares is None:
-            return
         for middleware in self.middlewares:
             middleware.on_collect_end(self, lines)
+
+    def emit_on_node_parsed(self, node: "Node", data: Any) -> Optional[Any]:
+        """
+        Calls node parser middleware.
+        Returns the first not None value to the caller.
+        """
+        for middleware in self.middlewares:
+            res = middleware.on_node_parsed(self, node, data)
+            if res is not None:
+                return res
+
+        return None

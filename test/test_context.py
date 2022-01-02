@@ -1,7 +1,10 @@
 import unittest
-from typing import List
+from typing import Any, List
 
+from core.archs.arch6502 import Parser6502
+from core.file import Binary
 from core.context import Context, Line, Middleware, Symbol
+from core.node import Node
 
 
 class TestMiddleware(Middleware):
@@ -16,6 +19,12 @@ class TestMiddleware(Middleware):
 
     def on_line(self, ctx: "Context", line: Line) -> None:
         line.text += "_middleware_line"
+
+    def on_node_parsed(self, ctx: "Context", node: Node, data: Any) -> Any:
+        if data == 0xEA:
+            return data + 1
+        else:
+            return None
 
 
 class TestContext(unittest.TestCase):
@@ -94,15 +103,21 @@ class TestContext(unittest.TestCase):
         self.assertFalse(ctx.is_in_address_range(251))
 
     def test_it_should_call_middleware(self) -> None:
-        ctx = Context(middlewares=[TestMiddleware()])
+        parser = Parser6502()
+        ctx = Context(middlewares=[Middleware(), TestMiddleware()])
         ctx.add_symbol(Symbol(0, "test"))
         ctx.add_line(Line("text"))
+
+        collected = parser.parse(ctx, Binary(bytes([0xE6, 0xEA, 0xEA])))
+
         self.assertEqual(
-            ctx.collect(),
+            collected,
             [
                 "middleware_begin",
                 "test_middleware_symbol",
                 "    text_middleware_line",
+                "    inc $eb_middleware_line",
+                "    nop_middleware_line",
                 "middleware_end",
             ],
         )
