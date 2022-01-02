@@ -33,6 +33,8 @@ class InstructionModeException(Exception):
 
 
 class InstructionMode(Enum):
+    """All instruction modes for the 6502 and 65C816"""
+
     IMMEDIATE = 1
     ZEROPAGE = 2
     ZEROPAGEX = 3
