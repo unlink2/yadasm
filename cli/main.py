@@ -1,10 +1,16 @@
 import argparse
 from typing import List
 from core.archs.arch6502 import Parser6502, Parser6502Bytes
+from core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
 from core.context import Context, Middleware
 from core.file import Binary
 
-_archs = {"6502": Parser6502(), "6502-byte": Parser6502Bytes()}
+_archs = {
+    "6502": Parser6502(),
+    "6502-byte": Parser6502Bytes(),
+    "65c02": Parser65C02(),
+    "65c02-byte": Parser65C02Bytes(),
+}
 
 
 def main(argv: List[str], middlewares: List[Middleware] = None) -> int:

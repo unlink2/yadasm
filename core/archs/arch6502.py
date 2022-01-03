@@ -3,12 +3,11 @@ from enum import Enum
 from typing import Any, Callable, Dict, List
 
 from ..comparator import always_true
-from ..context import Context
+from ..context import Context, Symbol
 from ..node import Node
 from ..numfmt import IntFmt
 from ..parser import Parser
 from ..reader import read_i8_le, read_i16_le, read_none
-from ..context import Symbol
 
 
 def rel_i8_to_addr(ctx: Context, i: Any) -> int:
@@ -33,7 +32,7 @@ class InstructionModeException(Exception):
 
 
 class InstructionMode(Enum):
-    """All instruction modes for the 6502 and 65C816"""
+    """All instruction modes for the 6502"""
 
     IMMEDIATE = 1
     ZEROPAGE = 2
@@ -78,7 +77,7 @@ class InstructionMode(Enum):
         elif self in (self.ABSOLUTE, self.ABSOLUTE_JMP):
             return self._apply(0xEC)
         elif self == self.RELATIVE:
-            return self._apply(0x10)
+            return self._apply(0x00)
         elif self == self.INDIRECT_JMP:
             # jmp indirect breaks the rules!
             return 0x6C
@@ -127,7 +126,7 @@ class InstructionMode(Enum):
         elif self == self.IMPLIED:
             return self._apply(0x00)
         elif self == self.RELATIVE:
-            return self._apply(0x00)
+            return self._apply(0x10)
         else:
             raise InstructionModeException()
 
@@ -168,30 +167,14 @@ class Parser6502(Parser):
                 "asl", self._make_logic(self._opcode(0x1E))
             )
             + self._make_instruction("bit", self._make_bit(self._opcode(0x24)))
-            + self._make_instruction(
-                "bpl", self._make_branch(self._opcode(0x10))
-            )
-            + self._make_instruction(
-                "bmi", self._make_branch(self._opcode(0x30))
-            )
-            + self._make_instruction(
-                "bvc", self._make_branch(self._opcode(0x50))
-            )
-            + self._make_instruction(
-                "bvs", self._make_branch(self._opcode(0x70))
-            )
-            + self._make_instruction(
-                "bcc", self._make_branch(self._opcode(0x90))
-            )
-            + self._make_instruction(
-                "bcs", self._make_branch(self._opcode(0xB0))
-            )
-            + self._make_instruction(
-                "bne", self._make_branch(self._opcode(0xD0))
-            )
-            + self._make_instruction(
-                "beq", self._make_branch(self._opcode(0xF0))
-            )
+            + self._make_instruction("bpl", self._make_branch(0x10))
+            + self._make_instruction("bmi", self._make_branch(0x30))
+            + self._make_instruction("bvc", self._make_branch(0x50))
+            + self._make_instruction("bvs", self._make_branch(0x70))
+            + self._make_instruction("bcc", self._make_branch(0x90))
+            + self._make_instruction("bcs", self._make_branch(0xB0))
+            + self._make_instruction("bne", self._make_branch(0xD0))
+            + self._make_instruction("beq", self._make_branch(0xF0))
             + self._make_instruction(
                 "brk", self._make_implied(self._opcode(0x00))
             )
@@ -281,7 +264,7 @@ class Parser6502(Parser):
         else:
             return ""
 
-    def _read_i8_hex_node(
+    def _read_short_hex_node(
         self,
         prefix: str = "",
         padding: int = 2,
@@ -295,7 +278,7 @@ class Parser6502(Parser):
             f"{i:0{padding}{mode.to_literal()}}",
         )
 
-    def _read_i16_hex_node(
+    def _read_long_hex_node(
         self,
         prefix: str = "",
         padding: int = 4,
@@ -309,7 +292,7 @@ class Parser6502(Parser):
             f"{i:0{padding}{mode.to_literal()}}",
         )
 
-    def _read_i8_rel_label_node(self) -> Node:
+    def _read_short_rel_label_node(self) -> Node:
         return Node(
             read_i8_le,
             [grab_label_i8_rel],
@@ -318,7 +301,7 @@ class Parser6502(Parser):
             [],
         )
 
-    def _read_i16_abs_label_node(self) -> Node:
+    def _read_long_abs_label_node(self) -> Node:
         return Node(
             read_i16_le,
             [grab_label],
@@ -360,10 +343,14 @@ class Parser6502(Parser):
             | InstructionMode.INDIRECTY.mask(mask),
         }
 
-    def _make_logic(self, mask: int) -> Dict[InstructionMode, int]:
+    def _make_acc(self, mask: int) -> Dict[InstructionMode, int]:
         return {
             InstructionMode.ACCUMULATOR: mask
-            | InstructionMode.ACCUMULATOR.mask(mask),
+            | InstructionMode.ACCUMULATOR.mask(mask)
+        }
+
+    def _make_logic(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
             InstructionMode.ZEROPAGE: mask
             | InstructionMode.ZEROPAGE.mask(mask),
             InstructionMode.ZEROPAGEX: mask
@@ -372,7 +359,7 @@ class Parser6502(Parser):
             | InstructionMode.ABSOLUTE.mask(mask),
             InstructionMode.ABSOLUTEX: mask
             | InstructionMode.ABSOLUTEX.mask(mask),
-        }
+        } | self._make_acc(mask)
 
     def _make_bit(self, mask: int) -> Dict[InstructionMode, int]:
         return {
@@ -487,16 +474,15 @@ class Parser6502(Parser):
         nodes: List[Node] = []
 
         for mode, opcode in modes.items():
-            nodes += self._make_instruction_immediate(name, mode, opcode)
-            nodes += self._make_instruction_absolute(name, mode, opcode)
-            nodes += self._make_instruction_indirect(name, mode, opcode)
+            self._make_instruction_immediate(name, mode, opcode, nodes)
+            self._make_instruction_absolute(name, mode, opcode, nodes)
+            self._make_instruction_indirect(name, mode, opcode, nodes)
 
         return nodes
 
     def _make_instruction_immediate(
-        self, name: str, mode: InstructionMode, opcode: int
+        self, name: str, mode: InstructionMode, opcode: int, nodes: List[Node]
     ) -> List[Node]:
-        nodes = []
         if mode == InstructionMode.IMPLIED:
             nodes.append(
                 Node(
@@ -514,7 +500,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i8_rel_label_node()],
+                    [self._read_short_rel_label_node()],
                 )
             )
         elif mode == InstructionMode.ACCUMULATOR:
@@ -534,7 +520,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i8_hex_node("#")],
+                    [self._read_short_hex_node("#")],
                 )
             )
         elif mode == InstructionMode.ZEROPAGE:
@@ -544,7 +530,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i8_hex_node()],
+                    [self._read_short_hex_node()],
                 )
             )
         elif mode == InstructionMode.ZEROPAGEX:
@@ -554,7 +540,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i8_hex_node(), self._append_str(", x")],
+                    [self._read_short_hex_node(), self._append_str(", x")],
                 )
             )
         elif mode == InstructionMode.ZEROPAGEY:
@@ -564,15 +550,14 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i8_hex_node(), self._append_str(", y")],
+                    [self._read_short_hex_node(), self._append_str(", y")],
                 )
             )
         return nodes
 
     def _make_instruction_absolute(
-        self, name: str, mode: InstructionMode, opcode: int
+        self, name: str, mode: InstructionMode, opcode: int, nodes: List[Node]
     ) -> List[Node]:
-        nodes = []
         if mode == InstructionMode.ABSOLUTE:
             nodes.append(
                 Node(
@@ -580,7 +565,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i16_hex_node()],
+                    [self._read_long_hex_node()],
                 )
             )
         elif mode == InstructionMode.ABSOLUTE_JMP:
@@ -590,7 +575,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i16_abs_label_node()],
+                    [self._read_long_abs_label_node()],
                 )
             )
         elif mode == InstructionMode.ABSOLUTEX:
@@ -600,7 +585,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i16_hex_node(), self._append_str(", x")],
+                    [self._read_long_hex_node(), self._append_str(", x")],
                 )
             )
         elif mode == InstructionMode.ABSOLUTEY:
@@ -610,15 +595,14 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_i16_hex_node(), self._append_str(", y")],
+                    [self._read_long_hex_node(), self._append_str(", y")],
                 )
             )
         return nodes
 
     def _make_instruction_indirect(
-        self, name: str, mode: InstructionMode, opcode: int
+        self, name: str, mode: InstructionMode, opcode: int, nodes: List[Node]
     ) -> List[Node]:
-        nodes = []
         if mode == InstructionMode.INDIRECTX:
             nodes.append(
                 Node(
@@ -628,7 +612,7 @@ class Parser6502(Parser):
                     lambda ctx, i: f"{name} ",
                     [
                         self._append_str("("),
-                        self._read_i8_hex_node(),
+                        self._read_short_hex_node(),
                         self._append_str(", x)"),
                     ],
                 )
@@ -642,7 +626,7 @@ class Parser6502(Parser):
                     lambda ctx, i: f"{name} ",
                     [
                         self._append_str("("),
-                        self._read_i8_hex_node(),
+                        self._read_short_hex_node(),
                         self._append_str("), y"),
                     ],
                 )
@@ -656,7 +640,7 @@ class Parser6502(Parser):
                     lambda ctx, i: f"{name} ",
                     [
                         self._append_str("("),
-                        self._read_i16_abs_label_node(),
+                        self._read_long_abs_label_node(),
                         self._append_str(")"),
                     ],
                 )
@@ -671,4 +655,4 @@ class Parser6502Bytes(Parser6502):
     def __init__(self, nodes: List[Node] = None):
         Parser6502.__init__(self, nodes)
 
-        self.nodes.append(self._read_i8_hex_node("!byte "))
+        self.nodes.append(self._read_short_hex_node("!byte "))
