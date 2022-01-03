@@ -249,7 +249,7 @@ class Parser65C02(Parser6502):
         return nodes
 
 
-class Parse65C02Bytes(Parser65C02, Parser6502Bytes):
+class Parser65C02Bytes(Parser65C02, Parser6502Bytes):
     def __init__(self, nodes: List[Node] = None):
         Parser65C02.__init__(self, nodes)
         Parser6502Bytes.__init__(self, nodes)
