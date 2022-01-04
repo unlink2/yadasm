@@ -20,7 +20,7 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
         "--arch",
         type=str,
         default="6502-byte",
-        help="The target cpu architecture (6502; 6502-byte)",
+        help="The target cpu architecture (6502; 6502-byte; 65c02; 65c02-byte)",
     )
     parser.add_argument(
         "--file-start-offset",

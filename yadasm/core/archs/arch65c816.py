@@ -5,9 +5,9 @@ from typing import List, Dict, Any
 from ..node import Node
 from .arch6502 import grab_label, fmt_hex_label
 from .arch65c02 import Parser65C02
-from ..reader import read_i8_le, read_i16_le, read_none
+from ..reader import read_i16_le
 from ..comparator import always_true
-from ..context import Context, Symbol
+from ..context import Context
 from ..numfmt import IntFmt
 
 
@@ -117,7 +117,7 @@ class Parser65C816(Parser65C02):
         )
 
     def _make_instruction_65c816(
-        self, name: str, modes: Dict[InstructionMode, int]
+        self, _name: str, _modes: Dict[InstructionMode, int]
     ) -> List[Node]:
         nodes: List[Node] = []
 
