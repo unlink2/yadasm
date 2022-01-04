@@ -3,7 +3,12 @@ from setuptools import setup
 setup(
     name="yadasm",
     version="0.1.0",
-    packages=["yadasm", "yadasm.core", "yadasm.cli", "yadasm.core.archs"],
+    packages=[
+        "yadasmlib",
+        "yadasmlib.core",
+        "yadasmlib.cli",
+        "yadasmlib.core.archs",
+    ],
     package_data={"": ["README.md", "LICENSE"]},
     author="Lukas Krickl",
     author_email="lukas@krickl.dev",
@@ -11,5 +16,5 @@ setup(
     description="",
     platforms=["any"],
     license="MIT",
-    scripts=["yadasm.py"],
+    scripts=["scripts/yadasm"],
 )

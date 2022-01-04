@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from ..node import Node
 from .arch6502 import grab_label, fmt_hex_label
 from .arch65c02 import Parser65C02
-from ..reader import read_i16_le
+from ..reader import read_i16_le, read_i8_le, read_i24_le
 from ..comparator import always_true
 from ..context import Context
 from ..numfmt import IntFmt
@@ -116,9 +116,34 @@ class Parser65C816(Parser65C02):
             [],
         )
 
+    def _read_long_hex_node(
+        self,
+        prefix: str = "",
+        padding: int = 4,
+        mode: IntFmt = IntFmt.HEX,
+    ) -> Node:
+        return Node(
+            read_i24_le,
+            [],
+            always_true,
+            lambda ctx, i: f"{prefix}{self._get_prefix(mode)}"
+            f"{i:0{padding}{mode.to_literal()}}",
+        )
+
     def _make_instruction_65c816(
-        self, _name: str, _modes: Dict[InstructionMode, int]
+        self, name: str, modes: Dict[InstructionMode, int]
     ) -> List[Node]:
         nodes: List[Node] = []
+        for mode, opcode in modes.items():
+            if mode == InstructionMode.ABSOLUTE_LONG:
+                nodes.append(
+                    Node(
+                        read_i8_le,
+                        [],
+                        self._make_comparator(opcode),
+                        lambda ctx, i: f"{name} ",
+                        [self._read_long_hex_node()],
+                    )
+                )
 
         return nodes

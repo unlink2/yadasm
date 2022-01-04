@@ -1,7 +1,7 @@
 import unittest
 
-from yadasm.core.comparator import always_true, always_false
-from yadasm.core.context import Context
+from yadasmlib.core.comparator import always_true, always_false
+from yadasmlib.core.context import Context
 
 
 class TestComparator(unittest.TestCase):

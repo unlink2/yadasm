@@ -29,5 +29,9 @@ def read_i16_le(file: Binary) -> Optional[Tuple[Any, int]]:
     return read_int_generic(file, 2, Endianess.LITTLE)
 
 
+def read_i24_le(file: Binary) -> Optional[Tuple[Any, int]]:
+    return read_int_generic(file, 3, Endianess.LITTLE)
+
+
 def read_none(_file: Binary) -> Optional[Tuple[Any, int]]:
     return (0, 0)
