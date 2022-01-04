@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from ..node import Node
 from ..reader import read_i8_le
-from .arch6502 import Parser6502, Parser6502Bytes
+from .arch6502 import Parser6502
 
 
 class InstructionModeException(Exception):
@@ -190,7 +190,7 @@ class Parser65C02(Parser6502):
                         lambda ctx, i: f"{name} ",
                         [
                             self._append_str("("),
-                            self._read_long_abs_label_node(),
+                            self._read_abs_label_node(),
                             self._append_str(", x)"),
                         ],
                     )
@@ -222,7 +222,7 @@ class Parser65C02(Parser6502):
                         [],
                         self._make_comparator(opcode),
                         lambda ctx, i: f"{name} ",
-                        [self._read_long_hex_node(), self._append_str(", x")],
+                        [self._read_hex_node(), self._append_str(", x")],
                     )
                 )
             elif mode == InstructionMode.ABSOLUTE:
@@ -232,7 +232,7 @@ class Parser65C02(Parser6502):
                         [],
                         self._make_comparator(opcode),
                         lambda ctx, i: f"{name} ",
-                        [self._read_long_hex_node()],
+                        [self._read_hex_node()],
                     )
                 )
             elif mode == InstructionMode.ZEROPAGE:
@@ -249,7 +249,7 @@ class Parser65C02(Parser6502):
         return nodes
 
 
-class Parser65C02Bytes(Parser65C02, Parser6502Bytes):
+class Parser65C02Bytes(Parser65C02):
     def __init__(self, nodes: List[Node] = None):
         Parser65C02.__init__(self, nodes)
-        Parser6502Bytes.__init__(self, nodes)
+        self.nodes.append(self._read_short_hex_node("!byte "))

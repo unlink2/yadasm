@@ -15,10 +15,14 @@ def rel_i8_to_addr(ctx: Context, i: Any) -> int:
     return ctx.address + int(ctypes.c_int8(i).value) + 2
 
 
+def fmt_hex_label(i: int) -> str:
+    return f"{i:0{0}{IntFmt.HEX.to_literal()}}"
+
+
 def grab_label(ctx: Context, i: Any) -> Any:
     """Grab a label and add it as a symbol"""
     if ctx.is_in_address_range(i):
-        ctx.add_symbol(Symbol(i, f"label_{hex(i)[2:]}"))
+        ctx.add_symbol(Symbol(i, f"label_{fmt_hex_label(i)}"))
     return i
 
 
@@ -278,7 +282,12 @@ class Parser6502(Parser):
             f"{i:0{padding}{mode.to_literal()}}",
         )
 
-    def _read_long_hex_node(
+    def _read_immediate_hex_node(
+        self, prefix: str = "", padding: int = 2, mode: IntFmt = IntFmt.HEX
+    ) -> Node:
+        return self._read_short_hex_node(prefix, padding, mode)
+
+    def _read_hex_node(
         self,
         prefix: str = "",
         padding: int = 4,
@@ -292,21 +301,21 @@ class Parser6502(Parser):
             f"{i:0{padding}{mode.to_literal()}}",
         )
 
-    def _read_short_rel_label_node(self) -> Node:
+    def _read_rel_label_node(self) -> Node:
         return Node(
             read_i8_le,
             [grab_label_i8_rel],
             always_true,
-            lambda ctx, i: f"label_{hex(i)[2:]}",
+            lambda ctx, i: f"label_{fmt_hex_label(i)}",
             [],
         )
 
-    def _read_long_abs_label_node(self) -> Node:
+    def _read_abs_label_node(self) -> Node:
         return Node(
             read_i16_le,
             [grab_label],
             always_true,
-            lambda ctx, i: f"label_{hex(i)[2:]}",
+            lambda ctx, i: f"label_{fmt_hex_label(i)}",
             [],
         )
 
@@ -500,7 +509,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_short_rel_label_node()],
+                    [self._read_rel_label_node()],
                 )
             )
         elif mode == InstructionMode.ACCUMULATOR:
@@ -520,7 +529,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_short_hex_node("#")],
+                    [self._read_immediate_hex_node("#")],
                 )
             )
         elif mode == InstructionMode.ZEROPAGE:
@@ -565,7 +574,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_long_hex_node()],
+                    [self._read_hex_node()],
                 )
             )
         elif mode == InstructionMode.ABSOLUTE_JMP:
@@ -575,7 +584,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_long_abs_label_node()],
+                    [self._read_abs_label_node()],
                 )
             )
         elif mode == InstructionMode.ABSOLUTEX:
@@ -585,7 +594,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_long_hex_node(), self._append_str(", x")],
+                    [self._read_hex_node(), self._append_str(", x")],
                 )
             )
         elif mode == InstructionMode.ABSOLUTEY:
@@ -595,7 +604,7 @@ class Parser6502(Parser):
                     [],
                     self._make_comparator(opcode),
                     lambda ctx, i: f"{name} ",
-                    [self._read_long_hex_node(), self._append_str(", y")],
+                    [self._read_hex_node(), self._append_str(", y")],
                 )
             )
         return nodes
@@ -640,7 +649,7 @@ class Parser6502(Parser):
                     lambda ctx, i: f"{name} ",
                     [
                         self._append_str("("),
-                        self._read_long_abs_label_node(),
+                        self._read_abs_label_node(),
                         self._append_str(")"),
                     ],
                 )

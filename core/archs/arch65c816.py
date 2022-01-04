@@ -1,8 +1,24 @@
+import ctypes
 from enum import Enum
-from typing import List
+from typing import List, Dict, Any
 
 from ..node import Node
+from .arch6502 import grab_label, fmt_hex_label
 from .arch65c02 import Parser65C02
+from ..reader import read_i8_le, read_i16_le, read_none
+from ..comparator import always_true
+from ..context import Context, Symbol
+from ..numfmt import IntFmt
+
+
+def rel_i16_to_addr(ctx: Context, i: Any) -> int:
+    """converts a python int to a relative 8 bit value"""
+    return ctx.address + int(ctypes.c_int16(i).value) + 2
+
+
+def grab_label_i8_rel(ctx: Context, i: Any) -> Any:
+    addr = rel_i16_to_addr(ctx, i)
+    return grab_label(ctx, addr)
 
 
 class InstructionModeException(Exception):
@@ -70,3 +86,39 @@ class Parser65C816(Parser65C02):
             nodes = []
 
         Parser65C02.__init__(self, nodes)
+
+    def _make_extended(self, mask: int) -> Dict[InstructionMode, int]:
+        return {
+            InstructionMode.ABSOLUTE_LONG: mask
+            | InstructionMode.ABSOLUTE_LONG.mask(mask),
+            InstructionMode.ABSOLUTE_LONG_Y: mask
+            | InstructionMode.ABSOLUTE_LONG_Y.mask(mask),
+            InstructionMode.DIRECT_PAGE_INDIRECT_LONG: mask
+            | InstructionMode.DIRECT_PAGE_INDIRECT_LONG.mask(mask),
+            InstructionMode.DIRECT_PAGE_INDIRECT_LONG_Y: mask
+            | InstructionMode.DIRECT_PAGE_INDIRECT_LONG_Y.mask(mask),
+            InstructionMode.STACKS: mask | InstructionMode.STACKS.mask(mask),
+            InstructionMode.STACKS_Y: mask
+            | InstructionMode.STACKS_Y.mask(mask),
+        }
+
+    def _read_immediate_hex_node(
+        self, prefix: str = "", padding: int = 2, mode: IntFmt = IntFmt.HEX
+    ) -> Node:
+        return self._read_hex_node(prefix, padding, mode)
+
+    def _read_rel_label_node(self) -> Node:
+        return Node(
+            read_i16_le,
+            [grab_label_i8_rel],
+            always_true,
+            lambda ctx, i: f"label_{fmt_hex_label(i)}",
+            [],
+        )
+
+    def _make_instruction_65c816(
+        self, name: str, modes: Dict[InstructionMode, int]
+    ) -> List[Node]:
+        nodes: List[Node] = []
+
+        return nodes
