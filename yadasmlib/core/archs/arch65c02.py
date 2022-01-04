@@ -75,9 +75,6 @@ class InstructionMode(Enum):
 
 class Parser65C02(Parser6502):
     def __init__(self, nodes: List[Node] = None) -> None:
-        if nodes is None:
-            nodes = []
-
         Parser6502.__init__(self, nodes)
 
         self.nodes += (

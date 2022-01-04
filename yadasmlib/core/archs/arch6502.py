@@ -160,9 +160,8 @@ class Parser6502(Parser):
         # aaa and cc bits determine opcode;
         # bbb bits determine addressing mode;
         # cc bits change addressing mode bits;
-        if nodes is None:
-            nodes = []
-        nodes += (
+        Parser.__init__(self, nodes)
+        self.nodes += (
             self._make_instruction("adc", self._make_load(self._opcode(0x69)))
             + self._make_instruction(
                 "and", self._make_load(self._opcode(0x29))
@@ -250,8 +249,6 @@ class Parser6502(Parser):
             + self._make_instruction("stx", self._make_stx(self._opcode(0x86)))
             + self._make_instruction("sty", self._make_sty(self._opcode(0x84)))
         )
-
-        Parser.__init__(self, nodes)
 
     def _opcode(self, unmasked: int) -> int:
         # opcode mask

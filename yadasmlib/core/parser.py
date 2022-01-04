@@ -6,7 +6,9 @@ from .node import Node
 
 
 class Parser:
-    def __init__(self, nodes: List[Node]):
+    def __init__(self, nodes: List[Node] = None):
+        if nodes is None:
+            nodes = []
         self.nodes = nodes
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
