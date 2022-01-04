@@ -1,9 +1,9 @@
 import unittest
 
-from core.archs.arch6502 import Parser6502
-from core.context import Context
-from core.file import Binary
-from core.parser import ParsersExhaustedException
+from ..core.archs.arch6502 import Parser6502
+from ..core.context import Context
+from ..core.file import Binary
+from ..core.parser import ParsersExhaustedException
 
 
 class TestParser(unittest.TestCase):

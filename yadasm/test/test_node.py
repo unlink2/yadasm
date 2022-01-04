@@ -1,10 +1,10 @@
 import unittest
 
-from core.comparator import always_true
-from core.context import Context
-from core.file import Binary
-from core.node import Node
-from core.reader import read_i8_le, read_i16_le
+from yadasm.core.comparator import always_true
+from yadasm.core.context import Context
+from yadasm.core.file import Binary
+from yadasm.core.node import Node
+from yadasm.core.reader import read_i8_le, read_i16_le
 
 
 class TestNode(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
-from core.archs.arch65c02 import Parser65C02
-from core.context import Context
-from core.file import Binary
+from yadasm.core.archs.arch65c02 import Parser65C02
+from yadasm.core.context import Context
+from yadasm.core.file import Binary
 
 
 class TestArch65C02(unittest.TestCase):

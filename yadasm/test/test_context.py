@@ -1,10 +1,10 @@
 import unittest
 from typing import Any, List
 
-from core.archs.arch6502 import Parser6502
-from core.file import Binary
-from core.context import Context, Line, Middleware, Symbol
-from core.node import Node
+from yadasm.core.archs.arch6502 import Parser6502
+from yadasm.core.file import Binary
+from yadasm.core.context import Context, Line, Middleware, Symbol
+from yadasm.core.node import Node
 
 
 class TestMiddleware(Middleware):

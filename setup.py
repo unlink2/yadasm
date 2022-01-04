@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="yadasm",
     version="0.1.0",
-    packages=["cli", "core", "."],
+    packages=["yadasm"],
     package_data={"": ["README.md", "LICENSE"]},
     author="Lukas Krickl",
     author_email="lukas@krickl.dev",

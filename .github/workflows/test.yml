@@ -27,10 +27,10 @@ jobs:
           pytest
           pytest-cov
     - name: Typecheck
-      run: mypy core cli test --disallow-untyped-defs
+      run: mypy yadasm --disallow-untyped-defs
     - name: Check lint
-      run: pylint core cli test
+      run: pylint yadasm
     - name: Run tests
-      run: pytest test/ -v
+      run: pytest yadasm/test/ -v
     - name: Code Coverage
       run: pytest --cov=.

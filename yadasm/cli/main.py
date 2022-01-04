@@ -1,9 +1,9 @@
 import argparse
 from typing import List
-from core.archs.arch6502 import Parser6502, Parser6502Bytes
-from core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
-from core.context import Context, Middleware
-from core.file import Binary
+from yadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
+from yadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
+from yadasm.core.context import Context, Middleware
+from yadasm.core.file import Binary
 
 _archs = {
     "6502": Parser6502(),
