@@ -2,6 +2,12 @@ import argparse
 from typing import List
 from yadasmlib.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from yadasmlib.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
+from yadasmlib.core.archs.arch65c816 import (
+    Parser65C816,
+    Parser65C816Bytes,
+    Parser65C816Emulated,
+    Parser65C816EmulatedBytes,
+)
 from yadasmlib.core.context import Context, Middleware
 from yadasmlib.core.file import Binary
 
@@ -10,6 +16,10 @@ _archs = {
     "6502-byte": Parser6502Bytes(),
     "65c02": Parser65C02(),
     "65c02-byte": Parser65C02Bytes(),
+    "65c816": Parser65C816(),
+    "65c816-byte": Parser65C816Bytes(),
+    "65c816-emu": Parser65C816Emulated(),
+    "65c816-emu-byte": Parser65C816EmulatedBytes(),
 }
 
 
@@ -20,7 +30,7 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
         "--arch",
         type=str,
         default="6502-byte",
-        help="The target cpu architecture (6502; 6502-byte; 65c02; 65c02-byte)",
+        help=f"The target cpu architecture {_archs.keys()}",
     )
     parser.add_argument(
         "--file-start-offset",

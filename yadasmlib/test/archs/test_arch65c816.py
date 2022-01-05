@@ -10,13 +10,13 @@ class TestArch65C816(unittest.TestCase):
         ctx = Context(0x600)
         result = parser.parse(
             ctx,
-            Binary(bytes([0xA9, 0x12, 0x34, 0xF0, 0x6A, 0xFF])),
+            Binary(bytes([0xA9, 0x12, 0x34, 0x82, 0x6A, 0xFF])),
         )
 
         self.assertEqual(ctx.address, 1542)
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result, ["    lda #$3412", "    beq label_56f"])
+            self.assertEqual(result, ["    lda #$3412", "    brl label_56f"])
 
     def test_it_should_use_ext(self) -> None:
         parser = Parser65C816()
@@ -136,5 +136,181 @@ class TestArch65C816(unittest.TestCase):
                 result,
                 [
                     "    cop #$12",
+                ],
+            )
+
+    def test_it_should_jmp_long(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x22, 0x12, 0x23, 0x45])),
+        )
+
+        self.assertEqual(ctx.address, 1540)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    jsl label_452312",
+                    "label_452312",
+                ],
+            )
+
+    def test_it_should_per_label(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x62, 0x12, 0x23])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    per label_2312",
+                    "label_2312",
+                ],
+            )
+
+    def test_it_should_per_immediate(self) -> None:
+        parser = Parser65C816(per_label=False)
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x62, 0x12, 0x23])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    per #$2312",
+                ],
+            )
+
+    def test_it_should_have_rep_sep(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xC2, 0x12, 0xE2, 0x13])),
+        )
+
+        self.assertEqual(ctx.address, 1540)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    rep #$12",
+                    "    sep #$13",
+                ],
+            )
+
+    def test_it_should_have_move(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0x44, 0x12, 0xE2])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    mvp #$12, #$e2",
+                ],
+            )
+
+    def test_it_should_have_pei(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xD4, 0x12])),
+        )
+
+        self.assertEqual(ctx.address, 1538)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    pei $12",
+                ],
+            )
+
+    def test_it_should_have_pea(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xF4, 0x12, 0x11])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    pea #$1112",
+                ],
+            )
+
+    def test_it_should_have_jml(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xDC, 0x12, 0x11])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    jmp [label_1112]",
+                    "label_1112",
+                ],
+            )
+
+    def test_it_should_have_jsrx(self) -> None:
+        parser = Parser65C816()
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xFC, 0x12, 0x11])),
+        )
+
+        self.assertEqual(ctx.address, 1539)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "    jsr (label_1112, x)",
+                    "label_1112",
                 ],
             )
