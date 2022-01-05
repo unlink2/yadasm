@@ -1,9 +1,9 @@
 import unittest
 
-from yadasmlib.core.archs.arch6502 import Parser6502
-from yadasmlib.core.context import Context
-from yadasmlib.core.file import Binary
-from yadasmlib.core.parser import ParsersExhaustedException
+from lyadasm.core.archs.arch6502 import Parser6502
+from lyadasm.core.context import Context
+from lyadasm.core.file import Binary
+from lyadasm.core.parser import ParsersExhaustedException
 
 
 class TestParser(unittest.TestCase):

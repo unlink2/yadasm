@@ -1,6 +1,6 @@
 import unittest
 
-from yadasmlib.core.file import Binary
+from lyadasm.core.file import Binary
 
 
 class TestFile(unittest.TestCase):

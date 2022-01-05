@@ -1,8 +1,8 @@
 import unittest
 
-from yadasmlib.core.archs.arch6502 import Parser6502, Parser6502Bytes
-from yadasmlib.core.context import Context
-from yadasmlib.core.file import Binary
+from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
+from lyadasm.core.context import Context
+from lyadasm.core.file import Binary
 
 
 class TestArch6502(unittest.TestCase):

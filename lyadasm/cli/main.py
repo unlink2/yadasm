@@ -2,16 +2,16 @@ import argparse
 import logging
 from typing import List
 
-from yadasmlib.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
-from yadasmlib.core.archs.arch65c816 import (
+from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
+from lyadasm.core.archs.arch65c816 import (
     Parser65C816,
     Parser65C816Bytes,
     Parser65C816Emulated,
     Parser65C816EmulatedBytes,
 )
-from yadasmlib.core.archs.arch6502 import Parser6502, Parser6502Bytes
-from yadasmlib.core.context import Context, Middleware
-from yadasmlib.core.file import Binary
+from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
+from lyadasm.core.context import Context, Middleware
+from lyadasm.core.file import Binary
 
 _archs = {
     "6502": Parser6502(),
