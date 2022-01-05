@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional
 
 from .context import Context, Line
@@ -22,6 +23,8 @@ class Parser:
 
     def build_lookup(self, ctx: Context, max_opcode: int = 0xFF) -> None:
         """Builds a lookup table for opcode -> node index"""
+        logging.info("Building lookup table for nodes...")
+
         self.node_lookup = {}
         for opcode in range(0, max_opcode + 1):
             for (i, node) in enumerate(self.nodes):
@@ -29,11 +32,17 @@ class Parser:
                     self.node_lookup[opcode] = i
                     break
 
+        if len(self.node_lookup.keys()) != len(self.nodes):
+            logging.warning(
+                "Lookup table has less elements than the node list"
+            )
+
     def _read_opcode(self, _ctx: Context, _file: Binary) -> int:
         """
         Optional method, read opcode and do not advance.
         This is used for node_lookup. May improve performance a lot!
         """
+        logging.warning("_read_opcode should always have be overridden")
         return -1
 
     def _parse(self, ctx: Context, file: Binary) -> Optional[Line]:
@@ -51,6 +60,13 @@ class Parser:
                 return parsed
 
         # return None if nothing worked
+        logging.error(
+            "Node was not parsed successfully! last byte: %x,"
+            "address: %x, file offset: %d",
+            opcode,
+            ctx.address,
+            file.offset(),
+        )
         return None
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
