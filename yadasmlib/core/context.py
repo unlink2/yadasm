@@ -159,11 +159,10 @@ class Context:
 
     def collect(self) -> List[str]:
         """Collects all lines and symbols"""
+        lines: List[str] = []
+        self.emit_on_collect_begin(lines)
         # get a list of all keys and remove duplicates
         all_keys = sorted(list(set(self.all_addresses)))
-        lines: List[str] = []
-
-        self.emit_on_collect_begin(lines)
 
         for key in all_keys:
             lines += self.__collect(

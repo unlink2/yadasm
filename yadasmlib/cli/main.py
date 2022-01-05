@@ -91,7 +91,7 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     logging.getLogger().disabled = args.quiet
 
     if args.arch not in _archs:
-        print("Invalid architecture")
+        print(f"Invalid architecture: {args.arch}")
         return -1
 
     with open(args.file, mode="rb") as file:
