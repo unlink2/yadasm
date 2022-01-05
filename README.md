@@ -4,7 +4,7 @@
 ![](https://github.com/unlink2/yadasm/actions/workflows/build.yml/badge.svg)
 ![](https://github.com/unlink2/yadasm/actions/workflows/test.yml/badge.svg)
 
-## Yet Another Dissassembler
+## Yet Another Disassembler
 
 Yadasm is a dynamically configurable dissasembler tool.
 It is aimed mainly at romhacking and reverse engeneering and intends to be a scriptable
