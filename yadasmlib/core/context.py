@@ -1,6 +1,5 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
-from typing import TYPE_CHECKING
 from .file import Binary
 
 # avoids cyclic import; always False at runtime!
@@ -119,7 +118,9 @@ class Context:
         """Add a label for a certain address"""
 
         self.emit_on_symbol(symbol)
+        self.add_symbol_no_emit(symbol)
 
+    def add_symbol_no_emit(self, symbol: Symbol) -> None:
         self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
@@ -130,7 +131,9 @@ class Context:
         """Add a line at the current address"""
 
         self.emit_on_line(line)
+        self.add_line_no_emit(line)
 
+    def add_line_no_emit(self, line: Line) -> None:
         self.all_addresses.append(self.address)
         if self.address not in self.lines:
             self.lines[self.address] = [line]
