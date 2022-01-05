@@ -75,6 +75,7 @@ class Parser:
 
         while not file.is_at_end():
             # parse until the first match is found
+            ctx.emit_on_next(file)
             parsed = self._parse(ctx, file)
 
             if parsed is None:

@@ -2,12 +2,14 @@ import unittest
 from typing import Any, List
 
 from yadasmlib.core.archs.arch6502 import Parser6502
-from yadasmlib.core.file import Binary
 from yadasmlib.core.context import Context, Line, Middleware, Symbol
+from yadasmlib.core.file import Binary
 from yadasmlib.core.node import Node
 
 
 class TestMiddleware(Middleware):
+    next_called = 0
+
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
         lines.append("middleware_begin")
 
@@ -19,6 +21,9 @@ class TestMiddleware(Middleware):
 
     def on_line(self, ctx: "Context", line: Line) -> None:
         line.text += "_middleware_line"
+
+    def on_next(self, ctx: "Context", file: Binary) -> None:
+        self.next_called += 1
 
     def on_node_parsed(
         self,
@@ -112,7 +117,8 @@ class TestContext(unittest.TestCase):
 
     def test_it_should_call_middleware(self) -> None:
         parser = Parser6502()
-        ctx = Context(middlewares=[Middleware(), TestMiddleware()])
+        middelware = TestMiddleware()
+        ctx = Context(middlewares=[Middleware(), middelware])
         ctx.add_symbol(Symbol(0, "test"))
         ctx.add_line(Line("text"))
 
@@ -129,3 +135,4 @@ class TestContext(unittest.TestCase):
                 "middleware_end",
             ],
         )
+        self.assertEqual(middelware.next_called, 2)

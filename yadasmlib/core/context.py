@@ -53,6 +53,9 @@ class Middleware:
     def on_line(self, ctx: "Context", line: Line) -> None:
         pass
 
+    def on_next(self, ctx: "Context", file: Binary) -> None:
+        """Emmited before the next node is parsed"""
+
     def on_node_parsed(
         self,
         ctx: "Context",
@@ -205,6 +208,10 @@ class Context:
     def emit_on_collect_end(self, lines: List[str]) -> None:
         for middleware in self.middlewares:
             middleware.on_collect_end(self, lines)
+
+    def emit_on_next(self, file: Binary) -> None:
+        for middleware in self.middlewares:
+            middleware.on_next(self, file)
 
     def emit_on_node_parsed(
         self,
