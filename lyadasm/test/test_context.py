@@ -1,7 +1,7 @@
 import unittest
 from typing import Any, List
 
-from lyadasm.core.archs.arch6502 import Parser6502
+from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Line, Middleware, Symbol
 from lyadasm.core.file import Binary
 from lyadasm.core.node import Node
@@ -38,6 +38,20 @@ class TestMiddleware(Middleware):
             return data + 1
         else:
             return None
+
+
+class TestAbortMiddleware(Middleware):
+    def on_node_parsed(
+        self,
+        ctx: "Context",
+        node: Node,
+        file: Binary,
+        prefix: str,
+        postfix: str,
+        data: Any,
+    ) -> Any:
+        if data == 0xEA and "nop" in node.make_response(ctx, data):
+            node.abort()
 
 
 class TestContext(unittest.TestCase):
@@ -136,3 +150,11 @@ class TestContext(unittest.TestCase):
             ],
         )
         self.assertEqual(middelware.next_called, 2)
+
+    def test_it_should_abort_parser_conditionally(self) -> None:
+        parser = Parser6502Bytes()
+        ctx = Context(middlewares=[TestAbortMiddleware()])
+
+        collected = parser.parse(ctx, Binary(bytes([0xEA, 0xE6, 0xAA])))
+
+        self.assertEqual(collected, ["    !byte $ea", "    inc $aa"])

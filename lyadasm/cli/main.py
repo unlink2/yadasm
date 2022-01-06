@@ -1,6 +1,6 @@
 import argparse
 import logging
-from typing import List
+from typing import List, Optional
 
 from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
 from lyadasm.core.archs.arch65c816 import (
@@ -23,6 +23,22 @@ _archs = {
     "65c816-emu": Parser65C816Emulated(),
     "65c816-emu-byte": Parser65C816EmulatedBytes(),
 }
+
+
+def _write_to_file(out: Optional[str], lines: List[str]) -> None:
+    if out is None:
+        for line in lines:
+            print(line)
+    else:
+        with open(out, "w", encoding="UTF-8") as outfile:
+            outfile.write("\n".join(lines))
+
+
+def _read_from_file(file_path: str) -> bytes:
+    with open(file_path, mode="rb") as file:
+        file_content = file.read()
+        return file_content
+    return ""
 
 
 def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
@@ -94,24 +110,18 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
         print(f"Invalid architecture: {args.arch}")
         return -1
 
-    with open(args.file, mode="rb") as file:
-        file_content = file.read()
-        bin_file = Binary(
-            file_content, args.file_start_offset, args.file_end_offset
-        )
-        ctx = Context(
-            args.start_addr,
-            symbol_poxtfix=args.label_postfix,
-            end_address=args.end_addr,
-            middlewares=middlewares,
-        )
-        lines = _archs[args.arch].parse(ctx, bin_file)
+    file_content = _read_from_file(args.file)
+    bin_file = Binary(
+        file_content, args.file_start_offset, args.file_end_offset
+    )
+    ctx = Context(
+        args.start_addr,
+        symbol_poxtfix=args.label_postfix,
+        end_address=args.end_addr,
+        middlewares=middlewares,
+    )
+    lines = _archs[args.arch].parse(ctx, bin_file)
 
-        if args.o is None:
-            for line in lines:
-                print(line)
-        else:
-            with open(args.o, "w", encoding="UTF-8") as outfile:
-                outfile.write("\n".join(lines))
+    _write_to_file(args.o, lines)
 
     return 0

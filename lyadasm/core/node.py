@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from .comparator import Comparator
 from .context import Context, Line
@@ -26,6 +26,15 @@ class Node:
         self.comparator = comparator
         self.response = response
         self.children = [] if children is None else children
+        self.aborted = False
+
+    def abort(self) -> None:
+        """
+        Aborts the current node parsing.
+        This can be used by the middleware to
+        stop parsing of a node and fall back to another parser
+        """
+        self.aborted = True
 
     def __parse_children(
         self,
@@ -45,6 +54,9 @@ class Node:
                 result = next_res
                 result.size += size
         return result
+
+    def make_response(self, ctx: Context, data: Any) -> str:
+        return self.response(ctx, data)
 
     def parse(
         self,
@@ -85,13 +97,13 @@ class Node:
                 file,
                 prefix=(
                     f"{self.prefix}{prefix}"
-                    f"{self.response(ctx, data)}{postfix}{self.postfix}"
+                    f"{self.make_response(ctx, data)}{postfix}{self.postfix}"
                 ),
                 postfix="",
                 size=size,
             )
 
-            if res is None:
+            if res is None or self.aborted:
                 file.rewind(size)
                 return None
             else:
