@@ -1,8 +1,10 @@
 import unittest
+from io import StringIO, BytesIO
 
 from lyadasm.core.archs.arch6502 import Parser6502
 from lyadasm.core.context import Context
 from lyadasm.core.file import Binary
+from lyadasm.core.middleware.bytecollector import ByteCollectorMiddelware
 from lyadasm.core.parser import ParsersExhaustedException
 
 
@@ -129,3 +131,23 @@ class TestParser(unittest.TestCase):
 
         # data was 15 bytes long, but the error was raised after 12!
         self.assertEqual(ctx.address, 0x60C)
+
+    def test_it_should_call_output_on_parser_and_middleware(self) -> None:
+        bytemiddleware = ByteCollectorMiddelware(0x602, 0x605)
+        parser = Parser6502()
+        ctx = Context(0x600, middlewares=[bytemiddleware])
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xEA, 0xEA, 0x31, 0x32, 0x33, 0xEA, 0xEA])),
+        )
+        strio = StringIO()
+        bio = BytesIO()
+
+        parser.output(ctx, strio, result, {"ByteCollector": bio})
+        strio.seek(0)
+        bio.seek(0)
+        self.assertEqual(
+            strio.readlines(),
+            ["    nop\n", "    nop\n", "    nop\n", "    nop"],
+        )
+        self.assertEqual(bio.read(), b"123")

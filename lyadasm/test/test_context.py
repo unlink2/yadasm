@@ -7,7 +7,7 @@ from lyadasm.core.file import Binary
 from lyadasm.core.node import Node
 
 
-class TestMiddleware(Middleware):
+class MiddlewareTest(Middleware):
     next_called = 0
 
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
@@ -45,7 +45,7 @@ class TestMiddleware(Middleware):
             return None
 
 
-class TestAbortMiddleware(Middleware):
+class AbortMiddlewareTest(Middleware):
     def on_node_parsed(
         self,
         ctx: "Context",
@@ -136,7 +136,7 @@ class TestContext(unittest.TestCase):
 
     def test_it_should_call_middleware(self) -> None:
         parser = Parser6502()
-        middelware = TestMiddleware()
+        middelware = MiddlewareTest()
         ctx = Context(middlewares=[Middleware(), middelware])
         ctx.add_symbol(Symbol(0, "test"))
         ctx.add_line(Line("text"))
@@ -158,7 +158,7 @@ class TestContext(unittest.TestCase):
 
     def test_it_should_abort_parser_conditionally(self) -> None:
         parser = Parser6502Bytes()
-        ctx = Context(middlewares=[TestAbortMiddleware()])
+        ctx = Context(middlewares=[AbortMiddlewareTest()])
 
         collected = parser.parse(ctx, Binary(bytes([0xEA, 0xE6, 0xAA])))
 
@@ -166,7 +166,7 @@ class TestContext(unittest.TestCase):
 
     def test_it_should_call_unparsed(self) -> None:
         parser = Parser6502()
-        ctx = Context(middlewares=[Middleware(), TestMiddleware()])
+        ctx = Context(middlewares=[Middleware(), MiddlewareTest()])
 
         collected = parser.parse(ctx, Binary(bytes([0xEA, 0xFF])))
         print(collected)

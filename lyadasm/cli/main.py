@@ -2,6 +2,7 @@ import argparse
 import logging
 from typing import List, Optional
 
+from lyadasm.core.parser import Parser
 from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
 from lyadasm.core.archs.arch65c816 import (
     Parser65C816,
@@ -25,7 +26,13 @@ _archs = {
 }
 
 
-def _write_to_file(out: Optional[str], lines: List[str], append: bool) -> None:
+def _write_to_file(
+    out: Optional[str],
+    lines: List[str],
+    parser: Parser,
+    ctx: Context,
+    append: bool,
+) -> None:
     if out is None:
         for line in lines:
             print(line)
@@ -35,7 +42,7 @@ def _write_to_file(out: Optional[str], lines: List[str], append: bool) -> None:
             outmode = "a"
 
         with open(out, outmode, encoding="UTF-8") as outfile:
-            outfile.write("\n".join(lines))
+            parser.output(ctx, outfile, lines)
 
 
 def _read_from_file(file_path: str) -> bytes:
@@ -131,6 +138,6 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     )
     lines = _archs[args.arch].parse(ctx, bin_file)
 
-    _write_to_file(args.o, lines, args.append)
+    _write_to_file(args.o, lines, _archs[args.arch], ctx, args.append)
 
     return 0

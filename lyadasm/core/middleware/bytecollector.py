@@ -1,3 +1,4 @@
+from typing import IO
 from ..context import Context, Middleware
 from ..file import Binary
 
@@ -10,7 +11,10 @@ class ByteCollectorMiddelware(Middleware):
     useful information on its own
     """
 
-    def __init__(self, start: int, end: int) -> None:
+    def __init__(
+        self, start: int, end: int, tag: str = "ByteCollector"
+    ) -> None:
+        Middleware.__init__(self, tag)
         self.start = start
         self.end = end
         self.data = bytes()
@@ -27,3 +31,6 @@ class ByteCollectorMiddelware(Middleware):
                 self.data += next_byte
                 file.advance(1)
                 ctx.advance(1)
+
+    def on_output(self, _ctx: Context, stream: IO) -> None:
+        stream.write(self.data)

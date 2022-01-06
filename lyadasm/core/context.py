@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, IO
 
 from .file import Binary
 
@@ -41,6 +41,9 @@ class Middleware:
     The middleware operates using simple string manipulation.
     """
 
+    def __init__(self, tag: str = "") -> None:
+        self.tag = tag
+
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
         pass
 
@@ -63,6 +66,9 @@ class Middleware:
         This method should advance the file and ctx addresses as needed.
         """
         return None
+
+    def on_output(self, _ctx: "Context", _stream: IO) -> None:
+        pass
 
     def on_node_parsed(
         self,
@@ -220,6 +226,11 @@ class Context:
     def emit_on_next(self, file: Binary) -> None:
         for middleware in self.middlewares:
             middleware.on_next(self, file)
+
+    def emit_on_output(self, streams: Dict[str, IO]) -> None:
+        for middleware in self.middlewares:
+            if middleware.tag in streams:
+                middleware.on_output(self, streams[middleware.tag])
 
     def emit_on_unparsed(self, file: Binary) -> Optional[Line]:
         for middleware in self.middlewares:
