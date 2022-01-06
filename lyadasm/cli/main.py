@@ -25,12 +25,16 @@ _archs = {
 }
 
 
-def _write_to_file(out: Optional[str], lines: List[str]) -> None:
+def _write_to_file(out: Optional[str], lines: List[str], append: bool) -> None:
     if out is None:
         for line in lines:
             print(line)
     else:
-        with open(out, "w", encoding="UTF-8") as outfile:
+        outmode = "w"
+        if append:
+            outmode = "a"
+
+        with open(out, outmode, encoding="UTF-8") as outfile:
             outfile.write("\n".join(lines))
 
 
@@ -97,6 +101,11 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
         action="store_true",
         help="Disables all logging output",
     )
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="Append to output file",
+    )
     args = parser.parse_args(argv)
 
     numeric_level = getattr(logging, args.loglevel.upper(), None)
@@ -122,6 +131,6 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     )
     lines = _archs[args.arch].parse(ctx, bin_file)
 
-    _write_to_file(args.o, lines)
+    _write_to_file(args.o, lines, args.append)
 
     return 0
