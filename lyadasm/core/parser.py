@@ -67,7 +67,8 @@ class Parser:
             ctx.address,
             file.offset(),
         )
-        return None
+
+        return ctx.emit_on_unparsed(file)
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:

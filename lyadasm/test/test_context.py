@@ -1,5 +1,5 @@
 import unittest
-from typing import Any, List
+from typing import Any, List, Optional
 
 from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Line, Middleware, Symbol
@@ -24,6 +24,11 @@ class TestMiddleware(Middleware):
 
     def on_next(self, ctx: "Context", file: Binary) -> None:
         self.next_called += 1
+
+    def on_unparsed(self, ctx: "Context", file: Binary) -> Optional[Line]:
+        file.advance(1)
+        ctx.advance(1)
+        return Line("Unparsed")
 
     def on_node_parsed(
         self,
@@ -158,3 +163,19 @@ class TestContext(unittest.TestCase):
         collected = parser.parse(ctx, Binary(bytes([0xEA, 0xE6, 0xAA])))
 
         self.assertEqual(collected, ["    !byte $ea", "    inc $aa"])
+
+    def test_it_should_call_unparsed(self) -> None:
+        parser = Parser6502()
+        ctx = Context(middlewares=[Middleware(), TestMiddleware()])
+
+        collected = parser.parse(ctx, Binary(bytes([0xEA, 0xFF])))
+        print(collected)
+        self.assertEqual(
+            collected,
+            [
+                "middleware_begin",
+                "    nop_middleware_line",
+                "    Unparsed_middleware_line",
+                "middleware_end",
+            ],
+        )

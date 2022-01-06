@@ -56,6 +56,14 @@ class Middleware:
     def on_next(self, ctx: "Context", file: Binary) -> None:
         """Emmited before the next node is parsed"""
 
+    def on_unparsed(self, _ctx: "Context", _file: Binary) -> Optional[Line]:
+        """
+        Called whenever no sutable parser is found.
+        It is up to this method to handle this case or return None.
+        This method should advance the file and ctx addresses as needed.
+        """
+        return None
+
     def on_node_parsed(
         self,
         ctx: "Context",
@@ -212,6 +220,13 @@ class Context:
     def emit_on_next(self, file: Binary) -> None:
         for middleware in self.middlewares:
             middleware.on_next(self, file)
+
+    def emit_on_unparsed(self, file: Binary) -> Optional[Line]:
+        for middleware in self.middlewares:
+            line = middleware.on_unparsed(self, file)
+            if line is not None:
+                return line
+        return None
 
     def emit_on_node_parsed(
         self,
