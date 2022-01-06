@@ -72,6 +72,7 @@ class Node:
         data is read using more nodes. Finally all operations are combined
         and returned as a result string and the total size read.
         """
+        self.aborted = False  # always reset aborted before parsing!
         data, size = self.reader(file) or (None, None)
         if data is None or size is None:
             return None
