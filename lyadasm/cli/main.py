@@ -1,5 +1,6 @@
 import argparse
 import logging
+import importlib.util
 from typing import List, Optional
 
 from lyadasm.core.parser import Parser
@@ -63,48 +64,56 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     )
     parser.add_argument(
         "--file-start-offset",
+        "-b",
         type=int,
         default=0,
         help="Start parsing input file at offset",
     )
     parser.add_argument(
         "--file-end-offset",
+        "-x",
         type=int,
         default=None,
         help="Stop parsing input file at offset",
     )
     parser.add_argument(
         "--start-addr",
+        "-s",
         type=int,
         default=0,
         help="Starting address",
     )
     parser.add_argument(
         "--end-addr",
+        "-e",
         type=int,
         default=None,
         help="End addres",
     )
     parser.add_argument(
         "--label-postfix",
+        "-p",
         type=str,
         default=":",
         help="",
     )
     parser.add_argument(
         "--loglevel",
+        "-v",
         type=str,
         default="ERROR",
         help="Loglevel: DEBUG;INFO;WARNING;ERROR;CRITICAL;FATAL;NOTSET",
     )
     parser.add_argument(
         "-o",
+        "--out",
         type=str,
         default=None,
         help="Output file",
     )
     parser.add_argument(
         "--quiet",
+        "-q",
         action="store_true",
         help="Disables all logging output",
     )
@@ -113,6 +122,23 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
         action="store_true",
         help="Append to output file",
     )
+    # parser.add_argument(
+    #    "-middleware",
+    #    "-m",
+    #    action="append",
+    #    type=str,
+    #    default=None,
+    #    help="Load a module containing a Middleware class",
+    # )
+    # parser.add_argument(
+    #    "--middleware-out",
+    #    "-w",
+    #    action="append",
+    #    type=str,
+    #    nargs=2,
+    #    default=None,
+    #    help="Middleware output tag/file",
+    # )
     args = parser.parse_args(argv)
 
     numeric_level = getattr(logging, args.loglevel.upper(), None)
