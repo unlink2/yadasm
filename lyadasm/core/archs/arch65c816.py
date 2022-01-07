@@ -6,7 +6,8 @@ from ..comparator import always_true
 from ..context import Context
 from ..node import Node
 from ..numfmt import IntFmt
-from ..reader import read_i8_le, read_i16_le, read_i24_le
+from ..reader import read_i8_le, read_i16_le, read_i24_le, read_idyn_le
+from ..file import Binary
 from .arch65c02 import Parser65C02
 from .arch6502 import InstructionMode as InstructionMode6502
 from .arch6502 import fmt_hex_label, grab_label
@@ -122,10 +123,14 @@ class Parser65C816(Parser65C816Emulated):
     """Native mode for 65C816"""
 
     def __init__(
-        self, nodes: List[Node] = None, per_label: bool = True
+        self,
+        nodes: List[Node] = None,
+        per_label: bool = True,
+        start_immediate_len: int = 2,
     ) -> None:
         Parser65C816Emulated.__init__(self, nodes)
         self.per_label = per_label
+        self.start_immediate_len = start_immediate_len
 
         self.nodes += (
             self._make_instruction_65c816(
@@ -187,6 +192,12 @@ class Parser65C816(Parser65C816Emulated):
             + self._make_instruction_65c816("jsr", self._make_jsrx(0xFC))
         )
 
+    def parse(self, ctx: Context, file: Binary) -> List[str]:
+        ctx.set_flag(
+            "read_idyn_le", self.start_immediate_len
+        )  # default to 16 bit mode
+        return Parser65C816Emulated.parse(self, ctx, file)
+
     def _make_extended(self, mask: int) -> Dict[InstructionMode, int]:
         return {
             InstructionMode.ABSOLUTE_LONG: mask
@@ -217,14 +228,20 @@ class Parser65C816(Parser65C816Emulated):
     def _read_immediate_hex_node(
         self, prefix: str = "", padding: int = 2, mode: IntFmt = IntFmt.HEX
     ) -> Node:
-        return self._read_hex_node(prefix, padding, mode)
+        return Node(
+            read_idyn_le,
+            [],
+            always_true,
+            lambda ctx, i: f"{prefix}{self._get_prefix(mode)}"
+            f"{i:0{padding}{mode.to_literal()}}",
+        )
 
     def _read_rel_label_long_node(self) -> Node:
         return Node(
             read_i16_le,
             [grab_label_i16_rel],
             always_true,
-            lambda ctx, i: f"label_{fmt_hex_label(i)}",
+            lambda ctx, i: ctx.get_symbol_at(i, f"label_{fmt_hex_label(i)}"),
             [],
         )
 
@@ -233,7 +250,7 @@ class Parser65C816(Parser65C816Emulated):
             read_i24_le,
             [grab_label],
             always_true,
-            lambda ctx, i: f"label_{fmt_hex_label(i)}",
+            lambda ctx, i: ctx.get_symbol_at(i, f"label_{fmt_hex_label(i)}"),
             [],
         )
 
@@ -455,8 +472,10 @@ class Parser65C816(Parser65C816Emulated):
 
 
 class Parser65C816Bytes(Parser65C816):
-    def __init__(self, nodes: List[Node] = None):
-        Parser65C816.__init__(self, nodes)
+    def __init__(self, nodes: List[Node] = None, start_immediate_len: int = 2):
+        Parser65C816.__init__(
+            self, nodes, start_immediate_len=start_immediate_len
+        )
 
         self.nodes.append(self._read_short_hex_node("!byte "))
 

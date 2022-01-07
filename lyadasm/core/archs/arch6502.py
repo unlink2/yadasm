@@ -305,7 +305,7 @@ class Parser6502(Parser):
             read_i8_le,
             [grab_label_i8_rel],
             always_true,
-            lambda ctx, i: f"label_{fmt_hex_label(i)}",
+            lambda ctx, i: ctx.get_symbol_at(i, f"label_{fmt_hex_label(i)}"),
             [],
         )
 
@@ -314,7 +314,7 @@ class Parser6502(Parser):
             read_i16_le,
             [grab_label],
             always_true,
-            lambda ctx, i: f"label_{fmt_hex_label(i)}",
+            lambda ctx, i: ctx.get_symbol_at(i, f"label_{fmt_hex_label(i)}"),
             [],
         )
 

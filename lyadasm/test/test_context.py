@@ -9,6 +9,14 @@ from lyadasm.core.node import Node
 
 class MiddlewareTest(Middleware):
     next_called = 0
+    parse_begin = False
+    parse_end = False
+
+    def on_parse_begin(self, ctx: "Context") -> None:
+        self.parse_begin = True
+
+    def on_parse_end(self, ctx: "Context") -> None:
+        self.parse_end = True
 
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
         lines.append("middleware_begin")
@@ -126,7 +134,7 @@ class TestContext(unittest.TestCase):
     def test_is_int_address_range(self) -> None:
         ctx = Context(address=100, end_address=150)
 
-        self.assertTrue(ctx.is_in_address_range(150))
+        self.assertTrue(ctx.is_in_address_range(149))
         self.assertTrue(ctx.is_in_address_range(100))
         self.assertTrue(ctx.is_in_address_range(110))
         self.assertFalse(ctx.is_in_address_range(99))
@@ -155,6 +163,8 @@ class TestContext(unittest.TestCase):
             ],
         )
         self.assertEqual(middelware.next_called, 2)
+        self.assertTrue(middelware.parse_begin)
+        self.assertTrue(middelware.parse_end)
 
     def test_it_should_abort_parser_conditionally(self) -> None:
         parser = Parser6502Bytes()
@@ -179,3 +189,35 @@ class TestContext(unittest.TestCase):
                 "middleware_end",
             ],
         )
+
+    def test_symbol_should_use_postfix(self) -> None:
+        sym = Symbol(0x100, "test")
+        self.assertEqual(sym.fmt(":"), "test:")
+
+    def test_symbol_should_ignore_postfix(self) -> None:
+        sym = Symbol(0x100, "test", True)
+        self.assertEqual(sym.fmt(""), "test")
+
+    def test_flags(self) -> None:
+        ctx = Context()
+
+        self.assertFalse(ctx.has_flag("test"))
+        self.assertEqual(ctx.get_flag("test"), None)
+
+        ctx.set_flag("test", True)
+
+        self.assertTrue(ctx.has_flag("test"))
+        self.assertNotEqual(ctx.get_flag("test"), None)
+
+    def test_symbol_getter(self) -> None:
+        ctx = Context()
+        ctx.add_symbol(Symbol(0x100, "test"))
+
+        self.assertEqual(ctx.get_symbol_at(0x100, "default"), "test")
+        self.assertEqual(ctx.get_symbol_at(0x101, "default"), "default")
+
+    def test_it_should_not_output_shadowed_label(self) -> None:
+        ctx = Context()
+        ctx.add_symbol(Symbol(0x100, "test", shadow=True))
+
+        self.assertEqual(ctx.collect(), [])

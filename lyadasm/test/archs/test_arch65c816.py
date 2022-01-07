@@ -144,16 +144,17 @@ class TestArch65C816(unittest.TestCase):
         ctx = Context(0x600)
         result = parser.parse(
             ctx,
-            Binary(bytes([0x22, 0x12, 0x23, 0x45])),
+            Binary(bytes([0x22, 0x12, 0x23, 0x45, 0x22, 0x12, 0x23, 0x45])),
         )
 
-        self.assertEqual(ctx.address, 1540)
+        self.assertEqual(ctx.address, 1544)
         self.assertNotEqual(result, None)
         print(result)
         if result is not None:
             self.assertEqual(
                 result,
                 [
+                    "    jsl label_452312",
                     "    jsl label_452312",
                     "label_452312",
                 ],
@@ -314,3 +315,16 @@ class TestArch65C816(unittest.TestCase):
                     "label_1112",
                 ],
             )
+
+    def test_it_should_use_short_immediat_in_emulated_mode(self) -> None:
+        parser = Parser65C816(start_immediate_len=1)
+        ctx = Context(0x600)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xA9, 0x12])),
+        )
+
+        self.assertEqual(ctx.address, 1538)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(result, ["    lda #$12"])

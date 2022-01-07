@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, IO
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from .file import Binary
 
@@ -8,9 +8,27 @@ if TYPE_CHECKING:
 
 
 class Symbol:
-    def __init__(self, address: int, name: str):
+    def __init__(
+        self,
+        address: int,
+        name: str,
+        ignore_postfix: bool = False,
+        shadow: bool = False,
+    ):
+        """
+        Symbols that ignore the postfix may be used as assembler directives
+        Shadown labels are defined, but will not be output
+        """
         self.address = address
         self.name = name
+        self.ignore_postfix = ignore_postfix
+        self.shadown = shadow
+
+    def fmt(self, postfix: str = "") -> str:
+        if self.ignore_postfix:
+            return self.name
+        else:
+            return f"{self.name}{postfix}"
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Symbol):
@@ -23,6 +41,9 @@ class Line:
     def __init__(self, text: str, size: int = 0):
         self.text = text
         self.size = size
+
+    def fmt(self) -> str:
+        return self.text
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Line):
@@ -43,6 +64,12 @@ class Middleware:
 
     def __init__(self, tag: str = "") -> None:
         self.tag = tag
+
+    def on_parse_begin(self, ctx: "Context") -> None:
+        pass
+
+    def on_parse_end(self, ctx: "Context") -> None:
+        pass
 
     def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
         pass
@@ -126,9 +153,24 @@ class Context:
         self.symbol_postfix = symbol_poxtfix
         self.middlewares = middlewares
 
+        # flags can be used for storing custom information
+        self.flags: Dict[str, Any] = {}
+
+    def set_flag(self, flag: str, data: Any) -> None:
+        self.flags[flag] = data
+
+    def get_flag(self, flag: str) -> Optional[Any]:
+        if self.has_flag(flag):
+            return self.flags[flag]
+        else:
+            return None
+
+    def has_flag(self, flag: str) -> bool:
+        return flag in self.flags
+
     def is_in_address_range(self, addr: int) -> bool:
         return self.start_address <= addr and (
-            self.end_address is None or self.end_address >= addr
+            self.end_address is None or self.end_address > addr
         )
 
     def add_symbol(self, symbol: Symbol) -> None:
@@ -138,11 +180,18 @@ class Context:
         self.add_symbol_no_emit(symbol)
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
-        self.all_addresses.append(symbol.address)
+        if not symbol.shadown:
+            self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
         elif symbol not in self.symbols[symbol.address]:
             self.symbols[symbol.address].append(symbol)
+
+    def get_symbol_at(self, address: int, default: str = "") -> str:
+        if address in self.symbols and len(self.symbols[address]) > 0:
+            return self.symbols[address][-1].name
+        else:
+            return default
 
     def add_line(self, line: Line) -> None:
         """Add a line at the current address"""
@@ -190,8 +239,7 @@ class Context:
                 self.symbols,
                 lambda symbol: (
                     f"{''.ljust(self.symbol_indent, self.indent_char)}"
-                    f"{symbol.name}"
-                    f"{self.symbol_postfix}"
+                    f"{symbol.fmt(self.symbol_postfix)}"
                 ),
             )
             lines += self.__collect(
@@ -199,13 +247,21 @@ class Context:
                 self.lines,
                 lambda line: (
                     f"{''.ljust(self.code_indent, self.indent_char)}"
-                    f"{line.text}"
+                    f"{line.fmt()}"
                 ),
             )
 
         self.emit_on_collect_end(lines)
 
         return lines
+
+    def emit_on_parse_begin(self) -> None:
+        for middleware in self.middlewares:
+            middleware.on_parse_begin(self)
+
+    def emit_on_parse_end(self) -> None:
+        for middleware in self.middlewares:
+            middleware.on_parse_end(self)
 
     def emit_on_symbol(self, symbol: Symbol) -> None:
         for middleware in self.middlewares:

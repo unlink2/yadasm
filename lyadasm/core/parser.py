@@ -74,6 +74,8 @@ class Parser:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 
+        ctx.emit_on_parse_begin()
+
         while not file.is_at_end():
             # parse until the first match is found
             ctx.emit_on_next(file)
@@ -84,6 +86,8 @@ class Parser:
             else:
                 ctx.add_line(parsed)
                 ctx.advance(parsed.size)
+
+        ctx.emit_on_parse_end()
 
         return ctx.collect()
 

@@ -7,8 +7,6 @@ from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
 from lyadasm.core.archs.arch65c816 import (
     Parser65C816,
     Parser65C816Bytes,
-    Parser65C816Emulated,
-    Parser65C816EmulatedBytes,
 )
 from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Middleware
@@ -21,8 +19,8 @@ _archs = {
     "65c02-byte": Parser65C02Bytes(),
     "65c816": Parser65C816(),
     "65c816-byte": Parser65C816Bytes(),
-    "65c816-emu": Parser65C816Emulated(),
-    "65c816-emu-byte": Parser65C816EmulatedBytes(),
+    "65c816-emu": Parser65C816(start_immediate_len=2),
+    "65c816-emu-byte": Parser65C816Bytes(start_immediate_len=2),
 }
 
 
