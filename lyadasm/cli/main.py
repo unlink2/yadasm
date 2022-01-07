@@ -1,7 +1,6 @@
 import argparse
 import logging
-import importlib.util
-from typing import List, Optional
+from typing import List, Optional, Dict, IO
 
 from lyadasm.core.parser import Parser
 from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
@@ -33,6 +32,7 @@ def _write_to_file(
     parser: Parser,
     ctx: Context,
     append: bool,
+    middlewareout: Dict[str, IO],
 ) -> None:
     if out is None:
         for line in lines:
@@ -43,7 +43,7 @@ def _write_to_file(
             outmode = "a"
 
         with open(out, outmode, encoding="UTF-8") as outfile:
-            parser.output(ctx, outfile, lines)
+            parser.output(ctx, outfile, lines, middlewareout)
 
 
 def _read_from_file(file_path: str) -> bytes:
@@ -53,7 +53,14 @@ def _read_from_file(file_path: str) -> bytes:
     return ""
 
 
-def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
+def main(
+    argv: List[str],
+    middlewares: List[Middleware] = None,
+    middlewareout: Dict[str, IO] = None,
+) -> int:
+    if middlewareout is None:
+        middlewareout = {}
+
     parser = argparse.ArgumentParser(description="yadasm")
     parser.add_argument("file", type=str, help="the input file")
     parser.add_argument(
@@ -164,6 +171,8 @@ def main(argv: List[str], middlewares: List[Middleware] = None) -> int:
     )
     lines = _archs[args.arch].parse(ctx, bin_file)
 
-    _write_to_file(args.o, lines, _archs[args.arch], ctx, args.append)
+    _write_to_file(
+        args.o, lines, _archs[args.arch], ctx, args.append, middlewareout
+    )
 
     return 0
