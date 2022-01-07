@@ -14,15 +14,18 @@ class Symbol:
         name: str,
         ignore_postfix: bool = False,
         shadow: bool = False,
+        order: int = 0,
     ):
         """
         Symbols that ignore the postfix may be used as assembler directives
         Shadown labels are defined, but will not be output
+        Order is used to sort symbols lower order is sorted first
         """
         self.address = address
         self.name = name
         self.ignore_postfix = ignore_postfix
         self.shadown = shadow
+        self.order = order
 
     def fmt(self, postfix: str = "") -> str:
         if self.ignore_postfix:
@@ -186,10 +189,13 @@ class Context:
             self.symbols[symbol.address] = [symbol]
         elif symbol not in self.symbols[symbol.address]:
             self.symbols[symbol.address].append(symbol)
+            self.symbols[symbol.address] = sorted(
+                self.symbols[symbol.address], key=lambda x: x.order
+            )
 
     def get_symbol_at(self, address: int, default: str = "") -> str:
         if address in self.symbols and len(self.symbols[address]) > 0:
-            return self.symbols[address][-1].name
+            return self.symbols[address][0].name
         else:
             return default
 

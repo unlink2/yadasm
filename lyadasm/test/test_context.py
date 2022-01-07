@@ -211,10 +211,13 @@ class TestContext(unittest.TestCase):
 
     def test_symbol_getter(self) -> None:
         ctx = Context()
-        ctx.add_symbol(Symbol(0x100, "test"))
+        ctx.add_symbol(Symbol(0x100, "test", order=2))
 
         self.assertEqual(ctx.get_symbol_at(0x100, "default"), "test")
         self.assertEqual(ctx.get_symbol_at(0x101, "default"), "default")
+
+        ctx.add_symbol(Symbol(0x100, "test2", order=1))
+        self.assertEqual(ctx.get_symbol_at(0x100, "default"), "test2")
 
     def test_it_should_not_output_shadowed_label(self) -> None:
         ctx = Context()
