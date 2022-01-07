@@ -172,7 +172,7 @@ def main(
     lines = _archs[args.arch].parse(ctx, bin_file)
 
     _write_to_file(
-        args.o, lines, _archs[args.arch], ctx, args.append, middlewareout
+        args.out, lines, _archs[args.arch], ctx, args.append, middlewareout
     )
 
     return 0
