@@ -63,7 +63,7 @@ class AbortMiddlewareTest(Middleware):
         postfix: str,
         data: Any,
     ) -> Any:
-        if data == 0xEA and "nop" in node.make_response(ctx, data):
+        if data == 0xEA and "nop" in node.response(ctx, data):
             node.abort()
 
 

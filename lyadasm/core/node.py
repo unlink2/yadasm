@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import List, Optional
 
 from .comparator import Comparator
 from .context import Context, Line
@@ -55,9 +55,6 @@ class Node:
                 result.size += size
         return result
 
-    def make_response(self, ctx: Context, data: Any) -> str:
-        return self.response(ctx, data)
-
     def parse(
         self,
         ctx: Context,
@@ -83,6 +80,8 @@ class Node:
         if self.comparator(ctx, data):
             file.advance(size)
 
+            response = self.response
+
             # emit data parsed event
             # allowing the middleware to
             # modify the data
@@ -91,14 +90,18 @@ class Node:
             )
             # apply modification is there is one
             if modified is not None:
-                data = modified
+                # if it is a callabel we assume it is a response
+                if callable(modified):
+                    response = modified
+                else:
+                    data = modified
 
             res = self.__parse_children(
                 ctx,
                 file,
                 prefix=(
                     f"{self.prefix}{prefix}"
-                    f"{self.make_response(ctx, data)}{postfix}{self.postfix}"
+                    f"{response(ctx, data)}{postfix}{self.postfix}"
                 ),
                 postfix="",
                 size=size,

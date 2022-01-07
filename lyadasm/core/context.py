@@ -113,6 +113,8 @@ class Middleware:
         Called for ever node that has successfully applied its comparator.
         The first node that does not return None will return its updated value
         to the caller.
+        It may also return a new Response function to override the
+        node's output.
         Note:
             A node's children may still fail parsing even if this event is
             emmitted!
