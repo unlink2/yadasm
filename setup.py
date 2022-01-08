@@ -26,5 +26,5 @@ setup(
     long_description_content_type="text/markdown",
     platforms=["any"],
     license="MIT",
-    scripts=["scripts/yadasm"],
+    scripts=["yadasm"],
 )
