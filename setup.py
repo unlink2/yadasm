@@ -15,6 +15,7 @@ setup(
         "lyadasm.cli",
         "lyadasm.test",
         "lyadasm.core.archs",
+        "lyadasm.core.middleware",
     ],
     package_data={"": ["README.md", "LICENSE"]},
     author="Lukas Krickl",
