@@ -1,14 +1,31 @@
-from typing import Dict, Any, Optional, List
+from typing import Any, Callable, Dict, List, Optional
 
-from ..context import Middleware, Context, Symbol
+from ..context import Context, Middleware, Symbol
 from ..file import Binary
 from ..node import Node
+
+# context, input data, default reutrn value -> new value
+DefinitionModifier = Callable[[Context, Any, Any], Any]
+
+
+class Definition:
+    def __init__(
+        self, data: Any, modifier: Optional[DefinitionModifier] = None
+    ) -> None:
+        self.default_data = data
+        self.modifier = modifier
+
+    def get_data(self, ctx: Context, data: Any) -> Any:
+        if self.modifier is None:
+            return self.default_data
+        else:
+            return self.modifier(ctx, data, self.default_data)
 
 
 class DefineMiddleware(Middleware):
     def __init__(
         self,
-        definitions: Dict[Any, Any],
+        definitions: Dict[Any, Definition],
         symbols: List[Symbol] = None,
         tag: str = "Define",
     ):
@@ -31,9 +48,12 @@ class DefineMiddleware(Middleware):
         postfix: str,
         data: Any,
     ) -> Optional[Any]:
+        response = None
         if data in self.definitions:
-            return self.definitions[data]
+            return self.definitions[data].get_data(ctx, data)
         elif node.response(ctx, data) in self.definitions:
-            return self.definitions[node.response(ctx, data)]
+            return self.definitions[node.response(ctx, data)].get_data(
+                ctx, data
+            )
         else:
-            return None
+            return response
