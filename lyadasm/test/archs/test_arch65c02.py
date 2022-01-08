@@ -77,13 +77,36 @@ class TestArch65C02(unittest.TestCase):
         ctx = Context(0x600)
         result = parser.parse(
             ctx,
-            Binary(bytes([0x74, 0xAA, 0x9E, 0xAA, 0xBB])),
+            Binary(
+                bytes(
+                    [
+                        0x74,
+                        0xAA,
+                        0x9E,
+                        0xAA,
+                        0xBB,
+                        0x64,
+                        0x11,
+                        0x9C,
+                        0x11,
+                        0x22,
+                    ]
+                )
+            ),
         )
 
-        self.assertEqual(ctx.address, 1541)
+        self.assertEqual(ctx.address, 1546)
         self.assertNotEqual(result, None)
         if result is not None:
-            self.assertEqual(result, ["    stz $aa, x", "    stz $bbaa, x"])
+            self.assertEqual(
+                result,
+                [
+                    "    stz $aa, x",
+                    "    stz $bbaa, x",
+                    "    stz $11",
+                    "    stz $2211",
+                ],
+            )
 
     def test_it_should_parse_bra(self) -> None:
         parser = Parser65C02()

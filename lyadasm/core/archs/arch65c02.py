@@ -149,11 +149,13 @@ class Parser65C02(Parser6502):
             | InstructionMode.ABSOLUTE.mask(mask),
         }
 
-    def _make_stz(self, mask: int) -> Dict[InstructionMode, int]:
+    def _make_stz(self, _mask: int) -> Dict[InstructionMode, int]:
         return {
             InstructionMode.ZEROPAGEX: 0x74,
             InstructionMode.ABSOLUTEX: 0x9E,
-        } | self._make_trb(mask)
+            InstructionMode.ZEROPAGE: 0x64,
+            InstructionMode.ABSOLUTE: 0x9C,
+        }
 
     def _make_tsb(self) -> Dict[InstructionMode, int]:
         return {InstructionMode.ZEROPAGE: 0x04, InstructionMode.ABSOLUTE: 0x0C}
