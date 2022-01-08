@@ -1,7 +1,7 @@
 import unittest
 
 from lyadasm.core.archs.arch6502 import Parser6502
-from lyadasm.core.context import Context
+from lyadasm.core.context import Context, Symbol
 from lyadasm.core.file import Binary
 from lyadasm.core.middleware.define import DefineMiddleware
 
@@ -9,7 +9,8 @@ from lyadasm.core.middleware.define import DefineMiddleware
 class TestDefine(unittest.TestCase):
     def test_it_should_replace_defined_data(self) -> None:
         middleware = DefineMiddleware(
-            {0xEA: lambda ctx, i: "#test_label", 0xEE: 0xED, "#$1e": 0xEF}
+            {0xEA: lambda ctx, i: "#test_label", 0xEE: 0xED, "#$1e": 0xEF},
+            [Symbol(0x600, "test:")],
         )
         parser = Parser6502()
         ctx = Context(0x600, middlewares=[middleware])
@@ -19,5 +20,6 @@ class TestDefine(unittest.TestCase):
         )
 
         self.assertEqual(
-            result, ["    lda #test_label", "    lda #$ed", "    ldx #$ef"]
+            result,
+            ["test:", "    lda #test_label", "    lda #$ed", "    ldx #$ef"],
         )
