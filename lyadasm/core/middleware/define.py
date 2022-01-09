@@ -27,6 +27,7 @@ class DefineMiddleware(Middleware):
         self,
         definitions: Dict[Any, Definition],
         symbols: List[Symbol] = None,
+        force_symbol_output: bool = False,
         tag: str = "Define",
     ):
         Middleware.__init__(self, tag)
@@ -34,9 +35,16 @@ class DefineMiddleware(Middleware):
             symbols = []
         self.symbols = symbols
         self.definitions = definitions
+        self.force_symbol_output = force_symbol_output
 
     def on_parse_begin(self, ctx: Context) -> None:
         for symbol in self.symbols:
+            # set the shadow flag when needed
+            symbol.shadow = (
+                not ctx.is_in_address_range(symbol.address)
+                and not self.force_symbol_output
+            )
+
             ctx.add_symbol_no_emit(symbol)
 
     def on_node_parsed(

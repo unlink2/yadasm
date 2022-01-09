@@ -24,7 +24,7 @@ class Symbol:
         self.address = address
         self.name = name
         self.ignore_postfix = ignore_postfix
-        self.shadown = shadow
+        self.shadow = shadow
         self.order = order
 
     def fmt(self, postfix: str = "") -> str:
@@ -185,7 +185,7 @@ class Context:
         self.add_symbol_no_emit(symbol)
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
-        if not symbol.shadown:
+        if not symbol.shadow:
             self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
