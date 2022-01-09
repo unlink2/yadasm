@@ -12,26 +12,28 @@ class Symbol:
         self,
         address: int,
         name: str,
-        ignore_postfix: bool = False,
         shadow: bool = False,
         order: int = 0,
+        prefix: str = "",
+        postfix: str = None,
     ):
         """
-        Symbols that ignore the postfix may be used as assembler directives
-        Shadown labels are defined, but will not be output
+        If a symbol defines a custom postfix it will ignore the global postfix
+        provided by the parser
+        Shadow labels are defined, but will not be output
         Order is used to sort symbols lower order is sorted first
         """
         self.address = address
         self.name = name
-        self.ignore_postfix = ignore_postfix
         self.shadow = shadow
         self.order = order
+        self.prefix = prefix
+        self.postfix = postfix
 
     def fmt(self, postfix: str = "") -> str:
-        if self.ignore_postfix:
-            return self.name
-        else:
-            return f"{self.name}{postfix}"
+        if self.postfix is not None:
+            postfix = self.postfix
+        return f"{self.prefix}{self.name}{postfix}"
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Symbol):

@@ -194,9 +194,13 @@ class TestContext(unittest.TestCase):
         sym = Symbol(0x100, "test")
         self.assertEqual(sym.fmt(":"), "test:")
 
-    def test_symbol_should_ignore_postfix(self) -> None:
-        sym = Symbol(0x100, "test", True)
-        self.assertEqual(sym.fmt(""), "test")
+    def test_symbol_should_use_custom_postfix(self) -> None:
+        sym = Symbol(0x100, "test", postfix=">>")
+        self.assertEqual(sym.fmt(":"), "test>>")
+
+    def test_symbol_should_use_prefix(self) -> None:
+        sym = Symbol(0x100, "test", prefix="; ")
+        self.assertEqual(sym.fmt(""), "; test")
 
     def test_flags(self) -> None:
         ctx = Context()
