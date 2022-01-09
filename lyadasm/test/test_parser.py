@@ -148,6 +148,6 @@ class TestParser(unittest.TestCase):
         bio.seek(0)
         self.assertEqual(
             strio.readlines(),
-            ["    nop\n", "    nop\n", "    nop\n", "    nop"],
+            ["    nop\n", "    nop\n", "    nop\n", "    nop\n"],
         )
         self.assertEqual(bio.read(), b"123")
