@@ -104,6 +104,7 @@ class Parser:
         to call their respective output event
         """
         outstream.write("\n".join(data))
+        outstream.write("\n")
         if middleware_streams is not None:
             ctx.emit_on_output(middleware_streams)
 
