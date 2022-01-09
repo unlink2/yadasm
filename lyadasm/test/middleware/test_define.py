@@ -22,15 +22,18 @@ class TestDefine(unittest.TestCase):
                 0xEE: Definition(0xED),
                 "#$1e": Definition(0xEF, modifier=ef_modifier),
             },
-            [Symbol(0x600, "test:"), Symbol(0x400, "shadow:")],
+            [
+                Symbol(0x600, "test:"),
+                Symbol(0x400, "shadow:"),
+                Symbol(0x800, "shadow2:"),
+            ],
         )
         parser = Parser6502()
-        ctx = Context(0x600, middlewares=[middleware])
+        ctx = Context(0x600, middlewares=[middleware], end_address=0x700)
         result = parser.parse(
             ctx,
             Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
         )
-
         self.assertEqual(
             result,
             [
@@ -49,11 +52,15 @@ class TestDefine(unittest.TestCase):
                 0xEE: Definition(0xED),
                 "#$1e": Definition(0xEF, modifier=ef_modifier),
             },
-            [Symbol(0x600, "test:"), Symbol(0x400, "shadow:")],
+            [
+                Symbol(0x600, "test:"),
+                Symbol(0x400, "shadow:"),
+                Symbol(0x800, "shadow2:"),
+            ],
             force_symbol_output=True,
         )
         parser = Parser6502()
-        ctx = Context(0x600, middlewares=[middleware])
+        ctx = Context(0x600, middlewares=[middleware], end_address=0x700)
         result = parser.parse(
             ctx,
             Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
@@ -68,5 +75,6 @@ class TestDefine(unittest.TestCase):
                 "    lda #$ed",
                 "    ldx #$ef",
                 "    ldx #$aa",
+                "shadow2:",
             ],
         )
