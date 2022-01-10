@@ -62,17 +62,44 @@ class Definition:
 class DefineMiddleware(Middleware):
     def __init__(
         self,
-        definitions: Dict[Any, Definition],
+        definitions: Dict[Any, Definition] = None,
         symbols: List[Symbol] = None,
         force_symbol_output: bool = False,
         tag: str = "Define",
     ):
         Middleware.__init__(self, tag)
+        if definitions is None:
+            definitions = {}
         if symbols is None:
             symbols = []
         self.symbols = symbols
         self.definitions = definitions
         self.force_symbol_output = force_symbol_output
+
+    def add_symbol(self, symbol: Symbol) -> "DefineMiddleware":
+        self.symbols.append(symbol)
+        return self
+
+    def add_definition(
+        self, address: int, definition: Definition
+    ) -> "DefineMiddleware":
+        self.definitions[address] = definition
+        return self
+
+    def add_symbol_definition(
+        self, symbol: Symbol, condition: DefinitionCondition = always_true
+    ) -> "DefineMiddleware":
+        self.add_symbol(symbol)
+        self.add_definition(
+            symbol.address,
+            self._make_symbol_definition(symbol.fmt(), condition),
+        )
+        return self
+
+    def _make_symbol_definition(
+        self, constant: str, condition: DefinitionCondition = always_true
+    ) -> Definition:
+        return Definition(lambda ctx, i: constant, condition=condition)
 
     def on_parse_begin(self, ctx: Context) -> None:
         for symbol in self.symbols:
