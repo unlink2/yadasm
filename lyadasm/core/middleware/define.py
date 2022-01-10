@@ -6,25 +6,54 @@ from ..node import Node
 
 # context, input data, default reutrn value -> new value
 DefinitionModifier = Callable[[Context, Any, Any], Any]
+DefinitionCondition = Callable[[Context, Node, Binary, str, str, Any], bool]
+
+
+def always_true(
+    _ctx: Context,
+    _node: Node,
+    _file: Binary,
+    _prefix: str,
+    _postfix: str,
+    _data: Any,
+) -> bool:
+    return True
+
+
+def always_false(
+    _ctx: Context,
+    _node: Node,
+    _file: Binary,
+    _prefix: str,
+    _postfix: str,
+    _data: Any,
+) -> bool:
+    return False
 
 
 class Definition:
     def __init__(
-        self, data: Any, modifier: Optional[DefinitionModifier] = None
+        self,
+        data: Any,
+        modifier: Optional[DefinitionModifier] = None,
+        condition: DefinitionCondition = always_true,
     ) -> None:
         self.default_data = data
         self.modifier = modifier
+        self.condition = condition
 
     def get_data(
         self,
         ctx: Context,
-        _node: Node,
-        _file: Binary,
-        _prefix: str,
-        _postfix: str,
+        node: Node,
+        file: Binary,
+        prefix: str,
+        postfix: str,
         data: Any,
     ) -> Any:
-        if self.modifier is None:
+        if not self.condition(ctx, node, file, prefix, postfix, data):
+            return None
+        elif self.modifier is None:
             return self.default_data
         else:
             return self.modifier(ctx, data, self.default_data)
