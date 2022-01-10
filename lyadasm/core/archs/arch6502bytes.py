@@ -23,7 +23,7 @@ class ByteParser6502(Parser):
 
     def _should_parse(self, ctx: Context, file: Binary) -> bool:
         self.length -= 1
-        return self.length > 0 and Parser._should_parse(self, ctx, file)
+        return self.length >= 0 and Parser._should_parse(self, ctx, file)
 
     def _read_opcode(self, _ctx: Context, file: Binary) -> int:
         byte = file.read(1)
