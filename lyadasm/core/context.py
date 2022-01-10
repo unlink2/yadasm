@@ -213,9 +213,12 @@ class Context:
                 self.symbols[symbol.address], key=lambda x: x.order
             )
 
+    def is_symbol_at(self, address: int) -> bool:
+        return address in self.symbols and len(self.symbols[address]) > 0
+
     def get_symbol_at(self, address: int, default: str = "") -> str:
-        if address in self.symbols and len(self.symbols[address]) > 0:
-            return self.symbols[address][0].name
+        if self.is_symbol_at(address):
+            return self.symbols[address][0].fmt()
         else:
             return default
 
