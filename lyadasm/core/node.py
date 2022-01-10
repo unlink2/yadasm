@@ -28,6 +28,9 @@ class Node:
         self.children = [] if children is None else children
         self.aborted = False
 
+    def make_line(self, text: str, size: int) -> Line:
+        return Line(text, size)
+
     def abort(self) -> None:
         """
         Aborts the current node parsing.
@@ -44,7 +47,7 @@ class Node:
         postfix: str = "",
         size: int = 0,
     ) -> Optional[Line]:
-        result = Line(f"{prefix}{postfix}", size)
+        result = self.make_line(f"{prefix}{postfix}", size)
         for child in self.children:
             next_res = child.parse(ctx, file, result.text, postfix)
             if next_res is None:

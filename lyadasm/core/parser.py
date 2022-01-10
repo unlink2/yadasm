@@ -42,7 +42,7 @@ class Parser:
         Optional method, read opcode and do not advance.
         This is used for node_lookup. May improve performance a lot!
         """
-        logging.warning("_read_opcode should always have be overridden")
+        logging.warning("_read_opcode should always be overridden")
         return -1
 
     def _parse(self, ctx: Context, file: Binary) -> Optional[Line]:
@@ -70,13 +70,17 @@ class Parser:
 
         return ctx.emit_on_unparsed(file)
 
+    def _should_parse(self, _ctx: Context, file: Binary) -> bool:
+        """Parser loop condition, called exactly once per iteration"""
+        return not file.is_at_end()
+
     def parse(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 
         ctx.emit_on_parse_begin()
 
-        while not file.is_at_end():
+        while self._should_parse(ctx, file):
             # parse until the first match is found
             ctx.emit_on_next(file)
             parsed = self._parse(ctx, file)

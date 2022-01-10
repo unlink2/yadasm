@@ -7,14 +7,30 @@ if TYPE_CHECKING:
     from .node import Node
 
 
-class Symbol:
+class Fmt:
+    def __init__(self, prefix: str = None, postfix: str = None):
+        self.prefix = prefix
+        self.postfix = postfix
+
+    def content(self) -> str:
+        return ""
+
+    def fmt(self, prefix: str = "", postfix: str = "") -> str:
+        if self.postfix is not None:
+            postfix = self.postfix
+        if self.prefix is not None:
+            prefix = self.prefix
+        return f"{prefix}{self.content()}{postfix}"
+
+
+class Symbol(Fmt):
     def __init__(
         self,
         address: int,
         name: str,
         shadow: bool = False,
         order: int = 0,
-        prefix: str = "",
+        prefix: str = None,
         postfix: str = None,
     ):
         """
@@ -23,17 +39,14 @@ class Symbol:
         Shadow labels are defined, but will not be output
         Order is used to sort symbols lower order is sorted first
         """
+        Fmt.__init__(self, prefix, postfix)
         self.address = address
         self.name = name
         self.shadow = shadow
         self.order = order
-        self.prefix = prefix
-        self.postfix = postfix
 
-    def fmt(self, postfix: str = "") -> str:
-        if self.postfix is not None:
-            postfix = self.postfix
-        return f"{self.prefix}{self.name}{postfix}"
+    def content(self) -> str:
+        return self.name
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Symbol):
@@ -42,12 +55,15 @@ class Symbol:
             return False
 
 
-class Line:
-    def __init__(self, text: str, size: int = 0):
+class Line(Fmt):
+    def __init__(
+        self, text: str, size: int = 0, prefix: str = None, postfix: str = None
+    ):
+        Fmt.__init__(self, prefix, postfix)
         self.text = text
         self.size = size
 
-    def fmt(self) -> str:
+    def content(self) -> str:
         return self.text
 
     def __eq__(self, other: object) -> bool:
@@ -247,17 +263,16 @@ class Context:
             lines += self.__collect(
                 key,
                 self.symbols,
-                lambda symbol: (
-                    f"{''.ljust(self.symbol_indent, self.indent_char)}"
-                    f"{symbol.fmt(self.symbol_postfix)}"
+                lambda symbol: symbol.fmt(
+                    "".ljust(self.symbol_indent, self.indent_char),
+                    self.symbol_postfix,
                 ),
             )
             lines += self.__collect(
                 key,
                 self.lines,
-                lambda line: (
-                    f"{''.ljust(self.code_indent, self.indent_char)}"
-                    f"{line.fmt()}"
+                lambda line: line.fmt(
+                    "".ljust(self.code_indent, self.indent_char)
                 ),
             )
 

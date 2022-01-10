@@ -190,13 +190,13 @@ class TestContext(unittest.TestCase):
             ],
         )
 
-    def test_symbol_should_use_postfix(self) -> None:
+    def test_symbol_should_use_postfix_and_prefix(self) -> None:
         sym = Symbol(0x100, "test")
-        self.assertEqual(sym.fmt(":"), "test:")
+        self.assertEqual(sym.fmt(">", ":"), ">test:")
 
-    def test_symbol_should_use_custom_postfix(self) -> None:
-        sym = Symbol(0x100, "test", postfix=">>")
-        self.assertEqual(sym.fmt(":"), "test>>")
+    def test_symbol_should_use_custom_postfix_and_prefix(self) -> None:
+        sym = Symbol(0x100, "test", prefix="<<", postfix=">>")
+        self.assertEqual(sym.fmt(">", ":"), "<<test>>")
 
     def test_symbol_should_use_prefix(self) -> None:
         sym = Symbol(0x100, "test", prefix="; ")
