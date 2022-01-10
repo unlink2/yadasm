@@ -15,7 +15,15 @@ class Definition:
         self.default_data = data
         self.modifier = modifier
 
-    def get_data(self, ctx: Context, data: Any) -> Any:
+    def get_data(
+        self,
+        ctx: Context,
+        _node: Node,
+        _file: Binary,
+        _prefix: str,
+        _postfix: str,
+        data: Any,
+    ) -> Any:
         if self.modifier is None:
             return self.default_data
         else:
@@ -58,10 +66,12 @@ class DefineMiddleware(Middleware):
     ) -> Optional[Any]:
         response = None
         if data in self.definitions:
-            return self.definitions[data].get_data(ctx, data)
+            return self.definitions[data].get_data(
+                ctx, node, file, prefix, postfix, data
+            )
         elif node.response(ctx, data) in self.definitions:
             return self.definitions[node.response(ctx, data)].get_data(
-                ctx, data
+                ctx, node, file, prefix, postfix, data
             )
         else:
             return response
