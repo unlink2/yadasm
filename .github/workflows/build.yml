@@ -23,5 +23,6 @@ jobs:
         packages: |
           wheel
           pylint
+          build
     - name: Build
       run: make
