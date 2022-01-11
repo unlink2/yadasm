@@ -15,6 +15,7 @@ class TestCommentMiddleware(unittest.TestCase):
                 .add_comment(0x600, Line("first"))
                 .add_comment(0x606, Line("second"))
                 .add_comment(0x606, Line("third"))
+                .add_post_comment(0x609, Line("post"))
             ],
         )
         result = parser.parse(
@@ -58,7 +59,7 @@ class TestCommentMiddleware(unittest.TestCase):
                     "    ; second",
                     "    ; third",
                     "    lda $0200",
-                    "    lda $0200, x",
+                    "    lda $0200, x ; post",
                     "    lda $0200, y",
                     "    lda ($ab, x)",
                     "    lda ($ab), y",
