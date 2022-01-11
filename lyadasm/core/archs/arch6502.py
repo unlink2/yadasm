@@ -23,7 +23,7 @@ def fmt_hex_label(i: int) -> str:
 
 def grab_label(ctx: Context, i: Any) -> Any:
     """Grab a label and add it as a symbol"""
-    if ctx.is_in_address_range(i):
+    if ctx.is_in_address_range(i) and not ctx.is_symbol_at(i):
         ctx.add_symbol(Symbol(i, f"label_{fmt_hex_label(i)}"))
     return i
 

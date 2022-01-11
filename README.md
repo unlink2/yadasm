@@ -27,7 +27,7 @@ pip install wheel
 
 Then run
 ```sh
-./build.sh
+make
 ```
 
 This will create a wheel package for you.
@@ -82,7 +82,7 @@ All contributions are welcome.
 Both pull requests and issue reports are always appreciated.
 Please make sure that all existing tests pass before submitting a pull request.
 The code is formatted using [black](https://github.com/psf/black).
-You can execute the entire code quality test suite using the `check.sh` script.
+You can execute the entire code quality test suite using the `make test` script.
 
 ## TODO
 - context needs to keep track of "seen" addresses/line numbers and add labels accordingly

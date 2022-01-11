@@ -27,10 +27,8 @@ jobs:
           pytest
           pytest-cov
     - name: Typecheck
-      run: mypy lyadasm --disallow-untyped-defs
+      run: make typecheck
     - name: Check lint
-      run: pylint lyadasm
+      run: make lint
     - name: Run tests
-      run: pytest lyadasm/test/ -v
-    - name: Code Coverage
-      run: pytest --cov=.
+      run: make unittests
