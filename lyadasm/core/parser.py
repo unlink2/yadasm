@@ -71,8 +71,11 @@ class Parser:
         return ctx.emit_on_unparsed(file)
 
     def _should_parse(self, _ctx: Context, file: Binary) -> bool:
-        """Parser loop condition, called exactly once per iteration"""
+        """Parser loop condition"""
         return not file.is_at_end()
+
+    def _next(self) -> None:
+        """advance parser loop, called exactly once per iteration"""
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:
@@ -81,8 +84,13 @@ class Parser:
         ctx.emit_on_parse_begin()
 
         while self._should_parse(ctx, file):
-            # parse until the first match is found
+            self._next()
             ctx.emit_on_next(file)
+            # it is possible that on_next advanced the file too far
+            # check again to avoid parser errors
+            if not self._should_parse(ctx, file):
+                break
+            # parse until the first match is found
             parsed = self._parse(ctx, file)
 
             if parsed is None:
