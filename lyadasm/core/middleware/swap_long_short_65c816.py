@@ -42,7 +42,6 @@ class LongShort65C816Middleware(Middleware):
             self._set_as(ctx)
 
     def on_next(self, ctx: Context, file: Binary) -> None:
-        print(hex(ctx.address))
         if ctx.address in self.asat:
             self._set_as(ctx)
         elif ctx.address in self.alat:
