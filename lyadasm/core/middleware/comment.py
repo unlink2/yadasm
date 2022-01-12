@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List
 
 from ..context import Context, Line, Middleware
@@ -38,13 +39,23 @@ class CommentMiddleware(Middleware):
 
     def on_line(self, ctx: "Context", line: Line) -> None:
         if ctx.address in self.post_comments:
+            logging.debug(
+                "Adding line comment at %s='%s'",
+                hex(ctx.address),
+                self.post_comments[ctx.address].text,
+            )
             line.text = (
                 f"{line.text}{self.line_comment_prefix}"
                 f"{self.post_comments[ctx.address].fmt()}"
             )
 
     def on_next(self, ctx: Context, file: Binary) -> None:
-        if ctx.address in self.comments:
+        if ctx.address in self.comments and ctx.is_in_address_range(
+            ctx.address
+        ):
             for line in self.comments[ctx.address]:
+                logging.debug(
+                    "Adding comment at %s='%s'", hex(ctx.address), line.text
+                )
                 line.text = f"{self.prefix}{line.text}"
                 ctx.add_line(line)

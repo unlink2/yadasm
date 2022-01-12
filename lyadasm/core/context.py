@@ -1,3 +1,4 @@
+import logging
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from .file import Binary
@@ -217,6 +218,11 @@ class Context:
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
         if not symbol.shadow:
+            logging.debug(
+                "Symbol %s=%s added to all addresses",
+                symbol.name,
+                hex(symbol.address),
+            )
             self.all_addresses.append(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
@@ -275,6 +281,10 @@ class Context:
         # get a list of all keys and remove duplicates
         all_keys = sorted(list(set(self.all_addresses)))
 
+        logging.debug(
+            "Collecting lines for addresses: %s",
+            list(map(hex, all_keys)),
+        )
         for key in all_keys:
             lines += self.__collect(
                 key,
@@ -297,39 +307,48 @@ class Context:
         return lines
 
     def emit_on_parse_begin(self) -> None:
+        logging.debug("Emitting parse_begin")
         for middleware in self.middlewares:
             middleware.on_parse_begin(self)
 
     def emit_on_parse_end(self) -> None:
+        logging.debug("Emitting parse_end")
         for middleware in self.middlewares:
             middleware.on_parse_end(self)
 
     def emit_on_symbol(self, symbol: Symbol) -> None:
+        logging.debug("Emitting on_symbol")
         for middleware in self.middlewares:
             middleware.on_symbol(self, symbol)
 
     def emit_on_line(self, line: Line) -> None:
+        logging.debug("Emitting on_line")
         for middleware in self.middlewares:
             middleware.on_line(self, line)
 
     def emit_on_collect_begin(self, lines: List[str]) -> None:
+        logging.debug("Emitting on_collect_begin")
         for middleware in self.middlewares:
             middleware.on_collect_begin(self, lines)
 
     def emit_on_collect_end(self, lines: List[str]) -> None:
+        logging.debug("Emitting on_collect_end")
         for middleware in self.middlewares:
             middleware.on_collect_end(self, lines)
 
     def emit_on_next(self, file: Binary) -> None:
+        logging.debug("Emitting on_next")
         for middleware in self.middlewares:
             middleware.on_next(self, file)
 
     def emit_on_output(self, streams: Dict[str, IO]) -> None:
+        logging.debug("Emitting on_output")
         for middleware in self.middlewares:
             if middleware.tag in streams:
                 middleware.on_output(self, streams[middleware.tag])
 
     def emit_on_unparsed(self, file: Binary) -> Optional[Line]:
+        logging.debug("Emitting on_unparsed")
         for middleware in self.middlewares:
             line = middleware.on_unparsed(self, file)
             if line is not None:
@@ -348,6 +367,7 @@ class Context:
         Calls node parser middleware.
         Returns the first not None value to the caller.
         """
+        logging.debug("Emitting on_node_parsed")
         for middleware in self.middlewares:
             res = middleware.on_node_parsed(
                 self, node, file, prefix, postfix, data

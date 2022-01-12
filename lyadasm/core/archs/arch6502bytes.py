@@ -22,7 +22,7 @@ class ByteParser6502(Parser):
         self.length = length
 
     def _should_parse(self, ctx: Context, file: Binary) -> bool:
-        return self.length >= 0 and Parser._should_parse(self, ctx, file)
+        return self.length > 0 and Parser._should_parse(self, ctx, file)
 
     def _next(self) -> None:
         self.length -= 1

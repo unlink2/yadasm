@@ -33,9 +33,7 @@ class Parser:
                     break
 
         if len(self.node_lookup.keys()) != len(self.nodes):
-            logging.warning(
-                "Lookup table has less elements than the node list"
-            )
+            logging.debug("Lookup table has less elements than the node list")
 
     def _read_opcode(self, _ctx: Context, _file: Binary) -> int:
         """
@@ -81,15 +79,23 @@ class Parser:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 
+        logging.debug("Begin parsing")
         ctx.emit_on_parse_begin()
 
         while self._should_parse(ctx, file):
-            self._next()
             ctx.emit_on_next(file)
             # it is possible that on_next advanced the file too far
             # check again to avoid parser errors
             if not self._should_parse(ctx, file):
+                logging.warning(
+                    "Middleware caused parse loop to exit early."
+                    "Address: %s; File offset: %d; Middleware: %s",
+                    hex(ctx.address),
+                    file.offset(),
+                    list(map(lambda n: type(n).__name__, ctx.middlewares)),
+                )
                 break
+            self._next()
             # parse until the first match is found
             parsed = self._parse(ctx, file)
 
@@ -100,6 +106,7 @@ class Parser:
                 ctx.advance(parsed.size)
 
         ctx.emit_on_parse_end()
+        logging.debug("End parsing")
 
         return ctx.collect()
 

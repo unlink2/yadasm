@@ -1,3 +1,5 @@
+import logging
+
 from typing import Any, Callable, Dict, List, Optional
 
 from ..context import Context, Middleware, Symbol
@@ -107,6 +109,13 @@ class DefineMiddleware(Middleware):
             symbol.shadow = (
                 not ctx.is_in_address_range(symbol.address)
                 and not self.force_symbol_output
+            )
+
+            logging.debug(
+                "Adding new symbol at %s = %s; is_shadowed=%s",
+                hex(symbol.address),
+                symbol.name,
+                symbol.shadow,
             )
 
             ctx.add_symbol_no_emit(symbol)
