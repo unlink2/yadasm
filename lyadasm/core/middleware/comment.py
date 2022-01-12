@@ -10,6 +10,7 @@ class CommentMiddleware(Middleware):
         comments: Dict[int, List[Line]] = None,
         post_comments: Dict[int, Line] = None,
         prefix: str = "; ",
+        line_comment_prefix: str = " ; ",
         tag: str = "CommentMiddleware",
     ):
         Middleware.__init__(self, tag)
@@ -20,6 +21,7 @@ class CommentMiddleware(Middleware):
         self.comments = comments
         self.post_comments = post_comments
         self.prefix = prefix
+        self.line_comment_prefix = line_comment_prefix
 
     def add_comment(self, address: int, line: Line) -> "CommentMiddleware":
         if address in self.comments:
@@ -37,7 +39,7 @@ class CommentMiddleware(Middleware):
     def on_line(self, ctx: "Context", line: Line) -> None:
         if ctx.address in self.post_comments:
             line.text = (
-                f"{line.text} {self.prefix}"
+                f"{line.text}{self.line_comment_prefix}"
                 f"{self.post_comments[ctx.address].fmt()}"
             )
 
