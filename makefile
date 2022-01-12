@@ -1,3 +1,5 @@
+NAME=yadasm
+LNAME=lyadasm
 
 build:
 	# python setup.py bdist_wheel clean
@@ -7,13 +9,13 @@ build:
 	# publish with python3 -m twine upload --repository testpypi dist/*
 
 typecheck:
-	mypy lyadasm  --disallow-untyped-defs
+	mypy $(LNAME)  --disallow-untyped-defs
 
 unittests:
-	pytest --cov=. lyadasm/test/ -v
+	pytest --cov=. $(LNAME)/test/ -v
 
 lint:
-	pylint lyadasm
+	pylint $(LNAME)
 
 test:
 	# this script simply runs the test pipeline
