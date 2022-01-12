@@ -175,9 +175,22 @@ class Context:
         self.indent_char = indent_char
         self.symbol_postfix = symbol_poxtfix
         self.middlewares = middlewares
+        self.__disabled_middlewares: List[Middleware] = []
 
         # flags can be used for storing custom information
         self.flags: Dict[str, Any] = {}
+
+    def disable_middleware(
+        self, replace_with: List[Middleware] = None
+    ) -> None:
+        if replace_with is None:
+            replace_with = []
+        self.__disabled_middlewares = self.middlewares
+        self.middlewares = replace_with
+
+    def restore_middleware(self) -> None:
+        self.middlewares = self.__disabled_middlewares
+        self.__disabled_middlewares = []
 
     def set_flag(self, flag: str, data: Any) -> None:
         self.flags[flag] = data

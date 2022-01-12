@@ -228,3 +228,16 @@ class TestContext(unittest.TestCase):
         ctx.add_symbol(Symbol(0x100, "test", shadow=True))
 
         self.assertEqual(ctx.collect(), [])
+
+    def test_it_should_disable_middleware(self) -> None:
+        ctx = Context(middlewares=[Middleware(), Middleware()])
+        ctx.disable_middleware()
+
+        self.assertEqual(len(ctx.middlewares), 0)
+        ctx.restore_middleware()
+        self.assertEqual(len(ctx.middlewares), 2)
+
+        ctx.disable_middleware([Middleware()])
+        self.assertEqual(len(ctx.middlewares), 1)
+        ctx.restore_middleware()
+        self.assertEqual(len(ctx.middlewares), 2)
