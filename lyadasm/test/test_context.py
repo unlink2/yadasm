@@ -89,6 +89,26 @@ class TestContext(unittest.TestCase):
             [Symbol(102, "lab_102_1"), Symbol(102, "lab_102_2")],
         )
 
+    def test_it_should_not_emit_symbol_at_end_address(self) -> None:
+        ctx = Context(address=100, end_address=110)
+        ctx.add_symbol(
+            Symbol(
+                99, "not_ok_symbol1:", shadow=not ctx.is_in_address_range(99)
+            )
+        )
+        ctx.add_symbol(
+            Symbol(100, "ok_symbol1:", shadow=not ctx.is_in_address_range(100))
+        )
+        ctx.add_symbol(
+            Symbol(109, "ok_symbol2:", shadow=not ctx.is_in_address_range(109))
+        )
+        ctx.add_symbol(
+            Symbol(
+                110, "not_ok_symbol2:", shadow=not ctx.is_in_address_range(110)
+            )
+        )
+        self.assertEqual(ctx.collect(), ["ok_symbol1:", "ok_symbol2:"])
+
     def test_it_should_add_lines(self) -> None:
         ctx = Context()
         ctx.add_line(Line("line1"))
