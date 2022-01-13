@@ -120,7 +120,7 @@ class TestCommentMiddleware(unittest.TestCase):
                     "    ; second",
                     "    ; third",
                     "    lda $0200 ; 0x606",
-                    "    lda $0200, x ; post",
+                    "    lda $0200, x ; post ; 0x609",
                     "    lda $0200, y ; 0x60c",
                     "    lda ($ab, x) ; 0x60f",
                     "    lda ($ab), y ; 0x611",

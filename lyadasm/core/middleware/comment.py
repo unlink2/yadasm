@@ -50,7 +50,7 @@ class CommentMiddleware(Middleware):
                 f"{line.text}{self.line_comment_prefix}"
                 f"{self.post_comments[ctx.address].fmt()}"
             )
-        elif self.comment_addr:
+        if self.comment_addr:
             logging.debug(
                 "Adding Address-line comment at %s",
                 hex(ctx.address),

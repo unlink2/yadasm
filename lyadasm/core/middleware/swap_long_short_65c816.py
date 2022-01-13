@@ -18,6 +18,10 @@ class LongShort65C816Middleware(Middleware):
         order: int = -1,
         tag: str = "LongShort65C816",
     ):
+        """
+        This middleware should preferably be called before any
+        other middleware that might modify the line!
+        """
         Middleware.__init__(self, tag)
         if alat is None:
             alat = []
