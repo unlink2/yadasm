@@ -13,6 +13,7 @@ class CommentMiddleware(Middleware):
         prefix: str = "; ",
         line_comment_prefix: str = " ; ",
         tag: str = "CommentMiddleware",
+        comment_addr: bool = False,
     ):
         Middleware.__init__(self, tag)
         if comments is None:
@@ -23,6 +24,7 @@ class CommentMiddleware(Middleware):
         self.post_comments = post_comments
         self.prefix = prefix
         self.line_comment_prefix = line_comment_prefix
+        self.comment_addr = comment_addr
 
     def add_comment(self, address: int, line: Line) -> "CommentMiddleware":
         if address in self.comments:
@@ -48,6 +50,14 @@ class CommentMiddleware(Middleware):
                 f"{line.text}{self.line_comment_prefix}"
                 f"{self.post_comments[ctx.address].fmt()}"
             )
+        elif self.comment_addr:
+            logging.debug(
+                "Adding Address-line comment at %s",
+                hex(ctx.address),
+            )
+            line.text = (
+                f"{line.text}{self.line_comment_prefix}{hex(ctx.address)}"
+            )
 
     def on_next(self, ctx: Context, file: Binary) -> None:
         if ctx.address in self.comments and ctx.is_in_address_range(
@@ -58,4 +68,4 @@ class CommentMiddleware(Middleware):
                     "Adding comment at %s='%s'", hex(ctx.address), line.text
                 )
                 line.text = f"{self.prefix}{line.text}"
-                ctx.add_line(line)
+                ctx.add_line_no_emit(line)
