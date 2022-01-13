@@ -48,6 +48,7 @@ class TestCommentMiddleware(unittest.TestCase):
         )
         self.assertEqual(ctx.address, 0x613)
         self.assertNotEqual(result, None)
+        print(result)
         if result is not None:
             self.assertEqual(
                 result,
@@ -59,7 +60,7 @@ class TestCommentMiddleware(unittest.TestCase):
                     "    ; second",
                     "    ; third",
                     "    lda $0200",
-                    "    lda $0200, x ; post",
+                    "    lda $0200, x         ; post",
                     "    lda $0200, y",
                     "    lda ($ab, x)",
                     "    lda ($ab), y",
@@ -114,15 +115,15 @@ class TestCommentMiddleware(unittest.TestCase):
                 result,
                 [
                     "    ; first",
-                    "    lda #$ab ; 0x600",
-                    "    lda $ab ; 0x602",
-                    "    lda $ab, x ; 0x604",
+                    "    lda #$ab             ; 0x600",
+                    "    lda $ab              ; 0x602",
+                    "    lda $ab, x           ; 0x604",
                     "    ; second",
                     "    ; third",
-                    "    lda $0200 ; 0x606",
-                    "    lda $0200, x ; post ; 0x609",
-                    "    lda $0200, y ; 0x60c",
-                    "    lda ($ab, x) ; 0x60f",
-                    "    lda ($ab), y ; 0x611",
+                    "    lda $0200            ; 0x606",
+                    "    lda $0200, x         ; post",
+                    "    lda $0200, y         ; 0x60c",
+                    "    lda ($ab, x)         ; 0x60f",
+                    "    lda ($ab), y         ; 0x611",
                 ],
             )

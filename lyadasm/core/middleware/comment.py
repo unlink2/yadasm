@@ -12,8 +12,9 @@ class CommentMiddleware(Middleware):
         post_comments: Dict[int, Line] = None,
         prefix: str = "; ",
         line_comment_prefix: str = " ; ",
-        tag: str = "CommentMiddleware",
         comment_addr: bool = False,
+        align: int = 20,
+        tag: str = "CommentMiddleware",
     ):
         Middleware.__init__(self, tag)
         if comments is None:
@@ -25,6 +26,7 @@ class CommentMiddleware(Middleware):
         self.prefix = prefix
         self.line_comment_prefix = line_comment_prefix
         self.comment_addr = comment_addr
+        self.align = align
 
     def add_comment(self, address: int, line: Line) -> "CommentMiddleware":
         if address in self.comments:
@@ -47,16 +49,17 @@ class CommentMiddleware(Middleware):
                 self.post_comments[ctx.address].text,
             )
             line.text = (
-                f"{line.text}{self.line_comment_prefix}"
+                f"{line.text: <{self.align}}{self.line_comment_prefix}"
                 f"{self.post_comments[ctx.address].fmt()}"
             )
-        if self.comment_addr:
+        elif self.comment_addr:
             logging.debug(
                 "Adding Address-line comment at %s",
                 hex(ctx.address),
             )
             line.text = (
-                f"{line.text}{self.line_comment_prefix}{hex(ctx.address)}"
+                f"{line.text : <{self.align}}"
+                f"{self.line_comment_prefix}{hex(ctx.address)}"
             )
 
     def on_next(self, ctx: Context, file: Binary) -> None:
