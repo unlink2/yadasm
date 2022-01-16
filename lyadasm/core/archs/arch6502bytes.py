@@ -20,6 +20,10 @@ class ByteParser6502(Parser):
     def __init__(self, nodes: List[Node] = None, length: int = 0) -> None:
         Parser.__init__(self, nodes, should_build_lookup=False)
         self.length = length
+        self.original_length = length
+
+    def reset(self) -> None:
+        self.length = self.original_length
 
     def _should_parse(self, ctx: Context, file: Binary) -> bool:
         return self.length > 0 and Parser._should_parse(self, ctx, file)

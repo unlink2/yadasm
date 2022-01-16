@@ -26,11 +26,12 @@ class ByteCollectorMiddelware(Middleware):
             and ctx.address < self.end
             and not file.is_at_end()
         ):
-            next_byte = file.next()
-            if next_byte is not None:
-                self.data.append(next_byte)
-                file.advance(1)
-                ctx.advance(1)
+            if not ctx.symbols_only:
+                next_byte = file.next()
+                if next_byte is not None:
+                    self.data.append(next_byte)
+            file.advance(1)
+            ctx.advance(1)
 
     def on_output(self, _ctx: Context, stream: IO) -> None:
         stream.write(self.data)

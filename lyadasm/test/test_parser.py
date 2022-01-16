@@ -53,6 +53,55 @@ class TestParser(unittest.TestCase):
                 ],
             )
 
+    def test_it_should_parse_valid_code_single_pass(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600)
+        result = parser.parse_single(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0xA9,
+                        0x01,
+                        0x8D,
+                        0x00,
+                        0x02,
+                        0xA9,
+                        0x05,
+                        0x8D,
+                        0x01,
+                        0x02,
+                        0xA9,
+                        0x08,
+                        0x8D,
+                        0x02,
+                        0x02,
+                        0x4C,
+                        0x00,
+                        0x06,
+                    ]
+                )
+            ),
+        )
+
+        # data was 15 bytes long!
+        self.assertEqual(ctx.address, 0x612)
+        self.assertNotEqual(result, None)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "label_600",
+                    "    lda #$01",
+                    "    sta $0200",
+                    "    lda #$05",
+                    "    sta $0201",
+                    "    lda #$08",
+                    "    sta $0202",
+                    "    jmp label_600",
+                ],
+            )
+
     def test_it_should_parse_valid_code_without_map(self) -> None:
         parser = Parser6502()
         parser.should_build_lookup = False
@@ -157,11 +206,17 @@ class TestParser(unittest.TestCase):
         )
         self.assertEqual(bio.read(), b"123")
 
-    def test_it_should_parse_two_pass(self) -> None:
+    def test_it_should_parse_unbuffered_output(self) -> None:
+        strio = StringIO()
         parser = Parser6502()
-        ctx = Context(0x600, end_address=0x610)
+        ctx = Context(
+            0x600,
+            end_address=0x610,
+            output=StreamOutput(strio),
+            unbuffered_lines=True,
+        )
         ctx.add_symbol_no_emit(Symbol(0x600, "start:"))
-        result = parser.parse_two_pass(
+        result = parser.parse(
             ctx,
             Binary(
                 bytes(
@@ -201,22 +256,23 @@ class TestParser(unittest.TestCase):
         # data was 15 bytes long!
         self.assertEqual(ctx.address, 0x61B)
         self.assertNotEqual(result, None)
-        print(result)
+        strio.seek(0)
         if result is not None:
+            self.assertEqual(result, [])
             self.assertEqual(
-                result,
+                strio.readlines(),
                 [
-                    "start:",
-                    "    lda #$01",
-                    "label_602",
-                    "    sta $0200",
-                    "    lda #$05",
-                    "    sta $0201",
-                    "    lda #$08",
-                    "    sta $0202",
-                    "    jmp label_1060",
-                    "    jmp start:",
-                    "    jmp label_500",
-                    "    jmp label_602",
+                    "start:\n",
+                    "    lda #$01\n",
+                    "label_602\n",
+                    "    sta $0200\n",
+                    "    lda #$05\n",
+                    "    sta $0201\n",
+                    "    lda #$08\n",
+                    "    sta $0202\n",
+                    "    jmp label_1060\n",
+                    "    jmp start:\n",
+                    "    jmp label_500\n",
+                    "    jmp label_602\n",
                 ],
             )
