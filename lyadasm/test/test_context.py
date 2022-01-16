@@ -182,7 +182,7 @@ class TestContext(unittest.TestCase):
                 "middleware_end",
             ],
         )
-        self.assertEqual(middelware.next_called, 2)
+        self.assertEqual(middelware.next_called, 4)
         self.assertTrue(middelware.parse_begin)
         self.assertTrue(middelware.parse_end)
 

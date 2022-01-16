@@ -63,8 +63,10 @@ class CommentMiddleware(Middleware):
             )
 
     def on_next(self, ctx: Context, file: Binary) -> None:
-        if ctx.address in self.comments and ctx.is_in_address_range(
-            ctx.address
+        if (
+            ctx.address in self.comments
+            and ctx.is_in_address_range(ctx.address)
+            and not ctx.symbols_only
         ):
             for line in self.comments[ctx.address]:
                 logging.debug(
