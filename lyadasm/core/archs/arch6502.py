@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List
 
 from ..comparator import always_true
 from ..context import Context, Symbol
-from ..numfmt import Endianess
 from ..file import Binary
 from ..node import Node
 from ..numfmt import IntFmt
@@ -475,10 +474,9 @@ class Parser6502(Parser):
         }
 
     def _read_opcode(self, _ctx: Context, file: Binary) -> int:
-        byte = file.read(1)
-        if byte is None:
+        opcode = file.next()
+        if opcode is None:
             return -1
-        opcode = int.from_bytes(byte, Endianess.LITTLE.to_literal())
 
         return opcode
 

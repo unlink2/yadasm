@@ -15,11 +15,18 @@ Reader = Callable[[Context, Binary], Optional[Tuple[Any, int]]]
 def read_int_generic(
     file: Binary, size: int, endianess: Endianess
 ) -> Optional[Tuple[Any, int]]:
-    data = file.read(size)
-    if data is None:
-        return None
+    if size == 1:
+        next_byte = file.next()
+        if next_byte is None:
+            return None
+        else:
+            return (next_byte, size)
     else:
-        return (int.from_bytes(data, endianess.to_literal()), size)
+        data = file.read(size)
+        if data is None:
+            return None
+        else:
+            return (int.from_bytes(data, endianess.to_literal()), size)
 
 
 def read_i8_le(_ctx: Context, file: Binary) -> Optional[Tuple[Any, int]]:

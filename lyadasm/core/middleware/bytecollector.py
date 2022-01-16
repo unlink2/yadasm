@@ -17,7 +17,7 @@ class ByteCollectorMiddelware(Middleware):
         Middleware.__init__(self, tag)
         self.start = start
         self.end = end
-        self.data = bytes()
+        self.data = bytearray()
 
     def on_next(self, ctx: Context, file: Binary) -> None:
         """Emmited before the next node is parsed"""
@@ -26,9 +26,9 @@ class ByteCollectorMiddelware(Middleware):
             and ctx.address < self.end
             and not file.is_at_end()
         ):
-            next_byte = file.read(1)
+            next_byte = file.next()
             if next_byte is not None:
-                self.data += next_byte
+                self.data.append(next_byte)
                 file.advance(1)
                 ctx.advance(1)
 

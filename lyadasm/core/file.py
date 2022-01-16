@@ -2,7 +2,9 @@ from typing import Optional
 
 
 class Binary:
-    def __init__(self, data: bytes, current: int = 0, end: Optional[int] = None):
+    def __init__(
+        self, data: bytes, current: int = 0, end: Optional[int] = None
+    ):
         self.data = data
         self.current = current
         self.end = end
@@ -10,6 +12,13 @@ class Binary:
     def read(self, count: int) -> Optional[bytes]:
         if self.len() >= self.offset() + count:
             return self.data[self.offset() : self.offset() + count]
+        else:
+            return None
+
+    def next(self) -> Optional[int]:
+        """Reads next single byte value"""
+        if not self.is_at_end():
+            return self.data[self.offset()]
         else:
             return None
 

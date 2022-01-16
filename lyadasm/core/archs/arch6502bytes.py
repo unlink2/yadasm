@@ -5,7 +5,7 @@ from ..file import Binary
 from ..node import Node
 from ..parser import Parser
 from ..reader import read_i8_le, read_i16_le, read_i24_le
-from ..numfmt import IntFmt, Endianess
+from ..numfmt import IntFmt
 from ..comparator import always_true
 
 
@@ -28,10 +28,9 @@ class ByteParser6502(Parser):
         self.length -= 1
 
     def _read_opcode(self, _ctx: Context, file: Binary) -> int:
-        byte = file.read(1)
-        if byte is None:
+        opcode = file.next()
+        if opcode is None:
             return -1
-        opcode = int.from_bytes(byte, Endianess.LITTLE.to_literal())
 
         return opcode
 

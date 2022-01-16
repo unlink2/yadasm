@@ -22,11 +22,13 @@ class TestFile(unittest.TestCase):
         self.assertFalse(file.is_at_end())
 
         self.assertEqual(file.read(1), bytes([4]))
+        self.assertEqual(file.next(), 4)
         file.advance(1)
         self.assertEqual(file.offset(), 5)
         self.assertTrue(file.is_at_end())
 
         self.assertEqual(file.read(1), None)
+        self.assertEqual(file.next(), None)
 
     def test_it_should_rewind(self) -> None:
         file = Binary(bytes([0, 1, 2]))
