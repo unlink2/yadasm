@@ -79,6 +79,9 @@ class Parser:
         """advance parser loop, called exactly once per iteration"""
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
+        return self.parse_double(ctx, file)
+
+    def parse_double(self, ctx: Context, file: Binary) -> List[str]:
         """
         Puts the context in 2 pass mode
             - reads symbol only
@@ -92,9 +95,11 @@ class Parser:
         """
         # first pass: symbols only
         ctx.symbols_only = True
+        ctx.lines_only = False
         self.parse_single(ctx, file)
         # second pass: lines and symbols
         ctx.symbols_only = False
+        ctx.lines_only = True
         # need to reset some things to do another pass!
         file.reset()
         ctx.reset()
@@ -102,6 +107,10 @@ class Parser:
         return self.parse_single(ctx, file)
 
     def parse_single(self, ctx: Context, file: Binary) -> List[str]:
+        """
+        Parses without a double pass.
+        Useful for middleware-calls
+        """
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 

@@ -163,6 +163,7 @@ class Context:
         output: Output = None,
         middleware_streams: Dict[str, IO] = None,
         symbols_only: bool = False,
+        lines_only: bool = False,
         unbuffered_lines: bool = False,
     ):
         if middlewares is None:
@@ -189,6 +190,7 @@ class Context:
 
         # symbols only can be used as a first pass
         self.symbols_only = symbols_only
+        self.lines_only = lines_only
         # unbuffere dlines will emit lines to output immediatly
         self.unbuffered_lines = unbuffered_lines
 
@@ -235,6 +237,8 @@ class Context:
         self.add_symbol_no_emit(symbol)
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
+        if self.lines_only:
+            return
         if not symbol.shadow:
             logging.debug(
                 "Symbol %s=%s added to all addresses",
@@ -287,7 +291,7 @@ class Context:
             return
         if self.address in self.all_addresses:
             logging.debug(
-                "Collecting unbuffered lines and symbols at %d",
+                "Collecting unbuffered lines and symbols at %s",
                 hex(self.address),
             )
             self.__collect_symbols(self.address)
@@ -334,6 +338,9 @@ class Context:
             )
         )
         if self.unbuffered_lines and address in self.lines:
+            logging.debug(
+                "Removing lines from buffer at %s", hex(self.address)
+            )
             self.lines.pop(address)
 
     def collect(self) -> List[str]:
