@@ -1,9 +1,9 @@
 import unittest
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Line, Middleware, Symbol
-from lyadasm.core.file import Binary
+from lyadasm.core.file import Binary, Output
 from lyadasm.core.node import Node
 
 
@@ -18,11 +18,11 @@ class MiddlewareTest(Middleware):
     def on_parse_end(self, ctx: "Context") -> None:
         self.parse_end = True
 
-    def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
-        lines.append("middleware_begin")
+    def on_collect_begin(self, ctx: "Context", output: Output) -> None:
+        output.on_line("middleware_begin")
 
-    def on_collect_end(self, ctx: "Context", lines: List[str]) -> None:
-        lines.append("middleware_end")
+    def on_collect_end(self, ctx: "Context", output: Output) -> None:
+        output.on_line("middleware_end")
 
     def on_symbol(self, ctx: "Context", symbol: Symbol) -> None:
         symbol.name += "_middleware_symbol"

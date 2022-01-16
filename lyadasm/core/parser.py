@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional, IO
+from typing import Dict, List, Optional
 
 from .context import Context, Line
 from .file import Binary
@@ -108,24 +108,10 @@ class Parser:
         ctx.emit_on_parse_end()
         logging.debug("End parsing")
 
-        return ctx.collect()
+        logging.debug("Emitting middleware output")
+        ctx.emit_on_output()
 
-    def output(
-        self,
-        ctx: Context,
-        outstream: IO,
-        data: List[str],
-        middleware_streams: Dict[str, IO] = None,
-    ) -> None:
-        """
-        Outputs the parser result to an IO stream.
-        Allows supplying a dict of IOs mapped to middleware tags
-        to call their respective output event
-        """
-        outstream.write("\n".join(data))
-        outstream.write("\n")
-        if middleware_streams is not None:
-            ctx.emit_on_output(middleware_streams)
+        return ctx.collect()
 
 
 class ParsersExhaustedException(Exception):

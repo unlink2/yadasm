@@ -1,4 +1,5 @@
-from typing import Optional
+import logging
+from typing import IO, List, Optional
 
 
 class Binary:
@@ -43,3 +44,64 @@ class Binary:
 
     def is_empty(self) -> bool:
         pass
+
+
+class Output:
+    def __init__(self) -> None:
+        self.lines: List[str] = []
+
+    def begin(self) -> None:
+        logging.debug("Starting output")
+        self.lines = []
+
+    def finish(self) -> None:
+        self.close()
+
+    def close(self) -> None:
+        pass
+
+    def on_line(self, line: str) -> None:
+        self.lines.append(line)
+
+    def on_lines(self, lines: List[str]) -> None:
+        self.lines += lines
+
+    def collect(self) -> List[str]:
+        return self.lines
+
+
+class StreamOutput(Output):
+    def __init__(self, stream: IO, autoclose: bool = False) -> None:
+        Output.__init__(self)
+        self.stream = stream
+        self.autoclose = autoclose
+
+    def finish(self) -> None:
+        logging.debug("Finishing output")
+        if self.autoclose:
+            self.close()
+
+    def close(self) -> None:
+        logging.debug("Closing output")
+        self.stream.close()
+
+    def on_line(self, line: str) -> None:
+        self.stream.write(line)
+        self.stream.write("\n")
+
+    def on_lines(self, lines: List[str]) -> None:
+        if len(lines) > 0:
+            self.stream.write("\n".join(lines))
+            self.stream.write("\n")
+
+
+class PrintOutput(Output):
+    def __init__(self) -> None:
+        Output.__init__(self)
+
+    def on_line(self, line: str) -> None:
+        print(line)
+
+    def on_lines(self, lines: List[str]) -> None:
+        for line in lines:
+            print(line)

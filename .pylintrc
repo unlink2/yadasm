@@ -95,7 +95,8 @@ disable=raw-checker-failed,
         too-many-return-statements,
         too-many-instance-attributes,
         duplicate-code,
-        too-many-public-methods
+        too-many-public-methods,
+        consider-using-with
 
 
 # Enable the message, report, category or checker with the given id(s). You can

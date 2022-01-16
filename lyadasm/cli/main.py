@@ -1,16 +1,12 @@
 import argparse
 import logging
-from typing import List, Optional, Dict, IO
+from typing import IO, Dict, List, Optional
 
-from lyadasm.core.parser import Parser
 from lyadasm.core.archs.arch65c02 import Parser65C02, Parser65C02Bytes
-from lyadasm.core.archs.arch65c816 import (
-    Parser65C816,
-    Parser65C816Bytes,
-)
+from lyadasm.core.archs.arch65c816 import Parser65C816, Parser65C816Bytes
 from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Middleware
-from lyadasm.core.file import Binary
+from lyadasm.core.file import Binary, PrintOutput, StreamOutput
 
 _archs = {
     "6502": Parser6502(),
@@ -22,26 +18,6 @@ _archs = {
     "65c816-emu": Parser65C816(start_immediate_len=2),
     "65c816-emu-byte": Parser65C816Bytes(start_immediate_len=2),
 }
-
-
-def _write_to_file(
-    out: Optional[str],
-    lines: List[str],
-    parser: Parser,
-    ctx: Context,
-    append: bool,
-    middlewareout: Dict[str, IO],
-) -> None:
-    if out is None:
-        for line in lines:
-            print(line)
-    else:
-        outmode = "w"
-        if append:
-            outmode = "a"
-
-        with open(out, outmode, encoding="UTF-8") as outfile:
-            parser.output(ctx, outfile, lines, middlewareout)
 
 
 def _read_from_file(file_path: str) -> bytes:
@@ -161,16 +137,26 @@ def main(
     bin_file = Binary(
         file_content, args.file_start_offset, args.file_end_offset
     )
+
+    output: Optional[StreamOutput | PrintOutput] = None
+    if args.out is None:
+        output = PrintOutput()
+    else:
+        outmode = "w"
+        if args.append:
+            outmode = "a"
+        output = StreamOutput(open(args.out, outmode, encoding="UTF-8"))
+
     ctx = Context(
         args.start_addr,
         symbol_poxtfix=args.label_postfix,
         end_address=args.end_addr,
         middlewares=middlewares,
+        output=output,
     )
-    lines = _archs[args.arch].parse(ctx, bin_file)
 
-    _write_to_file(
-        args.out, lines, _archs[args.arch], ctx, args.append, middlewareout
-    )
+    _archs[args.arch].parse(ctx, bin_file)
+
+    output.close()
 
     return 0

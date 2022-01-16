@@ -1,7 +1,7 @@
 import logging
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
-from .file import Binary
+from .file import Binary, Output
 
 # avoids cyclic import; always False at runtime!
 if TYPE_CHECKING:
@@ -93,10 +93,10 @@ class Middleware:
     def on_parse_end(self, ctx: "Context") -> None:
         pass
 
-    def on_collect_begin(self, ctx: "Context", lines: List[str]) -> None:
+    def on_collect_begin(self, ctx: "Context", output: Output) -> None:
         pass
 
-    def on_collect_end(self, ctx: "Context", lines: List[str]) -> None:
+    def on_collect_end(self, ctx: "Context", output: Output) -> None:
         pass
 
     def on_symbol(self, ctx: "Context", symbol: Symbol) -> None:
@@ -160,9 +160,14 @@ class Context:
         symbol_poxtfix: str = "",
         end_address: Optional[int] = None,
         middlewares: List[Middleware] = None,
+        output: Output = None,
+        middleware_streams: Dict[str, IO] = None,
     ):
         if middlewares is None:
             middlewares = []
+
+        if output is None:
+            output = Output()
 
         self.address = address
         self.end_address = end_address
@@ -177,6 +182,8 @@ class Context:
         self.symbol_postfix = symbol_poxtfix
         self.middlewares = middlewares
         self.__disabled_middlewares: List[Middleware] = []
+        self.output = output
+        self.middleware_streams = middleware_streams
 
         # flags can be used for storing custom information
         self.flags: Dict[str, Any] = {}
@@ -276,8 +283,9 @@ class Context:
 
     def collect(self) -> List[str]:
         """Collects all lines and symbols"""
-        lines: List[str] = []
-        self.emit_on_collect_begin(lines)
+        self.output.begin()
+
+        self.emit_on_collect_begin(self.output)
         # get a list of all keys and remove duplicates
         all_keys = sorted(list(set(self.all_addresses)))
 
@@ -286,25 +294,31 @@ class Context:
             list(map(hex, all_keys)),
         )
         for key in all_keys:
-            lines += self.__collect(
-                key,
-                self.symbols,
-                lambda symbol: symbol.fmt(
-                    "".ljust(self.symbol_indent, self.indent_char),
-                    self.symbol_postfix,
-                ),
+            self.output.on_lines(
+                self.__collect(
+                    key,
+                    self.symbols,
+                    lambda symbol: symbol.fmt(
+                        "".ljust(self.symbol_indent, self.indent_char),
+                        self.symbol_postfix,
+                    ),
+                )
             )
-            lines += self.__collect(
-                key,
-                self.lines,
-                lambda line: line.fmt(
-                    "".ljust(self.code_indent, self.indent_char)
-                ),
+            self.output.on_lines(
+                self.__collect(
+                    key,
+                    self.lines,
+                    lambda line: line.fmt(
+                        "".ljust(self.code_indent, self.indent_char)
+                    ),
+                )
             )
 
-        self.emit_on_collect_end(lines)
+        self.emit_on_collect_end(self.output)
 
-        return lines
+        self.output.finish()
+
+        return self.output.collect()
 
     def emit_on_parse_begin(self) -> None:
         logging.debug("Emitting parse_begin")
@@ -326,26 +340,30 @@ class Context:
         for middleware in self.middlewares:
             middleware.on_line(self, line)
 
-    def emit_on_collect_begin(self, lines: List[str]) -> None:
+    def emit_on_collect_begin(self, output: Output) -> None:
         logging.debug("Emitting on_collect_begin")
         for middleware in self.middlewares:
-            middleware.on_collect_begin(self, lines)
+            middleware.on_collect_begin(self, output)
 
-    def emit_on_collect_end(self, lines: List[str]) -> None:
+    def emit_on_collect_end(self, output: Output) -> None:
         logging.debug("Emitting on_collect_end")
         for middleware in self.middlewares:
-            middleware.on_collect_end(self, lines)
+            middleware.on_collect_end(self, output)
 
     def emit_on_next(self, file: Binary) -> None:
         logging.debug("Emitting on_next")
         for middleware in self.middlewares:
             middleware.on_next(self, file)
 
-    def emit_on_output(self, streams: Dict[str, IO]) -> None:
+    def emit_on_output(self) -> None:
         logging.debug("Emitting on_output")
+        if self.middleware_streams is None:
+            return
         for middleware in self.middlewares:
-            if middleware.tag in streams:
-                middleware.on_output(self, streams[middleware.tag])
+            if middleware.tag in self.middleware_streams:
+                middleware.on_output(
+                    self, self.middleware_streams[middleware.tag]
+                )
 
     def emit_on_unparsed(self, file: Binary) -> Optional[Line]:
         logging.debug("Emitting on_unparsed")
