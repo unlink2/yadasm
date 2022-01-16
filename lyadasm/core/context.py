@@ -1,5 +1,5 @@
 import logging
-from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set
 
 from .file import Binary, Output
 
@@ -176,7 +176,7 @@ class Context:
         self.end_address = end_address
         self.start_address = address
         # buffer for all addresses in symbols and keys
-        self.all_addresses: List[int] = []
+        self.all_addresses: Set[int] = set()
         self.symbols: Dict[int, List[Symbol]] = {}
         self.lines: Dict[int, List[Line]] = {}
         self.code_indent = code_indent
@@ -245,7 +245,7 @@ class Context:
                 symbol.name,
                 hex(symbol.address),
             )
-            self.all_addresses.append(symbol.address)
+            self.all_addresses.add(symbol.address)
         if symbol.address not in self.symbols:
             self.symbols[symbol.address] = [symbol]
         elif symbol not in self.symbols[symbol.address]:
@@ -273,7 +273,7 @@ class Context:
         # bail if we only emit symbols
         if self.symbols_only:
             return
-        self.all_addresses.append(self.address)
+        self.all_addresses.add(self.address)
         if self.address not in self.lines:
             self.lines[self.address] = [line]
         else:
@@ -296,8 +296,7 @@ class Context:
             )
             self.__collect_symbols(self.address)
             self.__collect_lines(self.address)
-            while self.address in self.all_addresses:
-                self.all_addresses.remove(self.address)
+            self.all_addresses.remove(self.address)
 
     def __collect(
         self,
@@ -352,7 +351,7 @@ class Context:
 
         self.emit_on_collect_begin(self.output)
         # get a list of all keys and remove duplicates
-        all_keys = sorted(list(set(self.all_addresses)))
+        all_keys = sorted(list(self.all_addresses))
 
         logging.debug(
             "Collecting lines for addresses: %s",
