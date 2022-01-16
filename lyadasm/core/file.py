@@ -8,7 +8,12 @@ class Binary:
     ):
         self.data = data
         self.current = current
+        self.start = current
         self.end = end
+
+    def reset(self) -> None:
+        """Resets file position"""
+        self.current = self.start
 
     def read(self, count: int) -> Optional[bytes]:
         if self.len() >= self.offset() + count:

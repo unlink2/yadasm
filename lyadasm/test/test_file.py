@@ -38,3 +38,7 @@ class TestFile(unittest.TestCase):
         self.assertEqual(file.offset(), 1)
         file.rewind(4)
         self.assertEqual(file.offset(), 0)
+        file.advance(4)
+        self.assertEqual(file.offset(), 4)
+        file.reset()
+        self.assertEqual(file.offset(), 0)

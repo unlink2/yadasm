@@ -162,6 +162,8 @@ class Context:
         middlewares: List[Middleware] = None,
         output: Output = None,
         middleware_streams: Dict[str, IO] = None,
+        symbols_only: bool = False,
+        unbuffered_lines: bool = False,
     ):
         if middlewares is None:
             middlewares = []
@@ -185,8 +187,17 @@ class Context:
         self.output = output
         self.middleware_streams = middleware_streams
 
+        # symbols only can be used as a first pass
+        self.symbols_only = symbols_only
+        # unbuffere dlines will emit lines to output immediatly
+        self.unbuffered_lines = unbuffered_lines
+
         # flags can be used for storing custom information
         self.flags: Dict[str, Any] = {}
+
+    def reset(self) -> None:
+        """Resets address"""
+        self.address = self.start_address
 
     def disable_middleware(
         self, replace_with: List[Middleware] = None
@@ -255,6 +266,9 @@ class Context:
         self.add_line_no_emit(line)
 
     def add_line_no_emit(self, line: Line) -> None:
+        # bail if we only emit symbols
+        if self.symbols_only:
+            return
         self.all_addresses.append(self.address)
         if self.address not in self.lines:
             self.lines[self.address] = [line]
@@ -263,7 +277,23 @@ class Context:
 
     def advance(self, inc_by: int) -> None:
         """increment the current address"""
+        self.__collect_unbuffered()
         self.address += inc_by
+
+    def __collect_unbuffered(self) -> None:
+        # if we do not buffer, also emit all symbols and remove
+        # lines for the current address now!
+        if not self.unbuffered_lines or self.symbols_only:
+            return
+        if self.address in self.all_addresses:
+            logging.debug(
+                "Collecting unbuffered lines and symbols at %d",
+                hex(self.address),
+            )
+            self.__collect_symbols(self.address)
+            self.__collect_lines(self.address)
+            while self.address in self.all_addresses:
+                self.all_addresses.remove(self.address)
 
     def __collect(
         self,
@@ -281,8 +311,36 @@ class Context:
         else:
             return []
 
+    def __collect_symbols(self, address: int) -> None:
+        self.output.on_lines(
+            self.__collect(
+                address,
+                self.symbols,
+                lambda symbol: symbol.fmt(
+                    "".ljust(self.symbol_indent, self.indent_char),
+                    self.symbol_postfix,
+                ),
+            )
+        )
+
+    def __collect_lines(self, address: int) -> None:
+        self.output.on_lines(
+            self.__collect(
+                address,
+                self.lines,
+                lambda line: line.fmt(
+                    "".ljust(self.code_indent, self.indent_char)
+                ),
+            )
+        )
+        if self.unbuffered_lines and address in self.lines:
+            self.lines.pop(address)
+
     def collect(self) -> List[str]:
         """Collects all lines and symbols"""
+        # this will do nothing if lines are unbuffered!
+        if self.symbols_only:
+            return []
         self.output.begin()
 
         self.emit_on_collect_begin(self.output)
@@ -294,28 +352,10 @@ class Context:
             list(map(hex, all_keys)),
         )
         for key in all_keys:
-            self.output.on_lines(
-                self.__collect(
-                    key,
-                    self.symbols,
-                    lambda symbol: symbol.fmt(
-                        "".ljust(self.symbol_indent, self.indent_char),
-                        self.symbol_postfix,
-                    ),
-                )
-            )
-            self.output.on_lines(
-                self.__collect(
-                    key,
-                    self.lines,
-                    lambda line: line.fmt(
-                        "".ljust(self.code_indent, self.indent_char)
-                    ),
-                )
-            )
+            self.__collect_symbols(key)
+            self.__collect_lines(key)
 
         self.emit_on_collect_end(self.output)
-
         self.output.finish()
 
         return self.output.collect()

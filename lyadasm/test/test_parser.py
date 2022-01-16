@@ -1,8 +1,8 @@
 import unittest
-from io import StringIO, BytesIO
+from io import BytesIO, StringIO
 
 from lyadasm.core.archs.arch6502 import Parser6502
-from lyadasm.core.context import Context
+from lyadasm.core.context import Context, Symbol
 from lyadasm.core.file import Binary, StreamOutput
 from lyadasm.core.middleware.bytecollector import ByteCollectorMiddelware
 from lyadasm.core.parser import ParsersExhaustedException
@@ -156,3 +156,67 @@ class TestParser(unittest.TestCase):
             ["    nop\n", "    nop\n", "    nop\n", "    nop\n"],
         )
         self.assertEqual(bio.read(), b"123")
+
+    def test_it_should_parse_two_pass(self) -> None:
+        parser = Parser6502()
+        ctx = Context(0x600, end_address=0x610)
+        ctx.add_symbol_no_emit(Symbol(0x600, "start:"))
+        result = parser.parse_two_pass(
+            ctx,
+            Binary(
+                bytes(
+                    [
+                        0xA9,
+                        0x01,
+                        0x8D,
+                        0x00,
+                        0x02,
+                        0xA9,
+                        0x05,
+                        0x8D,
+                        0x01,
+                        0x02,
+                        0xA9,
+                        0x08,
+                        0x8D,
+                        0x02,
+                        0x02,
+                        0x4C,
+                        0x60,
+                        0x10,
+                        0x4C,
+                        0x00,
+                        0x06,
+                        0x4C,
+                        0x00,
+                        0x05,
+                        0x4C,
+                        0x02,
+                        0x06,
+                    ]
+                )
+            ),
+        )
+
+        # data was 15 bytes long!
+        self.assertEqual(ctx.address, 0x61B)
+        self.assertNotEqual(result, None)
+        print(result)
+        if result is not None:
+            self.assertEqual(
+                result,
+                [
+                    "start:",
+                    "    lda #$01",
+                    "label_602",
+                    "    sta $0200",
+                    "    lda #$05",
+                    "    sta $0201",
+                    "    lda #$08",
+                    "    sta $0202",
+                    "    jmp label_1060",
+                    "    jmp start:",
+                    "    jmp label_500",
+                    "    jmp label_602",
+                ],
+            )

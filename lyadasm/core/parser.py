@@ -75,6 +75,28 @@ class Parser:
     def _next(self) -> None:
         """advance parser loop, called exactly once per iteration"""
 
+    def parse_two_pass(self, ctx: Context, file: Binary) -> List[str]:
+        """
+        Puts the context in 2 pass mode
+            - reads symbol only
+            - resets file and context
+            - reads everything and returns it
+        This is best used with unbuffered line mode to trade memory for
+        execution time!
+        In unbuffered mode context will emit lines to the supplied
+        output immediatly rahter than buffering the parsed lines.
+        Symbols will still be buffered as usual.
+        """
+        # first pass: symbols only
+        ctx.symbols_only = True
+        self.parse(ctx, file)
+        # second pass: lines and symbols
+        ctx.symbols_only = False
+        # need to reset some things to do another pass!
+        file.reset()
+        ctx.reset()
+        return self.parse(ctx, file)
+
     def parse(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)

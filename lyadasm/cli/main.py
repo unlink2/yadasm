@@ -153,9 +153,10 @@ def main(
         end_address=args.end_addr,
         middlewares=middlewares,
         output=output,
+        symbols_only=True,
+        unbuffered_lines=True,
     )
-
-    _archs[args.arch].parse(ctx, bin_file)
+    _archs[args.arch].parse_two_pass(ctx, bin_file)
 
     output.close()
 
