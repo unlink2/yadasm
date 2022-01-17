@@ -41,7 +41,7 @@ def main(
         "--arch",
         type=str,
         default="6502-byte",
-        help=f"The target cpu architecture {_archs.keys()}",
+        help=f"The target cpu architecture {';'.join(_archs.keys())}",
     )
     parser.add_argument(
         "--file-start-offset",
