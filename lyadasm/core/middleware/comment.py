@@ -66,7 +66,7 @@ class CommentMiddleware(Middleware):
         if (
             ctx.address in self.comments
             and ctx.is_in_address_range(ctx.address)
-            and not ctx.disable_lines
+            and not ctx.lines_disabled()
         ):
             for line in self.comments[ctx.address]:
                 logging.debug(

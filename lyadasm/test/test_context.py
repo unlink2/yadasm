@@ -264,12 +264,14 @@ class TestContext(unittest.TestCase):
         self.assertEqual(len(ctx.middlewares), 2)
 
     def test_it_should_not_add_lines_if_dsabled(self) -> None:
-        ctx = Context(disable_lines=True)
+        ctx = Context()
+        ctx.disable_lines()
         ctx.add_line(Line("test"))
         self.assertEqual(len(ctx.lines), 0)
 
     def test_it_should_not_add_symbols_if_dsabled(self) -> None:
-        ctx = Context(disable_symbols=True)
+        ctx = Context()
+        ctx.disable_symbols()
         ctx.add_line(Line("test"))
         self.assertEqual(len(ctx.symbols), 0)
 

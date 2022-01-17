@@ -4,9 +4,10 @@ from typing import Dict, List, Optional
 from .context import Context, Line
 from .file import Binary
 from .node import Node
+from .reset import Resetable
 
 
-class Parser:
+class Parser(Resetable):
     def __init__(
         self,
         nodes: List[Node] = None,
@@ -97,17 +98,12 @@ class Parser:
         to guarantee an optimal parsing output.
         This is best used with unbuffered line mode!
         """
-        # first pass: symbols only
-        ctx.disable_lines = True
-        ctx.disable_symbols = False
+        ctx.pass_one(self, file)
         self.parse_single(ctx, file)
-        # second pass: lines and symbols
-        ctx.disable_lines = False
-        ctx.disable_symbols = True
+
         # need to reset some things to do another pass!
-        file.reset()
-        ctx.reset()
-        self.reset()
+        ctx.pass_two(self, file)
+
         return self.parse_single(ctx, file)
 
     def parse_single(self, ctx: Context, file: Binary) -> List[str]:

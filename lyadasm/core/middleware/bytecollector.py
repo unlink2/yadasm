@@ -26,7 +26,7 @@ class ByteCollectorMiddelware(Middleware):
             and ctx.address < self.end
             and not file.is_at_end()
         ):
-            if not ctx.disable_lines:
+            if not ctx.lines_disabled():
                 next_byte = file.next()
                 if next_byte is not None:
                     self.data.append(next_byte)

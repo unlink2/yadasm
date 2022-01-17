@@ -2,6 +2,7 @@ import logging
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set
 
 from .file import Binary, Output
+from .reset import Resetable
 
 # avoids cyclic import; always False at runtime!
 if TYPE_CHECKING:
@@ -144,7 +145,7 @@ class Middleware:
         """
 
 
-class Context:
+class Context(Resetable):
     """
     The context class is the global result object.
     It contains all lines, keeps track of the current address
@@ -162,8 +163,6 @@ class Context:
         middlewares: List[Middleware] = None,
         output: Output = None,
         middleware_streams: Dict[str, IO] = None,
-        disable_symbols: bool = False,
-        disable_lines: bool = False,
         unbuffered_lines: bool = False,
     ):
         if middlewares is None:
@@ -189,8 +188,8 @@ class Context:
         self.middleware_streams = middleware_streams
 
         # symbols only can be used as a first pass
-        self.disable_symbols = disable_symbols
-        self.disable_lines = disable_lines
+        self._disable_symbols = False
+        self._disable_lines = False
         # unbuffere dlines will emit lines to output immediatly
         self.unbuffered_lines = unbuffered_lines
         self.pass_count = 0  # counts how often ctx was reset
@@ -239,7 +238,7 @@ class Context:
         self.add_symbol_no_emit(symbol)
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
-        if self.disable_symbols:
+        if self.symbols_disabled():
             return
         if not symbol.shadow:
             logging.debug(
@@ -273,7 +272,7 @@ class Context:
 
     def add_line_no_emit(self, line: Line) -> None:
         # bail if we only emit symbols
-        if self.disable_lines:
+        if self.lines_disabled():
             return
         self.all_addresses.add(self.address)
         if self.address not in self.lines:
@@ -289,7 +288,7 @@ class Context:
     def __collect_unbuffered(self) -> None:
         # if we do not buffer, also emit all symbols and remove
         # lines for the current address now!
-        if not self.unbuffered_lines or self.disable_lines:
+        if not self.unbuffered_lines or self.lines_disabled():
             return
         if self.address in self.all_addresses:
             logging.debug(
@@ -347,7 +346,7 @@ class Context:
     def collect(self) -> List[str]:
         """Collects all lines and symbols"""
         # this will do nothing if lines are unbuffered!
-        if self.disable_lines:
+        if self.lines_disabled():
             return []
         self.output.begin()
 
@@ -367,6 +366,46 @@ class Context:
         self.output.finish()
 
         return self.output.collect()
+
+    def symbols_disabled(self) -> bool:
+        return self._disable_symbols
+
+    def lines_disabled(self) -> bool:
+        return self._disable_lines
+
+    def disable_lines(self) -> None:
+        self._disable_lines = True
+
+    def enable_lines(self) -> None:
+        self._disable_lines = False
+
+    def disable_symbols(self) -> None:
+        self._disable_symbols = True
+
+    def enable_symbols(self) -> None:
+        self._disable_symbols = False
+
+    def pass_one(self, parser: Resetable, file: Resetable) -> None:
+        """enables pass phase 1"""
+        # first pass: symbols only
+        file.reset()
+        parser.reset()
+        self.disable_lines()
+        self.enable_symbols()
+
+    def pass_two(self, parser: Resetable, file: Resetable) -> None:
+        """enables pass phase 2"""
+        # second pass: lines and symbols
+        self.reset()
+        file.reset()
+        parser.reset()
+        self.enable_lines()
+        self.disable_symbols()
+
+    def single_pass(self, _parser: Resetable, _file: Resetable) -> None:
+        """enables single pass mode"""
+        self.enable_lines()
+        self.enable_symbols()
 
     def emit_on_parse_begin(self) -> None:
         logging.debug("Emitting parse_begin")
