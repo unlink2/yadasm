@@ -103,12 +103,8 @@ def main(
         action="store_true",
         help="Append to output file",
     )
-    parser.add_argument(
-        "--no-2-pass",
-        action="store_true",
-        help="Disable 2-pass parsing."
-        "This will run faster than 2-pass, but use more memory!",
-    )
+            
+help=""
     # parser.add_argument(
     #    "-middleware",
     #    "-m",
@@ -159,12 +155,9 @@ def main(
         end_address=args.end_addr,
         middlewares=middlewares,
         output=output,
-        unbuffered_lines=not args.no_2_pass,
+        unbuffered_lines=True,
     )
-    if args.no_2_pass:
-        _archs[args.arch].parse_single(ctx, bin_file)
-    else:
-        _archs[args.arch].parse(ctx, bin_file)
+    _archs[args.arch].parse(ctx, bin_file)
 
     output.close()
 
