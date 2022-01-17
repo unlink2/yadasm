@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="yadasm",
-    version="0.1.1",
+    version="0.1.2",
     packages=[
         "lyadasm",
         "lyadasm.core",
