@@ -193,6 +193,7 @@ class Context:
         self.disable_lines = disable_lines
         # unbuffere dlines will emit lines to output immediatly
         self.unbuffered_lines = unbuffered_lines
+        self.pass_count = 0  # counts how often ctx was reset
 
         # flags can be used for storing custom information
         self.flags: Dict[str, Any] = {}
@@ -200,6 +201,7 @@ class Context:
     def reset(self) -> None:
         """Resets address"""
         self.address = self.start_address
+        self.pass_count += 1
 
     def disable_middleware(
         self, replace_with: List[Middleware] = None

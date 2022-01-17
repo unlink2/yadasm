@@ -287,3 +287,10 @@ class TestContext(unittest.TestCase):
         self.assertEqual(
             strio.readlines(), ["Symbol1\n", "Symbol2\n", "    test\n"]
         )
+
+    def test_it_should_count_resets(self) -> None:
+        ctx = Context()
+        self.assertEqual(ctx.pass_count, 0)
+        ctx.reset()
+        ctx.reset()
+        self.assertEqual(ctx.pass_count, 2)
