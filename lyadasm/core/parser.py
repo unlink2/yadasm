@@ -92,6 +92,10 @@ class Parser:
         In unbuffered mode context will emit lines to the supplied
         output immediatly rahter than buffering the parsed lines.
         Symbols will still be buffered as usual.
+        It is important to reset all states before the second pass!
+        All parsing operations should always happen in both passes
+        to guarantee an optimal parsing output.
+        This is best used with unbuffered line mode!
         """
         # first pass: symbols only
         ctx.disable_lines = True
@@ -109,7 +113,8 @@ class Parser:
     def parse_single(self, ctx: Context, file: Binary) -> List[str]:
         """
         Parses without a double pass.
-        Useful for middleware-calls
+        Useful for middleware-calls.
+        This is best called for each pass, or directly in buffered line mode!
         """
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
