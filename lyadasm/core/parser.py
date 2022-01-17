@@ -4,10 +4,10 @@ from typing import Dict, List, Optional
 from .context import Context, Line
 from .file import Binary
 from .node import Node
-from .reset import Resetable
+from .reset import Resettable
 
 
-class Parser(Resetable):
+class Parser(Resettable):
     def __init__(
         self,
         nodes: List[Node] = None,

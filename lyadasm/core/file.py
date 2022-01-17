@@ -1,9 +1,9 @@
 import logging
 from typing import IO, List, Optional
-from .reset import Resetable
+from .reset import Resettable
 
 
-class Binary(Resetable):
+class Binary(Resettable):
     def __init__(
         self, data: bytes, current: int = 0, end: Optional[int] = None
     ):

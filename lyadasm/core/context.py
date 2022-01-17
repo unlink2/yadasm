@@ -2,7 +2,7 @@ import logging
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set
 
 from .file import Binary, Output
-from .reset import Resetable
+from .reset import Resettable
 
 # avoids cyclic import; always False at runtime!
 if TYPE_CHECKING:
@@ -145,7 +145,7 @@ class Middleware:
         """
 
 
-class Context(Resetable):
+class Context(Resettable):
     """
     The context class is the global result object.
     It contains all lines, keeps track of the current address
@@ -385,7 +385,7 @@ class Context(Resetable):
     def enable_symbols(self) -> None:
         self._disable_symbols = False
 
-    def pass_one(self, parser: Resetable, file: Resetable) -> None:
+    def pass_one(self, parser: Resettable, file: Resettable) -> None:
         """enables pass phase 1"""
         # first pass: symbols only
         file.reset()
@@ -393,7 +393,7 @@ class Context(Resetable):
         self.disable_lines()
         self.enable_symbols()
 
-    def pass_two(self, parser: Resetable, file: Resetable) -> None:
+    def pass_two(self, parser: Resettable, file: Resettable) -> None:
         """enables pass phase 2"""
         # second pass: lines and symbols
         self.reset()
@@ -402,7 +402,7 @@ class Context(Resetable):
         self.enable_lines()
         self.disable_symbols()
 
-    def single_pass(self, _parser: Resetable, _file: Resetable) -> None:
+    def single_pass(self, _parser: Resettable, _file: Resettable) -> None:
         """enables single pass mode"""
         self.enable_lines()
         self.enable_symbols()
