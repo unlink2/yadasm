@@ -1,9 +1,10 @@
 import unittest
 from typing import Any, Optional
+from io import StringIO
 
 from lyadasm.core.archs.arch6502 import Parser6502, Parser6502Bytes
 from lyadasm.core.context import Context, Line, Middleware, Symbol
-from lyadasm.core.file import Binary, Output
+from lyadasm.core.file import Binary, Output, StreamOutput
 from lyadasm.core.node import Node
 
 
@@ -261,3 +262,28 @@ class TestContext(unittest.TestCase):
         self.assertEqual(len(ctx.middlewares), 1)
         ctx.restore_middleware()
         self.assertEqual(len(ctx.middlewares), 2)
+
+    def test_it_should_not_add_lines_if_dsabled(self) -> None:
+        ctx = Context(disable_lines=True)
+        ctx.add_line(Line("test"))
+        self.assertEqual(len(ctx.lines), 0)
+
+    def test_it_should_not_add_symbols_if_dsabled(self) -> None:
+        ctx = Context(disable_symbols=True)
+        ctx.add_line(Line("test"))
+        self.assertEqual(len(ctx.symbols), 0)
+
+    def test_it_should_use_unbuffered_output(self) -> None:
+        strio = StringIO()
+        ctx = Context(
+            address=1, unbuffered_lines=True, output=StreamOutput(strio)
+        )
+        ctx.add_symbol(Symbol(1, "Symbol1"))
+        ctx.add_symbol(Symbol(1, "Symbol2"))
+        ctx.add_line(Line("test"))
+
+        self.assertEqual(ctx.collect(), [])
+        strio.seek(0)
+        self.assertEqual(
+            strio.readlines(), ["Symbol1\n", "Symbol2\n", "    test\n"]
+        )
