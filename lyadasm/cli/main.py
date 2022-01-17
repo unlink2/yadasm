@@ -103,8 +103,6 @@ def main(
         action="store_true",
         help="Append to output file",
     )
-            
-help=""
     # parser.add_argument(
     #    "-middleware",
     #    "-m",
