@@ -162,8 +162,8 @@ class Context:
         middlewares: List[Middleware] = None,
         output: Output = None,
         middleware_streams: Dict[str, IO] = None,
-        symbols_only: bool = False,
-        lines_only: bool = False,
+        disable_symbols: bool = False,
+        disable_lines: bool = False,
         unbuffered_lines: bool = False,
     ):
         if middlewares is None:
@@ -189,8 +189,8 @@ class Context:
         self.middleware_streams = middleware_streams
 
         # symbols only can be used as a first pass
-        self.symbols_only = symbols_only
-        self.lines_only = lines_only
+        self.disable_symbols = disable_symbols
+        self.disable_lines = disable_lines
         # unbuffere dlines will emit lines to output immediatly
         self.unbuffered_lines = unbuffered_lines
 
@@ -237,7 +237,7 @@ class Context:
         self.add_symbol_no_emit(symbol)
 
     def add_symbol_no_emit(self, symbol: Symbol) -> None:
-        if self.lines_only:
+        if self.disable_symbols:
             return
         if not symbol.shadow:
             logging.debug(
@@ -271,7 +271,7 @@ class Context:
 
     def add_line_no_emit(self, line: Line) -> None:
         # bail if we only emit symbols
-        if self.symbols_only:
+        if self.disable_lines:
             return
         self.all_addresses.add(self.address)
         if self.address not in self.lines:
@@ -287,7 +287,7 @@ class Context:
     def __collect_unbuffered(self) -> None:
         # if we do not buffer, also emit all symbols and remove
         # lines for the current address now!
-        if not self.unbuffered_lines or self.symbols_only:
+        if not self.unbuffered_lines or self.disable_lines:
             return
         if self.address in self.all_addresses:
             logging.debug(
@@ -345,7 +345,7 @@ class Context:
     def collect(self) -> List[str]:
         """Collects all lines and symbols"""
         # this will do nothing if lines are unbuffered!
-        if self.symbols_only:
+        if self.disable_lines:
             return []
         self.output.begin()
 

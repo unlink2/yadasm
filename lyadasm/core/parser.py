@@ -94,12 +94,12 @@ class Parser:
         Symbols will still be buffered as usual.
         """
         # first pass: symbols only
-        ctx.symbols_only = True
-        ctx.lines_only = False
+        ctx.disable_lines = True
+        ctx.disable_symbols = False
         self.parse_single(ctx, file)
         # second pass: lines and symbols
-        ctx.symbols_only = False
-        ctx.lines_only = True
+        ctx.disable_lines = False
+        ctx.disable_symbols = True
         # need to reset some things to do another pass!
         file.reset()
         ctx.reset()
