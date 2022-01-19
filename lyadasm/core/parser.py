@@ -80,9 +80,9 @@ class Parser(Resettable):
         """advance parser loop, called exactly once per iteration"""
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
-        return self.parse_double(ctx, file)
+        return self.parse_2_pass(ctx, file)
 
-    def parse_double(self, ctx: Context, file: Binary) -> List[str]:
+    def parse_2_pass(self, ctx: Context, file: Binary) -> List[str]:
         """
         Puts the context in 2 pass mode
             - reads symbol only
@@ -99,19 +99,23 @@ class Parser(Resettable):
         This is best used with unbuffered line mode!
         """
         ctx.pass_one(self, file)
-        self.parse_single(ctx, file)
+        self.parse_step(ctx, file)
 
         # need to reset some things to do another pass!
         ctx.pass_two(self, file)
 
-        return self.parse_single(ctx, file)
+        return self.parse_step(ctx, file)
 
-    def parse_single(self, ctx: Context, file: Binary) -> List[str]:
+    def parse_1_pass(self, ctx: Context, file: Binary) -> List[str]:
         """
         Parses without a double pass.
         Useful for middleware-calls.
         This is best called for each pass, or directly in buffered line mode!
         """
+        ctx.single_pass(self, file)
+        return self.parse_step(ctx, file)
+
+    def parse_step(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 

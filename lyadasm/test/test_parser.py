@@ -56,7 +56,7 @@ class TestParser(unittest.TestCase):
     def test_it_should_parse_valid_code_single_pass(self) -> None:
         parser = Parser6502()
         ctx = Context(0x600)
-        result = parser.parse_single(
+        result = parser.parse_1_pass(
             ctx,
             Binary(
                 bytes(
