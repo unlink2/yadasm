@@ -12,6 +12,9 @@ typecheck:
 	mypy $(LNAME)  --disallow-untyped-defs
 
 unittests:
+	pytest $(LNAME)/test/ -v
+
+coverage:
 	pytest --cov=. $(LNAME)/test/ -v
 
 lint:
@@ -21,4 +24,5 @@ test:
 	# this script simply runs the test pipeline
 	make typecheck
 	make unittests
+	make coverage
 	make lint
