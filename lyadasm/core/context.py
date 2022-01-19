@@ -148,8 +148,14 @@ class Middleware:
 class Context(Resettable):
     """
     The context class is the global result object.
-    It contains all lines, keeps track of the current address
-    and keeps track of labels and symbols.
+    It contains all lines, keeps track of the current address,
+    keeps track of labels and symbols and manages middleware events.
+    It has a 2-pass system which enables it to generate symbols in
+    the first pass and generate actual code results in a second pass.
+    This is best used in unbuffered line mode.
+    Unbuffered line mode emits all lines directly to the supplied
+    output stream.
+    In buffered mode all lines are collected when parsing ends.
     """
 
     def __init__(
