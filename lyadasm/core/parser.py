@@ -82,6 +82,7 @@ class Parser(Resettable):
         """advance parser loop, called exactly once per iteration"""
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
+        logging.debug("Parser-passes: %d", self.passes)
         if self.passes == 1:
             return self._parse_1_pass(ctx, file)
         else:
