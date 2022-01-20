@@ -118,7 +118,7 @@ class DefineMiddleware(Middleware):
                 symbol.shadow,
             )
 
-            ctx.add_symbol_no_emit(symbol)
+            ctx.add_symbol(symbol, False)
 
     def on_node_parsed(
         self,

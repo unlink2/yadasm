@@ -237,15 +237,14 @@ class Context(Resettable):
             self.end_address is None or self.end_address > addr
         )
 
-    def add_symbol(self, symbol: Symbol) -> None:
+    def add_symbol(self, symbol: Symbol, emit: bool = True) -> None:
         """Add a label for a certain address"""
+        if emit:
+            self.emit_on_symbol(symbol)
 
-        self.emit_on_symbol(symbol)
-        self.add_symbol_no_emit(symbol)
-
-    def add_symbol_no_emit(self, symbol: Symbol) -> None:
         if self.symbols_disabled():
             return
+
         if not symbol.shadow:
             logging.debug(
                 "Symbol %s=%s added to all addresses",
@@ -270,16 +269,15 @@ class Context(Resettable):
         else:
             return default
 
-    def add_line(self, line: Line) -> None:
+    def add_line(self, line: Line, emit: bool = True) -> None:
         """Add a line at the current address"""
+        if emit:
+            self.emit_on_line(line)
 
-        self.emit_on_line(line)
-        self.add_line_no_emit(line)
-
-    def add_line_no_emit(self, line: Line) -> None:
         # bail if we only emit symbols
         if self.lines_disabled():
             return
+
         self.all_addresses.add(self.address)
         if self.address not in self.lines:
             self.lines[self.address] = [line]

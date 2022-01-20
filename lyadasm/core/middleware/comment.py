@@ -73,4 +73,4 @@ class CommentMiddleware(Middleware):
                     "Adding comment at %s='%s'", hex(ctx.address), line.text
                 )
                 line.text = f"{self.prefix}{line.text}"
-                ctx.add_line_no_emit(line)
+                ctx.add_line(line, False)

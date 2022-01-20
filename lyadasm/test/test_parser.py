@@ -55,8 +55,9 @@ class TestParser(unittest.TestCase):
 
     def test_it_should_parse_valid_code_single_pass(self) -> None:
         parser = Parser6502()
+        parser.passes = 1
         ctx = Context(0x600)
-        result = parser.parse_1_pass(
+        result = parser.parse(
             ctx,
             Binary(
                 bytes(
@@ -215,7 +216,7 @@ class TestParser(unittest.TestCase):
             output=StreamOutput(strio),
             unbuffered_lines=True,
         )
-        ctx.add_symbol_no_emit(Symbol(0x600, "start:"))
+        ctx.add_symbol(Symbol(0x600, "start:"), False)
         result = parser.parse(
             ctx,
             Binary(

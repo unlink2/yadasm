@@ -54,13 +54,15 @@ class LongShort65C816Middleware(Middleware):
     def _set_as(self, ctx: Context) -> None:
         logging.debug("Adding as at %s", hex(ctx.address))
         ctx.set_flag("read_idyn_le", 1)
-        ctx.add_symbol_no_emit(
-            Symbol(ctx.address, self.asstr, postfix="", order=self.order)
+        ctx.add_symbol(
+            Symbol(ctx.address, self.asstr, postfix="", order=self.order),
+            False
         )
 
     def _set_al(self, ctx: Context) -> None:
         logging.debug("Adding al at %s", hex(ctx.address))
         ctx.set_flag("read_idyn_le", 2)
-        ctx.add_symbol_no_emit(
-            Symbol(ctx.address, self.alstr, postfix="", order=self.order)
+        ctx.add_symbol(
+            Symbol(ctx.address, self.alstr, postfix="", order=self.order),
+            False,
         )

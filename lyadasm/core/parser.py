@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Literal
 
 from .context import Context, Line
 from .file import Binary
@@ -13,6 +13,7 @@ class Parser(Resettable):
         nodes: List[Node] = None,
         should_build_lookup: bool = True,
         max_opcode: int = 255,
+        passes: Literal[1] | Literal[2] = 2,
     ):
         if nodes is None:
             nodes = []
@@ -21,6 +22,7 @@ class Parser(Resettable):
         self.nodes = nodes
         self.should_build_lookup = should_build_lookup
         self.max_opcode = max_opcode
+        self.passes = passes
 
     def reset(self) -> None:
         """Called before 2nd pass"""
@@ -80,9 +82,12 @@ class Parser(Resettable):
         """advance parser loop, called exactly once per iteration"""
 
     def parse(self, ctx: Context, file: Binary) -> List[str]:
-        return self.parse_2_pass(ctx, file)
+        if self.passes == 1:
+            return self._parse_1_pass(ctx, file)
+        else:
+            return self._parse_2_pass(ctx, file)
 
-    def parse_2_pass(self, ctx: Context, file: Binary) -> List[str]:
+    def _parse_2_pass(self, ctx: Context, file: Binary) -> List[str]:
         """
         Puts the context in 2 pass mode
             - reads symbol only
@@ -99,23 +104,23 @@ class Parser(Resettable):
         This is best used with unbuffered line mode!
         """
         ctx.pass_one(self, file)
-        self.parse_step(ctx, file)
+        self._parse_step(ctx, file)
 
         # need to reset some things to do another pass!
         ctx.pass_two(self, file)
 
-        return self.parse_step(ctx, file)
+        return self._parse_step(ctx, file)
 
-    def parse_1_pass(self, ctx: Context, file: Binary) -> List[str]:
+    def _parse_1_pass(self, ctx: Context, file: Binary) -> List[str]:
         """
         Parses without a double pass.
         Useful for middleware-calls.
         This is best called for each pass, or directly in buffered line mode!
         """
         ctx.single_pass(self, file)
-        return self.parse_step(ctx, file)
+        return self._parse_step(ctx, file)
 
-    def parse_step(self, ctx: Context, file: Binary) -> List[str]:
+    def _parse_step(self, ctx: Context, file: Binary) -> List[str]:
         if self.should_build_lookup:
             self.build_lookup(ctx, self.max_opcode)
 
