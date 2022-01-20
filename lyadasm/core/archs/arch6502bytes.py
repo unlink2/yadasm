@@ -18,7 +18,7 @@ class ByteParser6502(Parser):
     """Custom node-based parser for byte data on a 6502-family cpu"""
 
     def __init__(self, nodes: List[Node] = None, length: int = 0) -> None:
-        Parser.__init__(self, nodes, should_build_lookup=False)
+        Parser.__init__(self, nodes, should_build_lookup=False, passes=1)
         self.length = length
         self.original_length = length
 
