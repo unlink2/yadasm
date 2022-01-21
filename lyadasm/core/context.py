@@ -147,7 +147,7 @@ class Middleware:
 
 class Context(Resettable):
     """
-    The context class is the global result object.
+    The context is the global result object.
     It contains all lines, keeps track of the current address,
     keeps track of labels and symbols and manages middleware events.
     It has a 2-pass system which enables it to generate symbols in

@@ -69,6 +69,8 @@ class DefineMiddleware(Middleware):
         symbol_defs: List[Symbol] = None,
         symbol_def_condition: DefinitionCondition = always_true,
         force_symbol_output: bool = False,
+        directives: Dict[int, List[str]] = None,
+        directives_order: int = -1,
         tag: str = "Define",
     ):
         Middleware.__init__(self, tag)
@@ -76,13 +78,32 @@ class DefineMiddleware(Middleware):
             definitions = {}
         if symbols is None:
             symbols = []
+        if directives is None:
+            directives = {}
         self.symbols = symbols
         self.definitions = definitions
         self.force_symbol_output = force_symbol_output
 
+        self.directives = directives
+        self.directives_order = directives_order
+
         if symbol_defs is not None:
             for symbol in symbol_defs:
                 self.add_symbol_definition(symbol, symbol_def_condition)
+
+    def on_next(self, ctx: Context, file: Binary) -> None:
+        for (addr, directives) in self.directives.items():
+            if ctx.is_in_address_range(addr):
+                for directive in directives:
+                    ctx.add_symbol(
+                        Symbol(
+                            addr,
+                            directive,
+                            postfix="",
+                            order=self.directives_order,
+                        ),
+                        False,
+                    )
 
     def add_symbol(self, symbol: Symbol) -> "DefineMiddleware":
         self.symbols.append(symbol)
@@ -92,6 +113,12 @@ class DefineMiddleware(Middleware):
         self, address: int, definition: Definition
     ) -> "DefineMiddleware":
         self.definitions[address] = definition
+        return self
+
+    def add_directive(
+        self, address: int, directives: List[str]
+    ) -> "DefineMiddleware":
+        self.directives[address] = directives
         return self
 
     def add_symbol_definition(

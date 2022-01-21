@@ -165,6 +165,7 @@ class TestDefine(unittest.TestCase):
             .add_definition(0xEE, Definition(0xED))
             .add_symbol(Symbol(0x600, "test:"))
             .add_symbol_definition(Symbol(0x1E, "symbol"))
+            .add_directive(0x600, ["!first", "!second"])
         )
 
         parser = Parser6502()
@@ -173,10 +174,42 @@ class TestDefine(unittest.TestCase):
             ctx,
             Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
         )
-        print(result)
         self.assertEqual(
             result,
             [
+                "!first",
+                "!second",
+                "test:",
+                "    lda #test_label",
+                "    lda #$ed",
+                "    ldx symbol",
+                "    ldx symbol",
+            ],
+        )
+
+    def test_it_should_use_directives(self) -> None:
+        middleware = (
+            DefineMiddleware(directives={0x600: ["!first", "!second"]})
+            .add_definition(
+                0xEA,
+                Definition(lambda ctx, i: "#test_label"),
+            )
+            .add_definition(0xEE, Definition(0xED))
+            .add_symbol(Symbol(0x600, "test:"))
+            .add_symbol_definition(Symbol(0x1E, "symbol"))
+        )
+
+        parser = Parser6502()
+        ctx = Context(0x600, middlewares=[middleware], end_address=0x700)
+        result = parser.parse(
+            ctx,
+            Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
+        )
+        self.assertEqual(
+            result,
+            [
+                "!first",
+                "!second",
                 "test:",
                 "    lda #test_label",
                 "    lda #$ed",
