@@ -66,6 +66,8 @@ class DefineMiddleware(Middleware):
         self,
         definitions: Dict[Any, Definition] = None,
         symbols: List[Symbol] = None,
+        symbol_defs: List[Symbol] = None,
+        symbol_def_condition: DefinitionCondition = always_true,
         force_symbol_output: bool = False,
         tag: str = "Define",
     ):
@@ -77,6 +79,10 @@ class DefineMiddleware(Middleware):
         self.symbols = symbols
         self.definitions = definitions
         self.force_symbol_output = force_symbol_output
+
+        if symbol_defs is not None:
+            for symbol in symbol_defs:
+                self.add_symbol_definition(symbol, symbol_def_condition)
 
     def add_symbol(self, symbol: Symbol) -> "DefineMiddleware":
         self.symbols.append(symbol)

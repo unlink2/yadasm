@@ -31,12 +31,29 @@ class TestDefine(unittest.TestCase):
                 Symbol(0x400, "shadow:"),
                 Symbol(0x800, "shadow2:"),
             ],
+            [Symbol(0x604, "@symdef")],
         )
         parser = Parser6502()
         ctx = Context(0x600, middlewares=[middleware], end_address=0x700)
         result = parser.parse(
             ctx,
-            Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
+            Binary(
+                bytes(
+                    [
+                        0xA9,
+                        0xEA,
+                        0xA9,
+                        0xEE,
+                        0xA2,
+                        0x1E,
+                        0xA2,
+                        0x1E,
+                        0xAD,
+                        0x04,
+                        0x06,
+                    ]
+                )
+            ),
         )
         self.assertEqual(
             result,
@@ -44,8 +61,10 @@ class TestDefine(unittest.TestCase):
                 "test:",
                 "    lda #test_label",
                 "    lda #$ed",
+                "@symdef",
                 "    ldx #$ef",
                 "    ldx #$aa",
+                "    lda @symdef",
             ],
         )
 
@@ -61,13 +80,30 @@ class TestDefine(unittest.TestCase):
                 Symbol(0x400, "shadow:"),
                 Symbol(0x800, "shadow2:"),
             ],
+            [Symbol(0x604, "@symdef")],
             force_symbol_output=True,
         )
         parser = Parser6502()
         ctx = Context(0x600, middlewares=[middleware], end_address=0x700)
         result = parser.parse(
             ctx,
-            Binary(bytes([0xA9, 0xEA, 0xA9, 0xEE, 0xA2, 0x1E, 0xA2, 0x1E])),
+            Binary(
+                bytes(
+                    [
+                        0xA9,
+                        0xEA,
+                        0xA9,
+                        0xEE,
+                        0xA2,
+                        0x1E,
+                        0xA2,
+                        0x1E,
+                        0xAD,
+                        0x04,
+                        0x06,
+                    ]
+                )
+            ),
         )
 
         self.assertEqual(
@@ -77,8 +113,10 @@ class TestDefine(unittest.TestCase):
                 "test:",
                 "    lda #test_label",
                 "    lda #$ed",
+                "@symdef",
                 "    ldx #$ef",
                 "    ldx #$aa",
+                "    lda @symdef",
                 "shadow2:",
             ],
         )
