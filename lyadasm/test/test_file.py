@@ -30,6 +30,8 @@ class TestFile(unittest.TestCase):
         self.assertEqual(file.read(1), None)
         self.assertEqual(file.next(), None)
 
+        self.assertFalse(file.is_empty())
+
     def test_it_should_rewind(self) -> None:
         file = Binary(bytes([0, 1, 2]))
         file.advance(2)
@@ -42,3 +44,9 @@ class TestFile(unittest.TestCase):
         self.assertEqual(file.offset(), 4)
         file.reset()
         self.assertEqual(file.offset(), 0)
+
+        self.assertFalse(file.is_empty())
+
+    def test_it_should_be_empty(self) -> None:
+        file = Binary(bytes([]))
+        self.assertTrue(file.is_empty())

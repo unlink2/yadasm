@@ -49,7 +49,7 @@ class Binary(Resettable):
             return min(len(self.data), self.end)
 
     def is_empty(self) -> bool:
-        pass
+        return self.len() == 0
 
 
 class Output:
