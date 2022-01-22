@@ -12,8 +12,14 @@ data Node =
        , reader :: B.ByteString -> Integer
        , size :: Int
        , converter :: Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
-       , comparator :: Integer -> Int -> Bool
+       , comparator :: Integer -> Bool
        }
+
+instance Eq Node where
+  (==) n1 n2 = size n1 == size n2 && children n1 == children n2
+
+instance Show Node where
+  show node = "{Node}" ++ show (children node)
 
 appendParsed :: Maybe ([a1], [a2]) -> Maybe ([a1], [a2]) -> Maybe ([a1], [a2])
 appendParsed (Just (pw, ps)) (Just (ow, os)) = Just (ow ++ pw, os ++ ps)
@@ -36,7 +42,7 @@ parseChildren ctx bin (node:nodes) prev
 
 parse :: Context -> B.ByteString -> Node -> Maybe ([L.CodeWord], [S.Symbol])
 parse ctx bin node =
-  if comp dat siz
+  if comp dat
   then parseChildren ctx (B.drop siz bin) nodes (convert dat siz)
   else Nothing
   where

@@ -10,16 +10,24 @@ import qualified Yadasm.Symbol as S
 import qualified Yadasm.Node as N
 
 -- simple test code converter, reader and comparator 
-testComparator :: (Ord a, Num a) => p -> a -> Bool
-testComparator i size = size == 1
+testComparator1 :: (Ord a, Num a) => a -> Bool
+testComparator1 i = i == 1
+
+testComparator2 :: (Ord a, Num a) => a -> Bool
+testComparator2 i = i == 2
+
+testComparator3 :: (Ord a, Num a) => a -> Bool
+testComparator3 i = i == 3
 
 testConverter :: Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
 testConverter 1 size =
   Just ([L.CodeWord { L.text = "test1", L.size = size }], [])
-testConverter 2 size = Just
-  ( [L.CodeWord { L.text = "test2", L.size = size }]
+testConverter 2 size =
+  Just ([L.CodeWord { L.text = "test2", L.size = size }], [])
+testConverter 3 size = Just
+  ( [L.CodeWord { L.text = "test3", L.size = size }]
   , [ S.Symbol { S.address = 1
-               , S.name = "Test2:"
+               , S.name = "Test3:"
                , S.shadow = False
                , S.order = 0
                }])
@@ -28,16 +36,17 @@ testConverter _ size = Nothing
 testNode1 = N.Node { N.children = []
                    , N.reader = Bi.read1le
                    , N.converter = testConverter
-                   , N.comparator = testComparator
+                   , N.comparator = testComparator1
                    , N.size = 1
                    }
 
 testNode2 = testNode1 { N.children = [ N.Node { N.children = []
                                               , N.reader = Bi.read1le
                                               , N.converter = testConverter
-                                              , N.comparator = testComparator
-                                              , N.size = 1
+                                              , N.comparator = testComparator3
+                                              , N.size = 2
                                               }]
+                      , N.comparator = testComparator2
                       }
 
 tests :: [Test]
@@ -51,14 +60,14 @@ tests =
       (assertEqual
          "It should parse valid input with children"
          (Just
-            ( [ L.CodeWord { L.text = "test1", L.size = 1 }
-              , L.CodeWord { L.text = "test2", L.size = 1 }]
+            ( [ L.CodeWord { L.text = "test2", L.size = 1 }
+              , L.CodeWord { L.text = "test3", L.size = 2 }]
             , [ S.Symbol { S.address = 1
-                         , S.name = "Test2:"
+                         , S.name = "Test3:"
                          , S.shadow = False
                          , S.order = 0
                          }]))
-         (N.parse Ctx.defaultContext (B.pack [1, 2]) testNode2))
+         (N.parse Ctx.defaultContext (B.pack [2, 3]) testNode2))
   , TestCase
       (assertEqual
          "It should fail when not enough data is available"
@@ -68,4 +77,9 @@ tests =
       (assertEqual
          "It should fail when not enough data is available with children"
          Nothing
-         (N.parse Ctx.defaultContext (B.pack [1]) testNode2))]
+         (N.parse Ctx.defaultContext (B.pack [1]) testNode2))
+  , TestCase
+      (assertEqual
+         "It should fail when bad data is parsed with children"
+         Nothing
+         (N.parse Ctx.defaultContext (B.pack [2, 1]) testNode2))]
