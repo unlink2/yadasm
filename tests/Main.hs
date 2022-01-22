@@ -1,9 +1,14 @@
 import           Test.Framework
 import           Test.Framework.Providers.HUnit
 import           Test.HUnit
-import qualified TestComparator
-import qualified TestBinary
+import qualified Yadasm.TestComparator
+import qualified Yadasm.TestBinary
+import qualified Yadasm.TestNode
 
-tests = hUnitTestToTests (TestList (TestComparator.tests ++ TestBinary.tests))
+tests = hUnitTestToTests
+  (TestList
+     (Yadasm.TestComparator.tests
+      ++ Yadasm.TestBinary.tests
+      ++ Yadasm.TestNode.tests))
 
 main = defaultMain tests
