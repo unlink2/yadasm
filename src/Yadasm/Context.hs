@@ -29,11 +29,11 @@ addSymbol ctx symbol =
 
     members = HashMap.lookupDefault [] addr syms
 
-getSymbolFrom :: Maybe [Symbol] -> Maybe Symbol
-getSymbolFrom (Just members) = Just $ head members
+getSymbolFrom :: Maybe [Symbol] -> Maybe [Symbol]
+getSymbolFrom (Just members) = Just members
 getSymbolFrom Nothing = Nothing
 
-getSymbolAt :: Context -> Integer -> Maybe Symbol
+getSymbolAt :: Context -> Integer -> Maybe [Symbol]
 getSymbolAt ctx addr = getSymbolFrom members
   where
     members = HashMap.lookup addr (symbols ctx)

@@ -106,3 +106,38 @@ parse ctx bin nodes defaultNode readOp = parseNode node
 
     parseNode Nothing = Nothing
     parseNode (Just node) = N.parse ctx bin node
+
+parseToString :: C.Context
+              -> ByteString
+              -> HashMap Integer N.Node
+              -> Maybe N.Node
+              -> (ByteString -> Integer)
+              -> Maybe String
+parseToString ctx bin nodes defaultNode readOp =
+  L.resultToString ctx (parse ctx bin nodes defaultNode readOp)
+
+-- consumes the entire input and parses to lines 
+parseAllToString :: C.Context
+                 -> ByteString
+                 -> HashMap Integer N.Node
+                 -> Maybe N.Node
+                 -> (ByteString -> Integer)
+                 -> Maybe [String]
+parseAllToString ctx bin nodes defaultNode readOp
+  | ByteString.null bin = Just []
+  | otherwise = appendTo asString next
+  where
+    current = parse ctx bin nodes defaultNode readOp
+
+    next = parseAllToString
+      (advanceCtx ctx current)
+      (advanceBin bin current)
+      nodes
+      defaultNode
+      readOp
+
+    asString = L.resultToString ctx current
+
+    appendTo :: Maybe String -> Maybe [String] -> Maybe [String]
+    appendTo (Just asString) (Just next) = Just (asString:next)
+    appendTo _ _ = Nothing

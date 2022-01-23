@@ -7,6 +7,7 @@ import qualified Yadasm.TestNode
 import qualified Yadasm.TestParser
 import qualified Yadasm.TestContext
 import qualified Yadasm.TestLine
+import qualified Yadasm.Archs.TestArch6502
 
 tests = hUnitTestToTests
   (TestList
@@ -15,6 +16,7 @@ tests = hUnitTestToTests
       ++ Yadasm.TestNode.tests
       ++ Yadasm.TestParser.tests
       ++ Yadasm.TestContext.tests
-      ++ Yadasm.TestLine.tests))
+      ++ Yadasm.TestLine.tests
+      ++ Yadasm.Archs.TestArch6502.tests))
 
 main = defaultMain tests

@@ -5,6 +5,7 @@ import qualified Yadasm.Line as L
 import qualified Yadasm.Symbol as S
 import qualified Yadasm.Binary as Bi
 import qualified Yadasm.Context as C
+import qualified Yadasm.Comparator as Co
 import           Yadasm.Context
 import           Data.Maybe (isNothing, isJust)
 
@@ -12,7 +13,8 @@ data Node =
   Node { children :: [Node]
        , reader :: B.ByteString -> Integer
        , size :: Int
-       , converter :: C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
+       , converter
+           :: C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
        , comparator :: Integer -> Bool
        }
 
@@ -21,6 +23,15 @@ instance Eq Node where
 
 instance Show Node where
   show node = "{Node:" ++ show (size node) ++ show (children node) ++ "}"
+
+convertNothing ctx input size = Nothing
+
+defaultNode = Node { children = []
+                   , reader = Bi.read1le
+                   , size = 0
+                   , converter = convertNothing
+                   , comparator = Co.alwaysTrue
+                   }
 
 appendParsed :: Maybe ([a1], [a2]) -> Maybe ([a1], [a2]) -> Maybe ([a1], [a2])
 appendParsed (Just (pw, ps)) (Just (ow, os)) = Just (ow ++ pw, os ++ ps)

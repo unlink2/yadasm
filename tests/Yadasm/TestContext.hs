@@ -55,7 +55,9 @@ tests =
   , TestCase
       (assertEqual
          "It should get firt symbol"
-         (Just S.defaultSymbol { S.address = 0x100, S.name = "2" })
+         (Just
+            [ S.defaultSymbol { S.address = 0x100, S.name = "2" }
+            , S.defaultSymbol { S.address = 0x100, S.name = "1" }])
          (getSymbolAt testContext 0x100))
   , TestCase
       (assertEqual
