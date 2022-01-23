@@ -43,7 +43,9 @@ Test-Suite yadasm-tests
   other-modules: Yadasm.TestComparator, 
     Yadasm.TestBinary,
     Yadasm.TestNode,
-    Yadasm.TestParser
+    Yadasm.TestParser,
+    Yadasm.TestContext,
+    Yadasm.TestLine 
   build-depends:   base ^>=4.15.1.0, 
     yadasm-core, 
     HUnit ^>= 1.6.2.0, 

@@ -22,19 +22,20 @@ testComparator3 i = i == 3
 testComparator4 :: (Ord a, Num a) => a -> Bool
 testComparator4 i = i == 4
 
-testConverter :: Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
-testConverter 1 size =
-  Just ([L.CodeWord { L.text = "test1", L.size = size }], [])
-testConverter 2 size =
-  Just ([L.CodeWord { L.text = "test2", L.size = size }], [])
-testConverter 3 size = Just
-  ( [L.CodeWord { L.text = "test3", L.size = size }]
-  , [ S.Symbol { S.address = 1
+testConverter
+  :: Ctx.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
+testConverter ctx 1 size =
+  Just ([L.defaultCodeWord { L.text = "test1", L.size = size }], [])
+testConverter ctx 2 size =
+  Just ([L.defaultCodeWord { L.text = "test2", L.size = size }], [])
+testConverter ctx 3 size = Just
+  ( [L.defaultCodeWord { L.text = "test3", L.size = size }]
+  , [ S.Symbol { S.address = Ctx.address ctx
                , S.name = "Test3:"
                , S.shadow = False
                , S.order = 0
                }])
-testConverter _ size = Nothing
+testConverter ctx _ size = Nothing
 
 testNode1 = N.Node { N.children = []
                    , N.reader = Bi.read1le
@@ -64,15 +65,15 @@ tests =
   [ TestCase
       (assertEqual
          "It should parse valid input"
-         (Just ([L.CodeWord { L.text = "test1", L.size = 1 }], []))
+         (Just ([L.defaultCodeWord { L.text = "test1", L.size = 1 }], []))
          (N.parse Ctx.defaultContext (B.pack [1]) testNode1))
   , TestCase
       (assertEqual
          "It should parse valid input with children"
          (Just
-            ( [ L.CodeWord { L.text = "test2", L.size = 1 }
-              , L.CodeWord { L.text = "test3", L.size = 2 }]
-            , [ S.Symbol { S.address = 1
+            ( [ L.defaultCodeWord { L.text = "test2", L.size = 1 }
+              , L.defaultCodeWord { L.text = "test3", L.size = 2 }]
+            , [ S.Symbol { S.address = 0
                          , S.name = "Test3:"
                          , S.shadow = False
                          , S.order = 0

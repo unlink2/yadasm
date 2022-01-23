@@ -18,6 +18,11 @@ tests =
          (Binary.sliceEnd 3 (B.pack [1, 0, 2, 0, 3, 4, 5])))
   , TestCase
       (assertEqual
+         "It should allow slicing past the end"
+         (B.pack [1, 0, 1])
+         (Binary.sliceEnd 5 (B.pack [1, 0, 1])))
+  , TestCase
+      (assertEqual
          "It should read singe byte"
          (Prelude.toInteger 1)
          (Binary.read1le (B.pack [1, 2, 3])))
