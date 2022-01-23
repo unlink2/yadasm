@@ -19,7 +19,7 @@ instance Eq Node where
   (==) n1 n2 = size n1 == size n2 && children n1 == children n2
 
 instance Show Node where
-  show node = "{Node}" ++ show (children node)
+  show node = "{Node:" ++ show (size node) ++ "}" ++ show (children node)
 
 appendParsed :: Maybe ([a1], [a2]) -> Maybe ([a1], [a2]) -> Maybe ([a1], [a2])
 appendParsed (Just (pw, ps)) (Just (ow, os)) = Just (ow ++ pw, os ++ ps)

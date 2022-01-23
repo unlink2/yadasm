@@ -19,6 +19,9 @@ testComparator2 i = i == 2
 testComparator3 :: (Ord a, Num a) => a -> Bool
 testComparator3 i = i == 3
 
+testComparator4 :: (Ord a, Num a) => a -> Bool
+testComparator4 i = i == 4
+
 testConverter :: Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
 testConverter 1 size =
   Just ([L.CodeWord { L.text = "test1", L.size = size }], [])
@@ -48,6 +51,13 @@ testNode2 = testNode1 { N.children = [ N.Node { N.children = []
                                               }]
                       , N.comparator = testComparator2
                       }
+
+testNode3 = N.Node { N.children = []
+                   , N.reader = Bi.read1le
+                   , N.converter = testConverter
+                   , N.comparator = testComparator4
+                   , N.size = 3
+                   }
 
 tests :: [Test]
 tests =
