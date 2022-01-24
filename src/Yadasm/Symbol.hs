@@ -7,4 +7,6 @@ data Symbol =
 defaultSymbol = Symbol { address = 0, name = "", shadow = False, order = 0 }
 
 symbolToString :: String -> Symbol -> String
-symbolToString prev v = prev ++ name v ++ ":\n"
+symbolToString prev v
+  | shadow v = ""
+  | otherwise = prev ++ name v ++ ":\n"

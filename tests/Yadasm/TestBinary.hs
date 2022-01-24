@@ -30,4 +30,9 @@ tests =
       (assertEqual
          "It should read 2 bytes"
          (Prelude.toInteger 513)
-         (Binary.read2le (B.pack [1, 2, 3])))]
+         (Binary.read2le (B.pack [1, 2, 3])))
+  , TestCase
+      (assertEqual
+         "It should read 3 bytes"
+         (Prelude.toInteger 197121)
+         (Binary.read3le (B.pack [1, 2, 3])))]

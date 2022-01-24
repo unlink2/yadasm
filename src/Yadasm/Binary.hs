@@ -24,3 +24,6 @@ read1le = readNle 1
 
 read2le :: B.ByteString -> Integer
 read2le = readNle 2
+
+read3le :: B.ByteString -> Integer
+read3le = readNle 3

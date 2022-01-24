@@ -34,7 +34,10 @@ library yadasm-core
     Yadasm.Node,
     Yadasm.Line,
     Yadasm.Context,
-    Yadasm.Archs.Arch6502
+    Yadasm.Archs.Arch6502,
+    Yadasm.Archs.Arch65C02,
+    Yadasm.Archs.Arch65C816,
+    Yadasm.Archs.Arch6502Helpers
   default-language: Haskell2010
   other-extensions: BinaryLiterals
 
@@ -48,6 +51,8 @@ Test-Suite yadasm-tests
     Yadasm.TestContext,
     Yadasm.TestLine,
     Yadasm.Archs.TestArch6502 
+    Yadasm.Archs.TestArch65C02 
+    Yadasm.Archs.TestArch65C816
   build-depends:   base ^>=4.15.1.0, 
     yadasm-core, 
     HUnit ^>= 1.6.2.0, 

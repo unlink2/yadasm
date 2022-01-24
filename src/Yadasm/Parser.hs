@@ -92,6 +92,26 @@ buildSymbols ctx bin nodes defaultNode readOp parseFn
       addSymbolsFromParsed (C.addSymbol ctx symbol) (Just (words, symbols))
     addSymbolsFromParsed ctx _ = ctx
 
+-- Builds a symbol table, but resets context address to its original 
+-- value
+buildSymbolTable
+  :: C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (C.Context
+      -> ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString -> Integer)
+      -> Maybe ([L.CodeWord], [S.Symbol]))
+  -> C.Context
+buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
+  (buildSymbols ctx bin nodes defaultNode readOp parseFn) { C.address =
+                                                              C.address ctx
+                                                          }
+
 -- parses the next valid node  
 -- based on the provided lookup and symbol table
 parse :: C.Context
@@ -115,6 +135,28 @@ parseToString :: C.Context
               -> Maybe String
 parseToString ctx bin nodes defaultNode readOp =
   L.resultToString ctx (parse ctx bin nodes defaultNode readOp)
+
+-- parses all to string *and* builds symbol table 
+parseAllToStringSymbolTable
+  :: C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (C.Context
+      -> ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString -> Integer)
+      -> Maybe ([L.CodeWord], [S.Symbol]))
+  -> Maybe [String]
+parseAllToStringSymbolTable ctx bin nodes defaultNode readOp parseFn =
+  parseAllToString
+    (buildSymbolTable ctx bin nodes defaultNode readOp parseFn)
+    bin
+    nodes
+    defaultNode
+    readOp
 
 -- consumes the entire input and parses to lines 
 parseAllToString :: C.Context

@@ -8,6 +8,8 @@ import qualified Yadasm.TestParser
 import qualified Yadasm.TestContext
 import qualified Yadasm.TestLine
 import qualified Yadasm.Archs.TestArch6502
+import qualified Yadasm.Archs.TestArch65C02
+import qualified Yadasm.Archs.TestArch65C816
 
 tests = hUnitTestToTests
   (TestList
@@ -17,6 +19,8 @@ tests = hUnitTestToTests
       ++ Yadasm.TestParser.tests
       ++ Yadasm.TestContext.tests
       ++ Yadasm.TestLine.tests
-      ++ Yadasm.Archs.TestArch6502.tests))
+      ++ Yadasm.Archs.TestArch6502.tests
+      ++ Yadasm.Archs.TestArch65C02.tests
+      ++ Yadasm.Archs.TestArch65C816.tests))
 
 main = defaultMain tests

@@ -79,7 +79,7 @@ tests =
   , TestCase
       (assertEqual
          "It should build a symbol table"
-         testContext { C.address = 263
+         testContext { C.address = 0x100
                      , C.symbols = HashMap.fromList
                          [ ( 256
                            , [ S.defaultSymbol { S.address = 256
@@ -90,7 +90,7 @@ tests =
                                                , S.name = "Test3:"
                                                }])]
                      }
-         (P.buildSymbols
+         (P.buildSymbolTable
             testContext
             testData
             testLookup
