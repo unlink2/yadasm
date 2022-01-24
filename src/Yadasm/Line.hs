@@ -18,19 +18,27 @@ wordToString :: String -> CodeWord -> String
 wordToString prev v = prev ++ text v
 
 resultToString :: C.Context -> Maybe ([CodeWord], [S.Symbol]) -> Maybe String
-resultToString = resultToString' wordToString S.symbolToString
+resultToString = resultToString' wordToString S.symbolToString ""
 
 resultToString' :: (String -> CodeWord -> String)
                 -> (String -> S.Symbol -> String)
+                -> String
                 -> C.Context
                 -> Maybe ([CodeWord], [S.Symbol])
                 -> Maybe String
-resultToString' wordToString symbolToString ctx (Just (words, symbols)) = Just
-  (foldl S.symbolToString "" (getSyms syms) ++ foldl wordToString "" words)
+resultToString'
+  wordToString
+  symbolToString
+  connector
+  ctx
+  (Just (words, symbols)) = Just
+  (foldl S.symbolToString "" (getSyms syms)
+   ++ connector
+   ++ foldl wordToString "" words)
   where
     syms = C.getSymbolAt ctx (C.address ctx)
 
     getSyms :: Maybe [S.Symbol] -> [S.Symbol]
     getSyms Nothing = []
     getSyms (Just syms) = syms
-resultToString' wordToString symbolToString ctx _ = Nothing
+resultToString' wordToString symbolToString connector ctx _ = Nothing

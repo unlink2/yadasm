@@ -127,6 +127,19 @@ parse ctx bin nodes defaultNode readOp = parseNode node
     parseNode Nothing = Nothing
     parseNode (Just node) = N.parse ctx bin node
 
+-- calls parse and returns a result, an updated byteString and context 
+parseAndAdvance
+  :: C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+parseAndAdvance ctx bin nodes defaultNode readOp =
+  (result, advanceCtx ctx result, advanceBin bin result)
+  where
+    result = parse ctx bin nodes defaultNode readOp
+
 parseToString :: C.Context
               -> ByteString
               -> HashMap Integer N.Node

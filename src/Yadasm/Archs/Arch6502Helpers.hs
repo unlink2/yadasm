@@ -10,6 +10,7 @@ import qualified Yadasm.Context as C
 import qualified Yadasm.Comparator as Cmp
 import           Text.Printf
 import           Data.Maybe (isNothing)
+import           Numeric (showHex)
 
 data InstructionMode =
     Immediate -- dynamically sized 
@@ -83,13 +84,19 @@ labelConverter :: (C.Context -> Integer -> Integer)
                -> Maybe ([L.CodeWord], [S.Symbol])
 labelConverter addr ctx dat size
   | isNothing sym = Just
-    ( [L.defaultCodeWord { L.text = buildSymText, L.size = size }]
-    , [S.defaultSymbol { S.name = buildSymText, S.address = addr ctx dat }])
+    ( [ L.defaultCodeWord { L.text = buildSymText (addr ctx dat)
+                          , L.size = size
+                          }]
+    , [ S.defaultSymbol { S.name = buildSymText (addr ctx dat)
+                        , S.address = addr ctx dat
+                        }])
   | otherwise = symbolToResult sym size
   where
     sym = C.getSymbolAt ctx (addr ctx dat)
 
-    buildSymText = printf "label_%X" (addr ctx dat)
+    buildSymText addr
+      | addr < 0 = printf "label_mi_%X" (abs addr)
+    buildSymText addr = printf "label_%X" addr
 
 opcodeComparator :: Eq a => a -> a -> Bool
 opcodeComparator expected opcode = expected == opcode
