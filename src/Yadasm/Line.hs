@@ -15,7 +15,7 @@ totalSize = foldl calcSize 0
     calcSize prev v = size v + prev
 
 wordToString :: String -> CodeWord -> String
-wordToString prev v = prev ++ text v ++ " "
+wordToString prev v = prev ++ text v
 
 resultToString :: C.Context -> Maybe ([CodeWord], [S.Symbol]) -> Maybe String
 resultToString = resultToString' wordToString S.symbolToString
@@ -25,8 +25,8 @@ resultToString' :: (String -> CodeWord -> String)
                 -> C.Context
                 -> Maybe ([CodeWord], [S.Symbol])
                 -> Maybe String
-resultToString' wordToString symbolToString ctx (Just (words, symbols)) =
-  Just (foldl S.symbolToString "" (getSyms syms) ++ foldl wordToString "" words)
+resultToString' wordToString symbolToString ctx (Just (words, symbols)) = Just
+  (foldl S.symbolToString "" (getSyms syms) ++ foldl wordToString "" words)
   where
     syms = C.getSymbolAt ctx (C.address ctx)
 

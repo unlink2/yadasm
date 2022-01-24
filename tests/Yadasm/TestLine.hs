@@ -16,11 +16,11 @@ tests =
   , TestCase
       (assertEqual
          "It should output formatted result for lines"
-         (Just "3:\nlda #$10 ")
+         (Just "3:\nlda #$10")
          (resultToString
             testContext { C.address = 0x101 }
             (Just
-               ( [ defaultCodeWord { text = "lda" }
+               ( [ defaultCodeWord { text = "lda " }
                  , defaultCodeWord { text = "#$10" }]
                , []))))
   , TestCase
