@@ -4,6 +4,7 @@ import           Test.HUnit
 import           Yadasm.Context
 import qualified Yadasm.Symbol as S
 import           Data.HashMap.Lazy as HashMap
+import qualified Yadasm.Definition as D
 
 testContext =
   defaultContext { symbols = HashMap.fromList
@@ -98,4 +99,22 @@ tests =
          Nothing
          (lookupFlag
             "atest"
-            testContext { flags = HashMap.fromList [("test", "123")] }))]
+            testContext { flags = HashMap.fromList [("test", "123")] }))
+  , TestCase
+      (assertEqual
+         "It should look up definition"
+         (Just D.defaultDefinition { D.text = "test" })
+         (lookupDefinition
+            0
+            testContext { definitions = HashMap.fromList
+                            [(0, D.defaultDefinition { D.text = "test" })]
+                        }))
+  , TestCase
+      (assertEqual
+         "It should not look up definition that does not exist"
+         Nothing
+         (lookupDefinition
+            1
+            testContext { definitions = HashMap.fromList
+                            [(0, D.defaultDefinition { D.text = "test" })]
+                        }))]

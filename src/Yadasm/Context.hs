@@ -4,6 +4,7 @@ import           Yadasm.Symbol (Symbol)
 import qualified Yadasm.Symbol
 import           Data.HashMap.Lazy as HashMap
 import           Data.Maybe (isNothing)
+import qualified Yadasm.Definition as D
 
 -- the context is a data structure holding information 
 -- such as the current address, a map of symbols etc
@@ -13,6 +14,7 @@ data Context = Context { symbols :: HashMap.HashMap Integer [Symbol]
                          -- flags may be used by plugins to signal 
                          -- certain values to the caller if desired
                        , flags :: HashMap.HashMap String String
+                       , definitions :: HashMap.HashMap Integer D.Definition
                        }
   deriving (Show, Eq)
 
@@ -20,6 +22,7 @@ defaultContext = Context { symbols = HashMap.fromList []
                          , address = 0
                          , endAddress = 0
                          , flags = HashMap.fromList []
+                         , definitions = HashMap.fromList []
                          }
 
 isInAddrRange :: Context -> Integer -> Bool
@@ -56,4 +59,5 @@ unsetFlag name ctx = ctx { flags = HashMap.delete name (flags ctx) }
 lookupFlag :: String -> Context -> Maybe String
 lookupFlag name ctx = HashMap.lookup name (flags ctx)
 
-
+lookupDefinition :: Integer -> Context -> Maybe D.Definition
+lookupDefinition value ctx = HashMap.lookup value (definitions ctx)

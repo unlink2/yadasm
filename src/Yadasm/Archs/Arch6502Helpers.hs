@@ -9,8 +9,9 @@ import qualified Yadasm.Line as L
 import qualified Yadasm.Context as C
 import qualified Yadasm.Comparator as Cmp
 import           Text.Printf
-import           Data.Maybe (isNothing)
+import           Data.Maybe (isNothing, isJust)
 import           Numeric (showHex)
+import qualified Yadasm.Definition as D
 
 data InstructionMode =
     Immediate -- dynamically sized 
@@ -54,11 +55,28 @@ textConverter
 textConverter text ctx dat size =
   Just ([L.defaultCodeWord { L.text = text, L.size = size, L.raw = dat }], [])
 
-numConverter
-  :: String -> C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
-numConverter fmt ctx dat size = Just
-  ( [L.defaultCodeWord { L.text = printf fmt dat, L.size = size, L.raw = dat }]
-  , [])
+numConverter :: String
+             -> String
+             -> C.Context
+             -> Integer
+             -> Int
+             -> Maybe ([L.CodeWord], [S.Symbol])
+numConverter prefix fmt ctx dat size = retDef def
+  where
+    def = C.lookupDefinition dat ctx
+
+    retDef (Just def) = Just
+      ( [ L.defaultCodeWord { L.text = prefix ++ printf "%s" (D.text def)
+                            , L.size = size
+                            , L.raw = dat
+                            }]
+      , [])
+    retDef Nothing = Just
+      ( [ L.defaultCodeWord { L.text = prefix ++ printf fmt dat
+                            , L.size = size
+                            , L.raw = dat
+                            }]
+      , [])
 
 symbolToResult Nothing size = Nothing
 symbolToResult (Just []) size = Nothing
@@ -121,25 +139,25 @@ opcodeNodeNoSpace name opcode children =
 
 readByteNode :: N.Node
 readByteNode = N.defaultNode { N.reader = B.read1le
-                             , N.converter = numConverter "$%02X"
+                             , N.converter = numConverter "" "$%02X"
                              , N.size = 1
                              }
 
 readImmediateNode :: Int -> N.Node
 readImmediateNode
-  1 = readByteNode { N.converter = numConverter "#$%02X", N.size = 1 }
+  1 = readByteNode { N.converter = numConverter "#" "$%02X", N.size = 1 }
 readImmediateNode
-  _ = readWordNode { N.converter = numConverter "#$%04X", N.size = 2 }
+  _ = readWordNode { N.converter = numConverter "#" "$%04X", N.size = 2 }
 
 readWordNode :: N.Node
 readWordNode = N.defaultNode { N.reader = B.read2le
-                             , N.converter = numConverter "$%04X"
+                             , N.converter = numConverter "" "$%04X"
                              , N.size = 2
                              }
 
 readLWordNode :: N.Node
 readLWordNode = N.defaultNode { N.reader = B.read3le
-                              , N.converter = numConverter "$%06X"
+                              , N.converter = numConverter "" "$%06X"
                               , N.size = 3
                               }
 
@@ -340,6 +358,6 @@ makeImInfo' mask name im opcode = ImInfo name im (mask im opcode)
 
 defaultNode :: N.Node
 defaultNode = N.defaultNode { N.reader = B.read1le
-                            , N.converter = numConverter "!byte $%02X"
+                            , N.converter = numConverter "!byte " "$%02X"
                             , N.size = 1
                             }

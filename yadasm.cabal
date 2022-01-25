@@ -34,6 +34,7 @@ library yadasm-core
     Yadasm.Node,
     Yadasm.Line,
     Yadasm.Context,
+    Yadasm.Definition,
     Yadasm.Archs.Arch6502,
     Yadasm.Archs.Arch65C02,
     Yadasm.Archs.Arch65C816,

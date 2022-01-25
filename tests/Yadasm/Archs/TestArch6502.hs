@@ -8,6 +8,8 @@ import qualified Data.ByteString as ByteString
 import qualified Yadasm.Node as N
 import qualified Yadasm.Parser as P
 import qualified Yadasm.Binary as Bin
+import qualified Yadasm.Definition as D
+import qualified Data.HashMap.Lazy as HashMap
 
 testContext = C.defaultContext { C.address = 0x600 }
 
@@ -256,6 +258,20 @@ tests' testMap =
             testContext
             (ByteString.pack [0xFF])
             Yadasm.Archs.TestArch6502.testMap
+            Nothing
+            Bin.read1le
+            P.parse))
+  , TestCase
+      (assertEqual
+         "It should look up definitions"
+         (Just ["lda #d1", "lda d2", "lda #$45"])
+         (P.parseAllToStringSymbolTable
+            testContext { C.definitions = HashMap.fromList
+                            [ (0x44, D.defaultDefinition { D.text = "d1" })
+                            , (0x4455, D.defaultDefinition { D.text = "d2" })]
+                        }
+            (ByteString.pack [0xA9, 0x44, 0xAD, 0x55, 0x44, 0xA9, 0x45])
+            testMap
             Nothing
             Bin.read1le
             P.parse))]
