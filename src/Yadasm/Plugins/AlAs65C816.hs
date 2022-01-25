@@ -11,6 +11,11 @@ import qualified Yadasm.Symbol as S
 import qualified Yadasm.Line as L
 import           Data.Maybe (isNothing, isJust)
 import qualified Yadasm.Binary
+import qualified Yadasm.Archs.Arch65C816 as A65C816
+import qualified Yadasm.Parser as P
+
+asNodes :: HashMap Integer N.Node
+asNodes = P.buildLookup A65C816.nodesEmulated 0xFF
 
 -- not pretty, but it covers the only automatic cases 
 -- we care about
@@ -22,13 +27,13 @@ modifyResult (Just (words, symbols), ctx, bin)
     == [ L.defaultCodeWord { L.text = "sep ", L.raw = 0xE2, L.size = 1 }
        , L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 }] =
     ( Just (words ++ [L.defaultCodeWord { L.text = "\n!as" }], symbols)
-    , ctx
+    , C.setFlag "as" "true" ctx
     , bin)
   | words
     == [ L.defaultCodeWord { L.text = "rep ", L.raw = 0xC2, L.size = 1 }
        , L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 }] =
     ( Just (words ++ [L.defaultCodeWord { L.text = "\n!al" }], symbols)
-    , ctx
+    , C.unsetFlag "as" ctx
     , bin)
 modifyResult result = result
 
@@ -45,5 +50,7 @@ parseAlAs
   -> Maybe N.Node
   -> (ByteString -> Integer)
   -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-parseAlAs parse ctx bin nodes defaultNode readOp =
-  modifyResult $ parse ctx bin nodes defaultNode readOp
+parseAlAs parse ctx bin nodes defaultNode readOp
+  | isJust (C.lookupFlag "as" ctx) =
+    modifyResult $ parse ctx bin asNodes defaultNode readOp
+  | otherwise = modifyResult $ parse ctx bin nodes defaultNode readOp

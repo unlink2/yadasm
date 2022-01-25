@@ -26,7 +26,9 @@ tests =
             , "lda #$EAEA"
             , "sep #$20\n!as"
             , "lda #$EA"
+            , "rep #$20\n!al"
             , "lda #$EAEA"
+            , "sep #$20\n!as"
             , "lda #$EA"
             , "rep #$20\n!al"])
          (P.parseAllToStringSymbolTable
@@ -41,9 +43,13 @@ tests =
                , 0x20
                , 0xA9
                , 0xEA
+               , 0xC2
+               , 0x20
                , 0xA9
                , 0xEA
                , 0xEA
+               , 0xE2
+               , 0x20
                , 0xA9
                , 0xEA
                , 0xC2
