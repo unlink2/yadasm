@@ -78,6 +78,16 @@ tests =
          (P.parse testContext testData testLookup Nothing Bin.read1le))
   , TestCase
       (assertEqual
+         "It should parse and advance"
+         ( Just
+             ( [ L.CodeWord { L.text = "test2", L.size = 1, L.raw = 0 }
+               , L.CodeWord { L.text = "test3", L.size = 2, L.raw = 0 }]
+             , [S.defaultSymbol { S.address = 0x100, S.name = "Test3:" }])
+         , testContext { C.address = 259 }
+         , ByteString.drop 3 testData)
+         (P.parseAndAdvance testContext testData testLookup Nothing Bin.read1le))
+  , TestCase
+      (assertEqual
          "It should build a symbol table"
          testContext { C.address = 0x100
                      , C.symbols = HashMap.fromList

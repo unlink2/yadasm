@@ -244,5 +244,16 @@ tests' testMap =
             Yadasm.Archs.TestArch6502.testMap
             (Just A6502H.defaultNode)
             Bin.read1le
+            P.parse))
+  , TestCase
+      (assertEqual
+         "It should fail parse without default"
+         Nothing
+         (P.parseAllToStringSymbolTable
+            testContext
+            (ByteString.pack [0xFF])
+            Yadasm.Archs.TestArch6502.testMap
+            Nothing
+            Bin.read1le
             P.parse))]
 
