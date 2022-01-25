@@ -8,6 +8,8 @@ import qualified Data.ByteString as ByteString
 import qualified Yadasm.Node as N
 import qualified Yadasm.Parser as P
 import qualified Yadasm.Binary as Bin
+import qualified Yadasm.Line as L
+import qualified Yadasm.Symbol as S
 import qualified Yadasm.Archs.TestArch6502
 import qualified Yadasm.Plugins.AlAs65C816 as AlAs
 
@@ -20,17 +22,13 @@ tests =
       (assertEqual
          "It should use al as plugin"
          (Just
-            [ "!al"
-            , "rep #$20"
+            [ "rep #$20\n!al"
             , "lda #$EAEA"
-            , "!as"
-            , "sep #$20"
+            , "sep #$20\n!as"
             , "lda #$EA"
-            , "!al"
             , "lda #$EAEA"
-            , "!as"
             , "lda #$EA"
-            , "rep #$20"])
+            , "rep #$20\n!al"])
          (P.parseAllToStringSymbolTable
             testContext
             (ByteString.pack

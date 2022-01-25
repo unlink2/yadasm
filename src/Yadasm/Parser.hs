@@ -70,20 +70,20 @@ buildSymbols
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> Maybe ([L.CodeWord], [S.Symbol]))
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> C.Context
 buildSymbols ctx bin nodes defaultNode readOp parseFn
   | ByteString.null bin = ctx
   | isJust next = buildSymbols
-    (advanceCtx (addSymbolsFromParsed ctx next) next)
-    (advanceBin bin next)
+    (advanceCtx (addSymbolsFromParsed nextCtx next) next)
+    (advanceBin nextBin next)
     nodes
     defaultNode
     readOp
     parseFn
   | otherwise = ctx
   where
-    next = parseFn ctx bin nodes defaultNode readOp
+    (next, nextCtx, nextBin) = parseFn ctx bin nodes defaultNode readOp
 
     addSymbolsFromParsed
       :: C.Context -> Maybe ([L.CodeWord], [S.Symbol]) -> C.Context
@@ -105,7 +105,7 @@ buildSymbolTable
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> Maybe ([L.CodeWord], [S.Symbol]))
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> C.Context
 buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
   (buildSymbols ctx bin nodes defaultNode readOp parseFn) { C.address =
@@ -119,26 +119,18 @@ parse :: C.Context
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> Maybe ([L.CodeWord], [S.Symbol])
-parse ctx bin nodes defaultNode readOp = parseNode node
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
   where
     node = lookupNodeOr (readOp bin) defaultNode nodes
 
     parseNode Nothing = Nothing
     parseNode (Just node) = N.parse ctx bin node
 
--- calls parse and returns a result, an updated byteString and context 
-parseAndAdvance
-  :: C.Context
-  -> ByteString
-  -> HashMap Integer N.Node
-  -> Maybe N.Node
-  -> (ByteString -> Integer)
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-parseAndAdvance ctx bin nodes defaultNode readOp =
-  (result, advanceCtx ctx result, advanceBin bin result)
-  where
-    result = parse ctx bin nodes defaultNode readOp
+getResultOnly
+  :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+  -> Maybe ([L.CodeWord], [S.Symbol])
+getResultOnly (result, _, _) = result
 
 parseToString :: C.Context
               -> ByteString
@@ -147,7 +139,7 @@ parseToString :: C.Context
               -> (ByteString -> Integer)
               -> Maybe String
 parseToString ctx bin nodes defaultNode readOp =
-  L.resultToString ctx (parse ctx bin nodes defaultNode readOp)
+  L.resultToString ctx (getResultOnly (parse ctx bin nodes defaultNode readOp))
 
 -- parses all to string *and* builds symbol table 
 parseAllToStringSymbolTable
@@ -161,7 +153,7 @@ parseAllToStringSymbolTable
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> Maybe ([L.CodeWord], [S.Symbol]))
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> Maybe [String]
 parseAllToStringSymbolTable ctx bin nodes defaultNode readOp parseFn =
   parseAllToString
@@ -170,26 +162,35 @@ parseAllToStringSymbolTable ctx bin nodes defaultNode readOp parseFn =
     nodes
     defaultNode
     readOp
+    parseFn
 
 -- consumes the entire input and parses to lines 
-parseAllToString :: C.Context
-                 -> ByteString
-                 -> HashMap Integer N.Node
-                 -> Maybe N.Node
-                 -> (ByteString -> Integer)
-                 -> Maybe [String]
-parseAllToString ctx bin nodes defaultNode readOp
+parseAllToString
+  :: C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (C.Context
+      -> ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString -> Integer)
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> Maybe [String]
+parseAllToString ctx bin nodes defaultNode readOp parseFn
   | ByteString.null bin = Just []
   | otherwise = appendTo asString next
   where
-    current = parse ctx bin nodes defaultNode readOp
+    (current, nextCtx, nextBin) = parseFn ctx bin nodes defaultNode readOp
 
     next = parseAllToString
-      (advanceCtx ctx current)
-      (advanceBin bin current)
+      (advanceCtx nextCtx current)
+      (advanceBin nextBin current)
       nodes
       defaultNode
       readOp
+      parseFn
 
     asString = L.resultToString ctx current
 

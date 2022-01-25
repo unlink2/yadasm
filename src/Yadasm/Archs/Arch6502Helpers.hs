@@ -52,12 +52,13 @@ data ImInfo = ImInfo String InstructionMode Integer
 textConverter
   :: String -> C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
 textConverter text ctx dat size =
-  Just ([L.defaultCodeWord { L.text = text, L.size = size }], [])
+  Just ([L.defaultCodeWord { L.text = text, L.size = size, L.raw = dat }], [])
 
 numConverter
   :: String -> C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
-numConverter fmt ctx dat size =
-  Just ([L.defaultCodeWord { L.text = printf fmt dat, L.size = size }], [])
+numConverter fmt ctx dat size = Just
+  ( [L.defaultCodeWord { L.text = printf fmt dat, L.size = size, L.raw = dat }]
+  , [])
 
 symbolToResult Nothing size = Nothing
 symbolToResult (Just []) size = Nothing
@@ -86,6 +87,7 @@ labelConverter addr ctx dat size
   | isNothing sym = Just
     ( [ L.defaultCodeWord { L.text = buildSymText (addr ctx dat)
                           , L.size = size
+                          , L.raw = dat
                           }]
     , [ S.defaultSymbol { S.name = buildSymText (addr ctx dat)
                         , S.address = addr ctx dat

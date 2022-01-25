@@ -52,7 +52,8 @@ tests' testMap =
                , 0xAB])
             testMap
             Nothing
-            Bin.read1le))
+            Bin.read1le
+            P.parse))
   , TestCase
       (assertEqual
          "It should parse logic"
@@ -73,7 +74,8 @@ tests' testMap =
                , 0x44])
             testMap
             Nothing
-            Bin.read1le))
+            Bin.read1le
+            P.parse))
   , TestCase
       (assertEqual
          "It should parse bit"
@@ -83,7 +85,8 @@ tests' testMap =
             (ByteString.pack [0x24, 0x44, 0x2C, 0x00, 0x44])
             testMap
             Nothing
-            Bin.read1le))
+            Bin.read1le
+            P.parse))
   , TestCase
       (assertEqual
          "It should parse branch"

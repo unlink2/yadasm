@@ -91,7 +91,7 @@ parseUntil
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString.ByteString -> Integer)
-      -> Maybe ([L.CodeWord], [S.Symbol]))
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> (String
       -> String
       -> String
@@ -108,7 +108,7 @@ parseUntil input ctx bin nodes defaultNode readOp handle parse outputResult
   where
     result = parse ctx bin nodes defaultNode readOp
 
-    outputAndLoop result = do
+    outputAndLoop (result, ctx, bin) = do
       outputResult
         (lineIndent input)
         (symbolIndent input)

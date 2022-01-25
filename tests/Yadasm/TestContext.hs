@@ -63,4 +63,39 @@ tests =
       (assertEqual
          "It should not find symbol"
          Nothing
-         (getSymbolAt testContext 0x99))]
+         (getSymbolAt testContext 0x99))
+  , TestCase
+      (assertEqual
+         "It should add flags"
+         (HashMap.fromList [("test", "123")])
+         (flags (setFlag "test" "123" testContext)))
+  , TestCase
+      (assertEqual
+         "It should remove flags"
+         (HashMap.fromList [])
+         (flags
+            (unsetFlag
+               "test"
+               testContext { flags = HashMap.fromList [("test", "123")] })))
+  , TestCase
+      (assertEqual
+         "It should not remove flags that don't exist"
+         (HashMap.fromList [("test", "123")])
+         (flags
+            (unsetFlag
+               "atest"
+               testContext { flags = HashMap.fromList [("test", "123")] })))
+  , TestCase
+      (assertEqual
+         "It should get flags"
+         (Just "123")
+         (lookupFlag
+            "test"
+            testContext { flags = HashMap.fromList [("test", "123")] }))
+  , TestCase
+      (assertEqual
+         "It should not get flags that don't exist"
+         Nothing
+         (lookupFlag
+            "atest"
+            testContext { flags = HashMap.fromList [("test", "123")] }))]

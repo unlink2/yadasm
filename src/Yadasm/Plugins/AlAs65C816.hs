@@ -15,33 +15,35 @@ import qualified Yadasm.Binary
 -- not pretty, but it covers the only automatic cases 
 -- we care about
 modifyResult
-  :: Maybe ([L.CodeWord], [S.Symbol]) -> Maybe ([L.CodeWord], [S.Symbol])
-modifyResult (Just (words, symbols))
-  | length words == 2
-    && head words
-    == L.defaultCodeWord { L.text = "sep", L.raw = 0xE2, L.size = 1 }
-    && head (tail words)
-    == L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 } =
-    Just (L.defaultCodeWord { L.text = "!as\n" }:words, symbols)
-  | length words == 2
-    && head words
-    == L.defaultCodeWord { L.text = "rep", L.raw = 0xC2, L.size = 1 }
-    && head (tail words)
-    == L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 } =
-    Just (L.defaultCodeWord { L.text = "!al\n" }:words, symbols)
+  :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+modifyResult (Just (words, symbols), ctx, bin)
+  | words
+    == [ L.defaultCodeWord { L.text = "sep ", L.raw = 0xE2, L.size = 1 }
+       , L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 }] =
+    ( Just (words ++ [L.defaultCodeWord { L.text = "\n!as" }], symbols)
+    , ctx
+    , bin)
+  | words
+    == [ L.defaultCodeWord { L.text = "rep ", L.raw = 0xC2, L.size = 1 }
+       , L.defaultCodeWord { L.text = "#$20", L.raw = 0x20, L.size = 1 }] =
+    ( Just (words ++ [L.defaultCodeWord { L.text = "\n!al" }], symbols)
+    , ctx
+    , bin)
 modifyResult result = result
 
-parseAlAs :: (C.Context
-              -> ByteString
-              -> HashMap Integer N.Node
-              -> Maybe N.Node
-              -> (ByteString -> Integer)
-              -> Maybe ([L.CodeWord], [S.Symbol]))
-          -> C.Context
-          -> ByteString
-          -> HashMap Integer N.Node
-          -> Maybe N.Node
-          -> (ByteString -> Integer)
-          -> Maybe ([L.CodeWord], [S.Symbol])
+parseAlAs
+  :: (C.Context
+      -> ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString -> Integer)
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
 parseAlAs parse ctx bin nodes defaultNode readOp =
   modifyResult $ parse ctx bin nodes defaultNode readOp
