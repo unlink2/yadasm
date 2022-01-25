@@ -6,7 +6,10 @@ data Symbol =
 
 defaultSymbol = Symbol { address = 0, name = "", shadow = False, order = 0 }
 
-symbolToString :: String -> Symbol -> String
-symbolToString prev v
+symbolToString' :: String -> String -> String -> Symbol -> String
+symbolToString' prefix postfix prev v
   | shadow v = ""
-  | otherwise = prev ++ name v ++ ":\n"
+  | otherwise = prev ++ prefix ++ name v ++ postfix
+
+symbolToString :: String -> Symbol -> String
+symbolToString = symbolToString' "" ":\n"

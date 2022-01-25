@@ -2,8 +2,10 @@ module Yadasm.TestLine where
 
 import           Test.HUnit
 import           Yadasm.Line
+import           Yadasm.Symbol as S
 import           Yadasm.TestContext
 import qualified Yadasm.Context as C
+import qualified Data.HashMap.Lazy as HashMap
 
 tests :: [Test]
 tests =
@@ -16,15 +18,48 @@ tests =
   , TestCase
       (assertEqual
          "It should output formatted result for lines"
-         (Just "3:\nlda #$10")
+         (Just "correct:\nlda #$10")
          (resultToString
-            testContext { C.address = 0x101 }
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
             (Just
                ( [ defaultCodeWord { text = "lda " }
                  , defaultCodeWord { text = "#$10" }]
                , []))))
   , TestCase
       (assertEqual
-         "It should return an empty string on empty input"
+         "It should output formatted result for lines with custom middle part"
+         (Just "correct:\n connector! lda #$10")
+         (resultToString'
+            wordToString
+            S.symbolToString
+            " connector! "
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
+            (Just
+               ( [ defaultCodeWord { text = "lda " }
+                 , defaultCodeWord { text = "#$10" }]
+               , []))))
+  , TestCase
+      (assertEqual
+         "It should return Nothing on empty input"
          Nothing
          (resultToString testContext { C.address = 0x101 } Nothing))]
