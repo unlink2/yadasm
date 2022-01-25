@@ -10,6 +10,7 @@ import qualified Yadasm.TestLine
 import qualified Yadasm.Archs.TestArch6502
 import qualified Yadasm.Archs.TestArch65C02
 import qualified Yadasm.Archs.TestArch65C816
+import qualified Yadasm.Plugins.TestAlAs65C816
 
 tests = hUnitTestToTests
   (TestList
@@ -21,6 +22,7 @@ tests = hUnitTestToTests
       ++ Yadasm.TestLine.tests
       ++ Yadasm.Archs.TestArch6502.tests
       ++ Yadasm.Archs.TestArch65C02.tests
-      ++ Yadasm.Archs.TestArch65C816.tests))
+      ++ Yadasm.Archs.TestArch65C816.tests
+      ++ Yadasm.Plugins.TestAlAs65C816.tests))
 
 main = defaultMain tests
