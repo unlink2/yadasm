@@ -149,11 +149,11 @@ run'
       -> Maybe N.Node
       -> (ByteString.ByteString -> Integer)
       -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
-  -> ByteString.ByteString
   -> C.Context
+  -> ByteString.ByteString
   -> InputData
   -> IO ()
-run' parse bin initialCtx parsed = do
+run' parse initialCtx bin parsed = do
   maybeCreateFile (outfile parsed)
   output <- maybeOpenFile (outfile parsed) (append parsed)
   let ctx = initialCtx { C.address = toInteger $ startAddr parsed }
