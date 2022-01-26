@@ -187,4 +187,4 @@ run' parse initialCtx bin parsed = do
 run :: InputData -> IO ()
 run parsed = do
   bin <- readBin (file parsed)
-  run' P.parse bin C.defaultContext parsed
+  run' P.parse C.defaultContext bin parsed
