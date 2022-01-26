@@ -38,11 +38,12 @@ tests =
   , TestCase
       (assertEqual
          "It should output formatted result for lines with custom middle part"
-         (Just "correct:\n connector! lda #$10")
+         (Just "correct:\n connector! lda #$10eol!")
          (resultToString'
             wordToString
             S.symbolToString
             " connector! "
+            "eol!"
             testContext { C.address = 0x101
                         , C.symbols = HashMap.fromList
                             [ ( 0x101

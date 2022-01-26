@@ -54,6 +54,8 @@ fileParser = InputData `parsedBy` reqPos "file" `Descr` "The input file"
   `Descr` "Line indentation"
   `andBy` optFlag "" "symindent"
   `Descr` "Symbol indentation"
+  `andBy` optFlag "\n" "eol"
+  `Descr` "End of line"
 
 mainInterface :: IO (CmdLnInterface InputData)
 mainInterface = (`setAppDescr` "Yadasm")

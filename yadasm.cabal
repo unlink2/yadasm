@@ -38,8 +38,10 @@ library yadasm-core
     Yadasm.Archs.Arch6502,
     Yadasm.Archs.Arch65C02,
     Yadasm.Archs.Arch65C816,
-    Yadasm.Archs.Arch6502Helpers
-    Yadasm.Plugins.AlAs65C816
+    Yadasm.Archs.Arch6502Helpers,
+    Yadasm.Archs.ArchRaw,
+    Yadasm.Plugins.AlAs65C816,
+    Yadasm.Plugins.InsertWord
   default-language: Haskell2010
   other-extensions: BinaryLiterals
 
@@ -52,10 +54,12 @@ Test-Suite yadasm-tests
     Yadasm.TestParser,
     Yadasm.TestContext,
     Yadasm.TestLine,
-    Yadasm.Archs.TestArch6502 
-    Yadasm.Archs.TestArch65C02 
-    Yadasm.Archs.TestArch65C816
-    Yadasm.Plugins.TestAlAs65C816
+    Yadasm.Archs.TestArch6502, 
+    Yadasm.Archs.TestArch65C02, 
+    Yadasm.Archs.TestArch65C816,
+    Yadasm.Archs.TestArchRaw,
+    Yadasm.Plugins.TestAlAs65C816,
+    Yadasm.Plugins.TestInsertWord
   build-depends:   base, 
     yadasm-core, 
     HUnit, 

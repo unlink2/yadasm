@@ -15,7 +15,7 @@ import           Data.HashMap.Lazy as HashMap
 import           GHC.IO.StdHandles (openFile, stdout, openBinaryFile)
 import           GHC.IO.IOMode (IOMode(ReadMode, AppendMode, WriteMode))
 import           GHC.IO.Handle.Types (Handle)
-import           System.IO (hClose, hPutStrLn)
+import           System.IO (hClose, hPutStr)
 import           Yadasm.Binary (slice)
 import           System.Directory (doesFileExist)
 
@@ -30,6 +30,7 @@ data InputData =
             , outfile :: String
             , lineIndent :: String
             , symbolIndent :: String
+            , eol :: String
             }
   deriving (Show)
 
@@ -68,13 +69,14 @@ outputResult :: String
              -> Maybe ([L.CodeWord], [S.Symbol])
              -> IO ()
 outputResult lineIndent symIndent symPost handle ctx result = do
-  hPutStrLn
+  hPutStr
     handle
     (toString
        (L.resultToString'
           L.wordToString
           (S.symbolToString' symIndent symPost)
           lineIndent
+          "\n"
           ctx
           result))
 
