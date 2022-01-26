@@ -78,7 +78,10 @@ tests =
                          , S.shadow = False
                          , S.order = 0
                          }]))
-         (N.parse Ctx.defaultContext (B.pack [2, 3]) testNode2))
+         (N.parse
+            Ctx.defaultContext
+            (B.pack [2, 3, 2, 3, 2, 3, 2, 3])
+            testNode2))
   , TestCase
       (assertEqual
          "It should fail when not enough data is available"

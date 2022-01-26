@@ -54,7 +54,7 @@ parseChildren ctx bin (node:nodes) prev
 
 parse :: Context -> B.ByteString -> Node -> Maybe ([L.CodeWord], [S.Symbol])
 parse ctx bin node =
-  if comp dat
+  if comp dat && B.length bin >= siz
   then parseChildren ctx (B.drop siz bin) nodes (convert ctx dat siz)
   else Nothing
   where

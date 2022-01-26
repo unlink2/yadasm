@@ -57,22 +57,24 @@ textConverter text ctx dat size =
 
 numConverter :: String
              -> String
+             -> String
              -> C.Context
              -> Integer
              -> Int
              -> Maybe ([L.CodeWord], [S.Symbol])
-numConverter prefix fmt ctx dat size = retDef def
+numConverter prefix fmt postfix ctx dat size = retDef def
   where
     def = C.lookupDefinition dat ctx
 
     retDef (Just def) = Just
-      ( [ L.defaultCodeWord { L.text = prefix ++ printf "%s" (D.text def)
+      ( [ L.defaultCodeWord { L.text =
+                                prefix ++ printf "%s" (D.text def) ++ postfix
                             , L.size = size
                             , L.raw = dat
                             }]
       , [])
     retDef Nothing = Just
-      ( [ L.defaultCodeWord { L.text = prefix ++ printf fmt dat
+      ( [ L.defaultCodeWord { L.text = prefix ++ printf fmt dat ++ postfix
                             , L.size = size
                             , L.raw = dat
                             }]
@@ -137,29 +139,44 @@ opcodeNodeNoSpace :: String -> Integer -> [N.Node] -> N.Node
 opcodeNodeNoSpace name opcode children =
   (opcodeNode name opcode children) { N.converter = textConverter name }
 
+readByteNode' :: String -> String -> [N.Node] -> N.Node
+readByteNode' prefix postfix children =
+  N.defaultNode { N.reader = B.read1le
+                , N.converter = numConverter prefix "$%02X" postfix
+                , N.size = 1
+                , N.children = children
+                }
+
 readByteNode :: N.Node
-readByteNode = N.defaultNode { N.reader = B.read1le
-                             , N.converter = numConverter "" "$%02X"
-                             , N.size = 1
-                             }
+readByteNode = readByteNode' "" "" []
 
 readImmediateNode :: Int -> N.Node
 readImmediateNode
-  1 = readByteNode { N.converter = numConverter "#" "$%02X", N.size = 1 }
+  1 = readByteNode { N.converter = numConverter "#" "$%02X" "", N.size = 1 }
 readImmediateNode
-  _ = readWordNode { N.converter = numConverter "#" "$%04X", N.size = 2 }
+  _ = readWordNode { N.converter = numConverter "#" "$%04X" "", N.size = 2 }
+
+readWordNode' :: String -> String -> [N.Node] -> N.Node
+readWordNode' prefix postfix children =
+  N.defaultNode { N.reader = B.read2le
+                , N.converter = numConverter prefix "$%04X" postfix
+                , N.size = 2
+                , N.children = children
+                }
 
 readWordNode :: N.Node
-readWordNode = N.defaultNode { N.reader = B.read2le
-                             , N.converter = numConverter "" "$%04X"
-                             , N.size = 2
-                             }
+readWordNode = readWordNode' "" "" []
+
+readLWordNode' :: String -> String -> [N.Node] -> N.Node
+readLWordNode' prefix postfix children =
+  N.defaultNode { N.reader = B.read3le
+                , N.converter = numConverter prefix "$%06X" postfix
+                , N.size = 3
+                , N.children = children
+                }
 
 readLWordNode :: N.Node
-readLWordNode = N.defaultNode { N.reader = B.read3le
-                              , N.converter = numConverter "" "$%06X"
-                              , N.size = 3
-                              }
+readLWordNode = readLWordNode' "" "" []
 
 readRelLabelNode :: N.Node
 readRelLabelNode =
@@ -358,6 +375,6 @@ makeImInfo' mask name im opcode = ImInfo name im (mask im opcode)
 
 defaultNode :: N.Node
 defaultNode = N.defaultNode { N.reader = B.read1le
-                            , N.converter = numConverter "!byte " "$%02X"
+                            , N.converter = numConverter "!byte " "$%02X" ""
                             , N.size = 1
                             }
