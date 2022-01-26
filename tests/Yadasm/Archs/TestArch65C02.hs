@@ -98,6 +98,28 @@ tests' testMap =
             P.parse))
   , TestCase
       (assertEqual
+         "It should parse default node when incomplete opdoce is input"
+         (Just ["nop", "!byte $80"])
+         (P.parseAllToStringSymbolTable
+            testContext
+            (ByteString.pack [0xEA, 0x80])
+            testMap
+            (Just A6502H.defaultNode)
+            Bin.read1le
+            P.parse))
+  , TestCase
+      (assertEqual
+         "It should parse Nothing when incomplete code is input and no default node is supplied"
+         Nothing
+         (P.parseAllToStringSymbolTable
+            testContext
+            (ByteString.pack [0xEA, 0x80])
+            testMap
+            Nothing
+            Bin.read1le
+            P.parse))
+  , TestCase
+      (assertEqual
          "It should parse single byte"
          (Just ["inc A", "dec A", "phy", "ply", "phx", "plx"])
          (P.parseAllToStringSymbolTable

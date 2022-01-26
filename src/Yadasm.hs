@@ -138,7 +138,7 @@ getArch _ = []
 getDefaultNode "6502" = Just A6502H.defaultNode
 getDefaultNode "65c02" = Just A6502H.defaultNode
 getDefaultNode "65c816" = Just A6502H.defaultNode
-getDefaultNode _ = Nothing
+getDefaultNode _ = Just A6502H.defaultNode
 
 getOpReader _ = B.read1le
 

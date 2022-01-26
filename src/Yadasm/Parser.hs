@@ -124,8 +124,15 @@ parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
   where
     node = lookupNodeOr (readOp bin) defaultNode nodes
 
+    parseDefault :: Maybe ([L.CodeWord], [S.Symbol])
+                 -> Maybe N.Node
+                 -> Maybe ([L.CodeWord], [S.Symbol])
+    parseDefault Nothing Nothing = Nothing
+    parseDefault Nothing (Just node) = N.parse ctx bin node
+    parseDefault (Just result) node = Just result
+
     parseNode Nothing = Nothing
-    parseNode (Just node) = N.parse ctx bin node
+    parseNode (Just node) = parseDefault (N.parse ctx bin node) defaultNode
 
 getResultOnly
   :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
