@@ -150,12 +150,13 @@ run'
       -> (ByteString.ByteString -> Integer)
       -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> ByteString.ByteString
+  -> C.Context
   -> InputData
   -> IO ()
-run' parse bin parsed = do
+run' parse bin initialCtx parsed = do
   maybeCreateFile (outfile parsed)
   output <- maybeOpenFile (outfile parsed) (append parsed)
-  let ctx = C.defaultContext { C.address = toInteger $ startAddr parsed }
+  let ctx = initialCtx { C.address = toInteger $ startAddr parsed }
   let nodes = getArch (arch parsed)
   let map = P.buildLookup nodes 0xFF
   let symCtx = P.buildSymbolTable
@@ -186,4 +187,4 @@ run' parse bin parsed = do
 run :: InputData -> IO ()
 run parsed = do
   bin <- readBin (file parsed)
-  run' P.parse bin parsed
+  run' P.parse bin C.defaultContext parsed
