@@ -11,6 +11,7 @@ import           Data.Maybe (isNothing, isJust)
 import qualified Yadasm.Binary
 import qualified Yadasm.Archs.Arch65C816 as A65C816
 import qualified Yadasm.Parser as P
+import           Numeric (showHex, showIntAtBase)
 
 insertWord
   :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
@@ -41,3 +42,22 @@ parseInsertWord
   -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
 parseInsertWord parse words ctx bin nodes defaultNode readOp =
   insertWord (parse ctx bin nodes defaultNode readOp) words
+
+-- Adds address comments for each key not defined in the list 
+addAddressWords :: HashMap Integer ([L.CodeWord], [L.CodeWord])
+                -> Integer
+                -> Integer
+                -> String
+                -> HashMap Integer ([L.CodeWord], [L.CodeWord])
+addAddressWords words from to commentPrefix
+  | from > to = words
+  | HashMap.member from words =
+    addAddressWords words (from + 1) to commentPrefix
+  | otherwise = addAddressWords
+    (HashMap.insert
+       from
+       ([], [L.defaultCodeWord { L.text = commentPrefix ++ showHex from "" }])
+       words)
+    (from + 1)
+    to
+    commentPrefix
