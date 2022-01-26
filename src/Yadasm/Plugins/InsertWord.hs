@@ -14,14 +14,14 @@ import qualified Yadasm.Parser as P
 
 insertWord
   :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-  -> HashMap Integer [L.CodeWord]
+  -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
 insertWord (Just (words, symbols), ctx, bin) wordsMap =
   ( Just (addWords words (HashMap.lookup (C.address ctx) wordsMap), symbols)
   , ctx
   , bin)
   where
-    addWords words (Just wordsToAdd) = words ++ wordsToAdd
+    addWords words (Just (before, after)) = before ++ words ++ after
     addWords words Nothing = words
 insertWord result wordsMap = result
 
@@ -32,7 +32,7 @@ parseInsertWord
       -> Maybe N.Node
       -> (ByteString -> Integer)
       -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
-  -> HashMap Integer [L.CodeWord]
+  -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> C.Context
   -> ByteString
   -> HashMap Integer N.Node

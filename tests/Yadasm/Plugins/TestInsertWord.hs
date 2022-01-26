@@ -22,7 +22,7 @@ tests =
   [ TestCase
       (assertEqual
          "It should use insert line plugin"
-         (Just ["nop", "nop", "lda #$EAEA ; insertAfter", "lda #$EAEA"])
+         (Just ["nop", "nop", "before lda #$EAEA ; insertAfter", "lda #$EAEA"])
          (P.parseAllToStringSymbolTable
             testContext
             (ByteString.pack [0xEA, 0xEA, 0xA9, 0xEA, 0xEA, 0xA9, 0xEA, 0xEA])
@@ -32,4 +32,6 @@ tests =
             (IW.parseInsertWord
                P.parse
                (HashMap.fromList
-                  [(0x602, [L.defaultCodeWord { L.text = " ; insertAfter" }])]))))]
+                  [ ( 0x602
+                    , ( [L.defaultCodeWord { L.text = "before " }]
+                      , [L.defaultCodeWord { L.text = " ; insertAfter" }]))]))))]
