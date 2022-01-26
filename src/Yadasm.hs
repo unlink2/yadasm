@@ -142,8 +142,16 @@ getDefaultNode _ = Nothing
 
 getOpReader _ = B.read1le
 
-run :: InputData -> IO ()
-run parsed = do
+run'
+  :: (C.Context
+      -> ByteString.ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString.ByteString -> Integer)
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> InputData
+  -> IO ()
+run' parse parsed = do
   maybeCreateFile (outfile parsed)
   bin <- readBin (file parsed)
   output <- maybeOpenFile (outfile parsed) (append parsed)
@@ -156,7 +164,7 @@ run parsed = do
         map
         (getDefaultNode (arch parsed))
         (getOpReader (arch parsed))
-        P.parse
+        parse
   parseUntil
     parsed
     symCtx
@@ -168,9 +176,9 @@ run parsed = do
     (getDefaultNode (arch parsed))
     (getOpReader (arch parsed))
     output
-    P.parse
+    parse
     outputResult
   maybeCloseFile output (outfile parsed)
 
-
-
+run :: InputData -> IO ()
+run = run' P.parse
