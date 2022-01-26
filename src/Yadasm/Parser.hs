@@ -108,9 +108,13 @@ buildSymbolTable
       -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
   -> C.Context
 buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
-  (buildSymbols ctx bin nodes defaultNode readOp parseFn) { C.address =
-                                                              C.address ctx
-                                                          }
+  (buildSymbols
+     ctx
+     bin
+     nodes
+     defaultNode
+     readOp
+     parseFn) { C.address = C.address ctx, C.flags = HashMap.fromList [] }
 
 -- parses the next valid node  
 -- based on the provided lookup and symbol table

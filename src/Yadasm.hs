@@ -149,18 +149,21 @@ run'
       -> Maybe N.Node
       -> (ByteString.ByteString -> Integer)
       -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> ByteString.ByteString
   -> InputData
   -> IO ()
-run' parse parsed = do
+run' parse bin parsed = do
   maybeCreateFile (outfile parsed)
-  bin <- readBin (file parsed)
   output <- maybeOpenFile (outfile parsed) (append parsed)
   let ctx = C.defaultContext { C.address = toInteger $ startAddr parsed }
   let nodes = getArch (arch parsed)
   let map = P.buildLookup nodes 0xFF
   let symCtx = P.buildSymbolTable
         ctx
-        bin
+        (B.slice
+           (fileStartOffset parsed)
+           (min (readN parsed) (ByteString.length bin))
+           bin)
         map
         (getDefaultNode (arch parsed))
         (getOpReader (arch parsed))
@@ -181,4 +184,6 @@ run' parse parsed = do
   maybeCloseFile output (outfile parsed)
 
 run :: InputData -> IO ()
-run = run' P.parse
+run parsed = do
+  bin <- readBin (file parsed)
+  run' P.parse bin parsed
