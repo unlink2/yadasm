@@ -29,7 +29,7 @@ parsePadLineTo'
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> P.ReadOp
   -> P.ParseRes
 parsePadLineTo' resultToString padding padWith parse = parse
 
@@ -41,6 +41,6 @@ parsePadLineTo
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> P.ReadOp
   -> P.ParseRes
 parsePadLineTo = parsePadLineTo' L.resultToString

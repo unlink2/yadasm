@@ -81,7 +81,7 @@ parseUntil
   -> ByteString.ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString.ByteString -> Integer)
+  -> P.ReadOp
   -> Handle
   -> P.ParseFn
   -> (String

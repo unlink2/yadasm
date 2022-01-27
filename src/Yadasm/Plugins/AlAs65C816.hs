@@ -35,17 +35,12 @@ modifyResult (Just (words, symbols), ctx, bin)
     , bin)
 modifyResult result = result
 
-parseAlAs :: (C.Context
-              -> ByteString
-              -> HashMap Integer N.Node
-              -> Maybe N.Node
-              -> (ByteString -> Integer)
-              -> P.ParseRes)
+parseAlAs :: P.ParseFn
           -> C.Context
           -> ByteString
           -> HashMap Integer N.Node
           -> Maybe N.Node
-          -> (ByteString -> Integer)
+          -> P.ReadOp
           -> P.ParseRes
 parseAlAs parse ctx bin nodes defaultNode readOp
   | isJust (C.lookupFlag "as" ctx) =

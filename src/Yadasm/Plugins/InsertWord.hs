@@ -30,18 +30,13 @@ insertWord result wordsMap defaultComment = result
 
 parseInsertWord'
   :: (C.Context -> Maybe ([L.CodeWord], [L.CodeWord]))
-  -> (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> P.ParseRes)
+  -> P.ParseFn
   -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> C.Context
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> P.ReadOp
   -> P.ParseRes
 parseInsertWord' defaultComment parse words ctx bin nodes defaultNode readOp =
   insertWord (parse ctx bin nodes defaultNode readOp) words defaultComment
@@ -56,17 +51,12 @@ addressComment commentPrefix ctx = Just
                         }])
 
 parseInsertWord
-  :: (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> P.ParseRes)
+  :: P.ParseFn
   -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> C.Context
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> P.ReadOp
   -> P.ParseRes
 parseInsertWord = parseInsertWord' noDefaultComment

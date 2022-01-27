@@ -15,10 +15,12 @@ type ParseFn = C.Context
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> ReadOp
   -> ParseRes
 
 type ParseRes = (L.NodeResult, C.Context, ByteString.ByteString)
+
+type ReadOp = (ByteString -> Integer)
 
 addNode map opcode (Just node) = HashMap.insert (toInteger opcode) node map
 addNode map opcode Nothing = map
@@ -73,7 +75,7 @@ buildSymbols :: C.Context
              -> ByteString
              -> HashMap Integer N.Node
              -> Maybe N.Node
-             -> (ByteString -> Integer)
+             -> ReadOp
              -> ParseFn
              -> C.Context
 buildSymbols ctx bin nodes defaultNode readOp parseFn
@@ -102,7 +104,7 @@ buildSymbolTable
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> ReadOp
   -> ParseFn
   -> C.Context
 buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
@@ -120,7 +122,7 @@ parse :: C.Context
       -> ByteString
       -> HashMap Integer N.Node
       -> Maybe N.Node
-      -> (ByteString -> Integer)
+      -> ReadOp
       -> ParseRes
 parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
   where
@@ -141,7 +143,7 @@ parseToString :: C.Context
               -> ByteString
               -> HashMap Integer N.Node
               -> Maybe N.Node
-              -> (ByteString -> Integer)
+              -> ReadOp
               -> Maybe String
 parseToString ctx bin nodes defaultNode readOp =
   L.resultToString ctx (getResultOnly (parse ctx bin nodes defaultNode readOp))
@@ -152,7 +154,7 @@ parseAllToStringSymbolTable
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> ReadOp
   -> ParseFn
   -> Maybe [String]
 parseAllToStringSymbolTable ctx bin nodes defaultNode readOp parseFn =
@@ -170,7 +172,7 @@ parseAllToString
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> (ByteString -> Integer)
+  -> ReadOp
   -> ParseFn
   -> Maybe [String]
 parseAllToString ctx bin nodes defaultNode readOp parseFn
