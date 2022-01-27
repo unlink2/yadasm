@@ -61,7 +61,7 @@ tests =
                         }
             (Just
                ( [ defaultCodeWord { text = "lda " }
-                 , defaultCodeWord { text = "#$10", newLine = True }]
+                 , defaultCodeWord { text = "#$10", attr = NewLine }]
                , []))))
   , TestCase
       (assertEqual
@@ -109,7 +109,7 @@ tests =
                         }
             (Just
                ( [ defaultCodeWord { text = "lda " }
-                 , defaultCodeWord { text = "#$10", newLine = True }]
+                 , defaultCodeWord { text = "#$10", attr = NewLine }]
                , []))))
   , TestCase
       (assertEqual

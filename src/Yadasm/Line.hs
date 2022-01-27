@@ -3,14 +3,20 @@ module Yadasm.Line where
 import           Yadasm.Context as C
 import           Yadasm.Symbol as S
 
+-- attributes for code words
+data Attrs = Std
+           | NewLine
+  deriving (Show, Eq)
+
 -- a single token of a line of code
 -- if a codeword is a new line token \n is inserted and it is 
 -- prefixed when converted to string 
 data CodeWord =
-  CodeWord { text :: String, size :: Int, raw :: Integer, newLine :: Bool }
+  CodeWord { text :: String, size :: Int, raw :: Integer, attr :: Attrs }
   deriving (Show, Eq)
 
-defaultCodeWord = CodeWord { text = "", size = 0, raw = 0, newLine = False }
+defaultCodeWord :: CodeWord
+defaultCodeWord = CodeWord { text = "", size = 0, raw = 0, attr = Std }
 
 totalSize :: [CodeWord] -> Int
 totalSize = foldl calcSize 0
@@ -20,7 +26,7 @@ totalSize = foldl calcSize 0
 
 wordToString :: String -> String -> String -> CodeWord -> String
 wordToString nl connector prev v
-  | newLine v = prev ++ nl ++ connector ++ text v
+  | attr v == NewLine = prev ++ nl ++ connector ++ text v
   | otherwise = prev ++ text v
 
 resultToString :: C.Context -> Maybe ([CodeWord], [S.Symbol]) -> Maybe String

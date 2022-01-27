@@ -9,13 +9,14 @@ import qualified Yadasm.Parser as P
 import qualified Yadasm.Binary as Bin
 import qualified Yadasm.Definition as D
 import qualified Data.HashMap.Lazy as HashMap
+import qualified Yadasm.Line as L
 
 testContext = C.defaultContext { C.address = 0x600 }
 
 testMap = P.buildLookup
   [ A6502B.readLWordNode
-      False
-      [A6502B.readWordNode True [A6502B.readByteNode True []]]]
+      L.Std
+      [A6502B.readWordNode L.NewLine [A6502B.readByteNode L.NewLine []]]]
   0xFF
 
 tests =
