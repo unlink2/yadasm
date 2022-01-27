@@ -23,7 +23,11 @@ tests =
             testContext { C.address = 0x101
                         , C.symbols = HashMap.fromList
                             [ ( 0x101
-                              , [ S.defaultSymbol { S.name = "correct"
+                              , [ S.defaultSymbol { S.name = "shadowed"
+                                                  , S.address = 0x101
+                                                  , S.shadow = True
+                                                  }
+                                , S.defaultSymbol { S.name = "correct"
                                                   , S.address = 0x101
                                                   }])
                             , ( 0x100
