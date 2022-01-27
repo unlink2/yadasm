@@ -3,10 +3,14 @@ module Yadasm.Line where
 import           Yadasm.Context as C
 import           Yadasm.Symbol as S
 
-data CodeWord = CodeWord { text :: String, size :: Int, raw :: Integer }
+-- a single token of a line of code
+-- if a codeword is a new line token \n is inserted and it is 
+-- prefixed when converted to string 
+data CodeWord =
+  CodeWord { text :: String, size :: Int, raw :: Integer, newLine :: Bool }
   deriving (Show, Eq)
 
-defaultCodeWord = CodeWord { text = "", size = 0, raw = 0 }
+defaultCodeWord = CodeWord { text = "", size = 0, raw = 0, newLine = False }
 
 totalSize :: [CodeWord] -> Int
 totalSize = foldl calcSize 0
@@ -14,13 +18,15 @@ totalSize = foldl calcSize 0
     calcSize :: Int -> CodeWord -> Int
     calcSize prev v = size v + prev
 
-wordToString :: String -> CodeWord -> String
-wordToString prev v = prev ++ text v
+wordToString :: String -> String -> String -> CodeWord -> String
+wordToString nl connector prev v
+  | newLine v = prev ++ nl ++ connector ++ text v
+  | otherwise = prev ++ text v
 
 resultToString :: C.Context -> Maybe ([CodeWord], [S.Symbol]) -> Maybe String
-resultToString = resultToString' wordToString S.symbolToString "" ""
+resultToString = resultToString' (wordToString "\n") S.symbolToString "" ""
 
-resultToString' :: (String -> CodeWord -> String)
+resultToString' :: (String -> String -> CodeWord -> String)
                 -> (String -> S.Symbol -> String)
                 -> String
                 -> String
@@ -31,12 +37,13 @@ resultToString'
   wordToString
   symbolToString
   connector
-  end 
+  end
   ctx
   (Just (words, symbols)) = Just
   (foldl S.symbolToString "" (getSyms syms)
    ++ connector
-   ++ foldl wordToString "" words ++ end)
+   ++ foldl (wordToString connector) "" words
+   ++ end)
   where
     syms = C.getSymbolAt ctx (C.address ctx)
 

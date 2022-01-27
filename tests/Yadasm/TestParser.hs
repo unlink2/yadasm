@@ -72,8 +72,16 @@ tests =
       (assertEqual
          "It should parse input node"
          ( Just
-             ( [ L.CodeWord { L.text = "test2", L.size = 1, L.raw = 0 }
-               , L.CodeWord { L.text = "test3", L.size = 2, L.raw = 0 }]
+             ( [ L.CodeWord { L.text = "test2"
+                            , L.size = 1
+                            , L.raw = 0
+                            , L.newLine = False
+                            }
+               , L.CodeWord { L.text = "test3"
+                            , L.size = 2
+                            , L.raw = 0
+                            , L.newLine = False
+                            }]
              , [S.defaultSymbol { S.address = 0x100, S.name = "Test3:" }])
          , testContext
          , testData)

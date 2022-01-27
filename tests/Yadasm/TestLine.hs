@@ -44,7 +44,7 @@ tests =
          "It should output formatted result for lines with custom middle part"
          (Just "correct:\n connector! lda #$10eol!")
          (resultToString'
-            wordToString
+            (wordToString "\n")
             S.symbolToString
             " connector! "
             "eol!"
@@ -62,6 +62,30 @@ tests =
             (Just
                ( [ defaultCodeWord { text = "lda " }
                  , defaultCodeWord { text = "#$10" }]
+               , []))))
+  , TestCase
+      (assertEqual
+         "It should output formatted result for lines and respect new lines"
+         (Just "correct:\n connector! lda \n connector! #$10eol!")
+         (resultToString'
+            (wordToString "\n")
+            S.symbolToString
+            " connector! "
+            "eol!"
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
+            (Just
+               ( [ defaultCodeWord { text = "lda " }
+                 , defaultCodeWord { text = "#$10", newLine = True }]
                , []))))
   , TestCase
       (assertEqual

@@ -73,7 +73,7 @@ outputResult lineIndent symIndent symPost handle ctx result = do
     handle
     (toString
        (L.resultToString'
-          L.wordToString
+          (L.wordToString "\n")
           (S.symbolToString' symIndent symPost)
           lineIndent
           "\n"
