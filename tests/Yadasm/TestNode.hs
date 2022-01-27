@@ -22,8 +22,7 @@ testComparator3 i = i == 3
 testComparator4 :: (Ord a, Num a) => a -> Bool
 testComparator4 i = i == 4
 
-testConverter
-  :: Ctx.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
+testConverter :: Ctx.Context -> Integer -> Int -> L.NodeResult
 testConverter ctx 1 size =
   Just ([L.defaultCodeWord { L.text = "test1", L.size = size }], [])
 testConverter ctx 2 size =

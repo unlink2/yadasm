@@ -3,6 +3,8 @@ module Yadasm.Line where
 import           Yadasm.Context as C
 import           Yadasm.Symbol as S
 
+type NodeResult = Maybe ([CodeWord], [S.Symbol])
+
 -- attributes for code words
 data Attrs = Std
            | NewLine
@@ -29,7 +31,7 @@ wordToString nl connector prev v
   | attr v == NewLine = prev ++ nl ++ connector ++ text v
   | otherwise = prev ++ text v
 
-resultToString :: C.Context -> Maybe ([CodeWord], [S.Symbol]) -> Maybe String
+resultToString :: C.Context -> NodeResult -> Maybe String
 resultToString = resultToString' (wordToString "\n") S.symbolToString "" ""
 
 resultToString' :: (String -> String -> CodeWord -> String)
@@ -37,7 +39,7 @@ resultToString' :: (String -> String -> CodeWord -> String)
                 -> String
                 -> String
                 -> C.Context
-                -> Maybe ([CodeWord], [S.Symbol])
+                -> NodeResult
                 -> Maybe String
 resultToString'
   wordToString

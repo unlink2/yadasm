@@ -19,9 +19,7 @@ asNodes = P.buildLookup A65C816.nodesEmulated 0xFF
 
 -- not pretty, but it covers the only automatic cases 
 -- we care about
-modifyResult
-  :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+modifyResult :: P.ParseRes -> P.ParseRes
 modifyResult (Just (words, symbols), ctx, bin)
   | words
     == [ L.defaultCodeWord { L.text = "sep ", L.raw = 0xE2, L.size = 1 }
@@ -37,19 +35,18 @@ modifyResult (Just (words, symbols), ctx, bin)
     , bin)
 modifyResult result = result
 
-parseAlAs
-  :: (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
-  -> C.Context
-  -> ByteString
-  -> HashMap Integer N.Node
-  -> Maybe N.Node
-  -> (ByteString -> Integer)
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+parseAlAs :: (C.Context
+              -> ByteString
+              -> HashMap Integer N.Node
+              -> Maybe N.Node
+              -> (ByteString -> Integer)
+              -> P.ParseRes)
+          -> C.Context
+          -> ByteString
+          -> HashMap Integer N.Node
+          -> Maybe N.Node
+          -> (ByteString -> Integer)
+          -> P.ParseRes
 parseAlAs parse ctx bin nodes defaultNode readOp
   | isJust (C.lookupFlag "as" ctx) =
     modifyResult $ parse ctx bin asNodes defaultNode readOp

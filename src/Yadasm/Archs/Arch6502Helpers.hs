@@ -50,8 +50,7 @@ data ImInfo = ImInfo String InstructionMode Integer
   deriving (Eq, Show)
 
 -- simply returns the node's name as a codeword
-textConverter
-  :: String -> C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
+textConverter :: String -> C.Context -> Integer -> Int -> L.NodeResult
 textConverter text ctx dat size =
   Just ([L.defaultCodeWord { L.text = text, L.size = size, L.raw = dat }], [])
 
@@ -62,7 +61,7 @@ numConverter :: String
              -> C.Context
              -> Integer
              -> Int
-             -> Maybe ([L.CodeWord], [S.Symbol])
+             -> L.NodeResult
 numConverter prefix fmt postfix attr ctx dat size = retDef def
   where
     def = C.lookupDefinition dat ctx
@@ -105,7 +104,7 @@ labelConverter :: (C.Context -> Integer -> Integer)
                -> C.Context
                -> Integer
                -> Int
-               -> Maybe ([L.CodeWord], [S.Symbol])
+               -> L.NodeResult
 labelConverter addr ctx dat size
   | isNothing sym = Just
     ( [ L.defaultCodeWord { L.text = buildSymText (addr ctx dat)

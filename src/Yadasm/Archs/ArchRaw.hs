@@ -13,7 +13,7 @@ import qualified Data.Char as Char
 import           Text.Printf
 import           Data.Maybe (isNothing)
 
-rawConverter :: C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
+rawConverter :: C.Context -> Integer -> Int -> L.NodeResult
 rawConverter ctx dat size = Just
   ( [ L.defaultCodeWord { L.raw = dat
                         , L.size = 1

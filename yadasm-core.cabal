@@ -43,6 +43,7 @@ library
     Yadasm.Archs.Arch6502Bytes,
     Yadasm.Plugins.AlAs65C816,
     Yadasm.Plugins.InsertWord
+    Yadasm.Plugins.PadLineTo
   default-language: Haskell2010
   other-extensions: BinaryLiterals
 
@@ -62,6 +63,7 @@ Test-Suite yadasm-tests
     Yadasm.Archs.TestArch6502Bytes,
     Yadasm.Plugins.TestAlAs65C816,
     Yadasm.Plugins.TestInsertWord
+    Yadasm.Plugins.TestPadLineTo
   build-depends:   base, 
     yadasm-core, 
     HUnit, 

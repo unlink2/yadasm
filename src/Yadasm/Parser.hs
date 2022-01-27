@@ -1,3 +1,4 @@
+
 module Yadasm.Parser where
 
 import           Data.HashMap.Lazy as HashMap
@@ -9,6 +10,15 @@ import qualified Yadasm.Symbol as S
 import qualified Yadasm.Line as L
 import           Data.Maybe (isNothing, isJust)
 import qualified Yadasm.Binary
+
+type ParseFn = C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> ParseRes
+
+type ParseRes = (L.NodeResult, C.Context, ByteString.ByteString)
 
 addNode map opcode (Just node) = HashMap.insert (toInteger opcode) node map
 addNode map opcode Nothing = map
@@ -44,34 +54,28 @@ lookupNodeOr opcode (Just defaultNode) nodes = Just
 lookupNodeOr opcode Nothing nodes = HashMap.lookup opcode nodes
 
 -- calculates the size in bytes of a parser result
-totalParsedSize :: Maybe ([L.CodeWord], [S.Symbol]) -> Int
+totalParsedSize :: L.NodeResult -> Int
 totalParsedSize Nothing = 0
 totalParsedSize (Just (words, symbols)) = L.totalSize words
 
-advanceBin :: ByteString -> Maybe ([L.CodeWord], [S.Symbol]) -> ByteString
+advanceBin :: ByteString -> L.NodeResult -> ByteString
 advanceBin bin Nothing = bin
 advanceBin bin (Just next) = ByteString.drop (totalParsedSize (Just next)) bin
 
-advanceCtx :: C.Context -> Maybe ([L.CodeWord], [S.Symbol]) -> C.Context
+advanceCtx :: C.Context -> L.NodeResult -> C.Context
 advanceCtx ctx Nothing = ctx
 advanceCtx ctx (Just next) =
   C.advance (toInteger (totalParsedSize (Just next))) ctx
 
 -- parses the entire input and builds a symbol table
 -- does not keep actual parsed lines 
-buildSymbols
-  :: C.Context
-  -> ByteString
-  -> HashMap Integer N.Node
-  -> Maybe N.Node
-  -> (ByteString -> Integer)
-  -> (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
-  -> C.Context
+buildSymbols :: C.Context
+             -> ByteString
+             -> HashMap Integer N.Node
+             -> Maybe N.Node
+             -> (ByteString -> Integer)
+             -> ParseFn
+             -> C.Context
 buildSymbols ctx bin nodes defaultNode readOp parseFn
   | ByteString.null bin = ctx
   | isJust next = buildSymbols
@@ -85,8 +89,7 @@ buildSymbols ctx bin nodes defaultNode readOp parseFn
   where
     (next, nextCtx, nextBin) = parseFn ctx bin nodes defaultNode readOp
 
-    addSymbolsFromParsed
-      :: C.Context -> Maybe ([L.CodeWord], [S.Symbol]) -> C.Context
+    addSymbolsFromParsed :: C.Context -> L.NodeResult -> C.Context
     addSymbolsFromParsed ctx Nothing = ctx
     addSymbolsFromParsed ctx (Just (words, symbol:symbols)) =
       addSymbolsFromParsed (C.addSymbol ctx symbol) (Just (words, symbols))
@@ -100,12 +103,7 @@ buildSymbolTable
   -> HashMap Integer N.Node
   -> Maybe N.Node
   -> (ByteString -> Integer)
-  -> (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> ParseFn
   -> C.Context
 buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
   (buildSymbols
@@ -123,14 +121,12 @@ parse :: C.Context
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+      -> ParseRes
 parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
   where
     node = lookupNodeOr (readOp bin) defaultNode nodes
 
-    parseDefault :: Maybe ([L.CodeWord], [S.Symbol])
-                 -> Maybe N.Node
-                 -> Maybe ([L.CodeWord], [S.Symbol])
+    parseDefault :: L.NodeResult -> Maybe N.Node -> L.NodeResult
     parseDefault Nothing Nothing = Nothing
     parseDefault Nothing (Just node) = N.parse ctx bin node
     parseDefault (Just result) node = Just result
@@ -138,9 +134,7 @@ parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
     parseNode Nothing = Nothing
     parseNode (Just node) = parseDefault (N.parse ctx bin node) defaultNode
 
-getResultOnly
-  :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-  -> Maybe ([L.CodeWord], [S.Symbol])
+getResultOnly :: ParseRes -> L.NodeResult
 getResultOnly (result, _, _) = result
 
 parseToString :: C.Context
@@ -159,12 +153,7 @@ parseAllToStringSymbolTable
   -> HashMap Integer N.Node
   -> Maybe N.Node
   -> (ByteString -> Integer)
-  -> (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> ParseFn
   -> Maybe [String]
 parseAllToStringSymbolTable ctx bin nodes defaultNode readOp parseFn =
   parseAllToString
@@ -182,12 +171,7 @@ parseAllToString
   -> HashMap Integer N.Node
   -> Maybe N.Node
   -> (ByteString -> Integer)
-  -> (C.Context
-      -> ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> ParseFn
   -> Maybe [String]
 parseAllToString ctx bin nodes defaultNode readOp parseFn
   | ByteString.null bin = Just []

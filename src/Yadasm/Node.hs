@@ -9,14 +9,12 @@ import qualified Yadasm.Comparator as Co
 import           Yadasm.Context
 import           Data.Maybe (isNothing, isJust)
 
-data Node =
-  Node { children :: [Node]
-       , reader :: B.ByteString -> Integer
-       , size :: Int
-       , converter
-           :: C.Context -> Integer -> Int -> Maybe ([L.CodeWord], [S.Symbol])
-       , comparator :: Integer -> Bool
-       }
+data Node = Node { children :: [Node]
+                 , reader :: B.ByteString -> Integer
+                 , size :: Int
+                 , converter :: C.Context -> Integer -> Int -> L.NodeResult
+                 , comparator :: Integer -> Bool
+                 }
 
 instance Eq Node where
   (==) n1 n2 = size n1 == size n2 && children n1 == children n2
@@ -37,11 +35,8 @@ appendParsed :: Maybe ([a1], [a2]) -> Maybe ([a1], [a2]) -> Maybe ([a1], [a2])
 appendParsed (Just (pw, ps)) (Just (ow, os)) = Just (ow ++ pw, os ++ ps)
 appendParsed _ _ = Nothing
 
-parseChildren :: Context
-              -> B.ByteString
-              -> [Node]
-              -> Maybe ([L.CodeWord], [S.Symbol])
-              -> Maybe ([L.CodeWord], [S.Symbol])
+parseChildren
+  :: Context -> B.ByteString -> [Node] -> L.NodeResult -> L.NodeResult
 parseChildren ctx bin [] prev = prev
 parseChildren ctx bin (node:nodes) prev
   | isNothing parsed = Nothing
@@ -52,7 +47,7 @@ parseChildren ctx bin (node:nodes) prev
 
     siz = size node
 
-parse :: Context -> B.ByteString -> Node -> Maybe ([L.CodeWord], [S.Symbol])
+parse :: Context -> B.ByteString -> Node -> L.NodeResult
 parse ctx bin node =
   if comp dat && B.length bin >= siz
   then parseChildren ctx (B.drop siz bin) nodes (convert ctx dat siz)

@@ -61,13 +61,8 @@ toString :: Maybe String -> String
 toString (Just s) = s
 toString Nothing = ""
 
-outputResult :: String
-             -> String
-             -> String
-             -> Handle
-             -> C.Context
-             -> Maybe ([L.CodeWord], [S.Symbol])
-             -> IO ()
+outputResult
+  :: String -> String -> String -> Handle -> C.Context -> L.NodeResult -> IO ()
 outputResult lineIndent symIndent symPost handle ctx result = do
   hPutStr
     handle
@@ -88,18 +83,13 @@ parseUntil
   -> Maybe N.Node
   -> (ByteString.ByteString -> Integer)
   -> Handle
-  -> (C.Context
-      -> ByteString.ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString.ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> P.ParseFn
   -> (String
       -> String
       -> String
       -> Handle
       -> C.Context
-      -> Maybe ([L.CodeWord], [S.Symbol])
+      -> L.NodeResult
       -> IO ())
   -> IO ()
 parseUntil input ctx bin nodes defaultNode readOp handle parse outputResult
@@ -142,18 +132,12 @@ getDefaultNode _ = Just A6502H.defaultNode
 
 getOpReader _ = B.read1le
 
-run'
-  :: (C.Context
-      -> ByteString.ByteString
-      -> HashMap Integer N.Node
-      -> Maybe N.Node
-      -> (ByteString.ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
-  -> C.Context
-  -> ByteString.ByteString
-  -> [N.Node]
-  -> InputData
-  -> IO ()
+run' :: P.ParseFn
+     -> C.Context
+     -> ByteString.ByteString
+     -> [N.Node]
+     -> InputData
+     -> IO ()
 run' parse initialCtx bin nodes parsed = do
   maybeCreateFile (outfile parsed)
   output <- maybeOpenFile (outfile parsed) (append parsed)

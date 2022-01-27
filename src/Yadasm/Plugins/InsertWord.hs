@@ -13,11 +13,10 @@ import qualified Yadasm.Archs.Arch65C816 as A65C816
 import qualified Yadasm.Parser as P
 import           Numeric (showHex, showIntAtBase)
 
-insertWord
-  :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-  -> HashMap Integer ([L.CodeWord], [L.CodeWord])
-  -> (C.Context -> Maybe ([L.CodeWord], [L.CodeWord]))
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+insertWord :: P.ParseRes
+           -> HashMap Integer ([L.CodeWord], [L.CodeWord])
+           -> (C.Context -> Maybe ([L.CodeWord], [L.CodeWord]))
+           -> P.ParseRes
 insertWord (Just (words, symbols), ctx, bin) wordsMap defaultComment =
   ( Just (addWords words (HashMap.lookup (C.address ctx) wordsMap), symbols)
   , ctx
@@ -36,14 +35,14 @@ parseInsertWord'
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+      -> P.ParseRes)
   -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> C.Context
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
   -> (ByteString -> Integer)
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+  -> P.ParseRes
 parseInsertWord' defaultComment parse words ctx bin nodes defaultNode readOp =
   insertWord (parse ctx bin nodes defaultNode readOp) words defaultComment
 
@@ -62,12 +61,12 @@ parseInsertWord
       -> HashMap Integer N.Node
       -> Maybe N.Node
       -> (ByteString -> Integer)
-      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+      -> P.ParseRes)
   -> HashMap Integer ([L.CodeWord], [L.CodeWord])
   -> C.Context
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
   -> (ByteString -> Integer)
-  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+  -> P.ParseRes
 parseInsertWord = parseInsertWord' noDefaultComment
