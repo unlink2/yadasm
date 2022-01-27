@@ -4,6 +4,8 @@ import qualified Data.ByteString as B
 import           Data.Word (Word8)
 import           Data.Maybe (isNothing)
 
+type ReadOp = (B.ByteString -> Integer)
+
 sliceEnd :: Int -> B.ByteString -> B.ByteString
 sliceEnd = slice 0
 

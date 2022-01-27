@@ -13,6 +13,7 @@ import           Data.Maybe (isNothing, isJust)
 import qualified Yadasm.Binary
 import qualified Yadasm.Archs.Arch65C816 as A65C816
 import qualified Yadasm.Parser as P
+import qualified Yadasm.Binary as B
 
 asNodes :: HashMap Integer N.Node
 asNodes = P.buildLookup A65C816.nodesEmulated 0xFF
@@ -40,7 +41,7 @@ parseAlAs :: P.ParseFn
           -> ByteString
           -> HashMap Integer N.Node
           -> Maybe N.Node
-          -> P.ReadOp
+          -> B.ReadOp
           -> P.ParseRes
 parseAlAs parse ctx bin nodes defaultNode readOp
   | isJust (C.lookupFlag "as" ctx) =

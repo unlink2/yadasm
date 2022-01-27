@@ -9,11 +9,15 @@ import qualified Yadasm.Comparator as Co
 import           Yadasm.Context
 import           Data.Maybe (isNothing, isJust)
 
+type NodeComparator = Integer -> Bool
+
+type NodeConverter = C.Context -> Integer -> Int -> L.NodeResult
+
 data Node = Node { children :: [Node]
-                 , reader :: B.ByteString -> Integer
+                 , reader :: Bi.ReadOp
                  , size :: Int
-                 , converter :: C.Context -> Integer -> Int -> L.NodeResult
-                 , comparator :: Integer -> Bool
+                 , converter :: NodeConverter
+                 , comparator :: NodeComparator
                  }
 
 instance Eq Node where
@@ -24,6 +28,7 @@ instance Show Node where
 
 convertNothing ctx input size = Nothing
 
+defaultNode :: Node
 defaultNode = Node { children = []
                    , reader = Bi.read1le
                    , size = 0

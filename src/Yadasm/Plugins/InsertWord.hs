@@ -12,6 +12,7 @@ import qualified Yadasm.Binary
 import qualified Yadasm.Archs.Arch65C816 as A65C816
 import qualified Yadasm.Parser as P
 import           Numeric (showHex, showIntAtBase)
+import qualified Yadasm.Binary as B
 
 insertWord :: P.ParseRes
            -> HashMap Integer ([L.CodeWord], [L.CodeWord])
@@ -36,7 +37,7 @@ parseInsertWord'
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> P.ReadOp
+  -> B.ReadOp
   -> P.ParseRes
 parseInsertWord' defaultComment parse words ctx bin nodes defaultNode readOp =
   insertWord (parse ctx bin nodes defaultNode readOp) words defaultComment
@@ -57,6 +58,6 @@ parseInsertWord
   -> ByteString
   -> HashMap Integer N.Node
   -> Maybe N.Node
-  -> P.ReadOp
+  -> B.ReadOp
   -> P.ParseRes
 parseInsertWord = parseInsertWord' noDefaultComment
