@@ -13,7 +13,9 @@ import qualified Data.HashMap.Lazy as HashMap
 testContext = C.defaultContext { C.address = 0x600 }
 
 testMap = P.buildLookup
-  [A6502B.readLWordNode [A6502B.readWordNode [A6502B.readByteNode []]]]
+  [ A6502B.readLWordNode
+      False
+      [A6502B.readWordNode True [A6502B.readByteNode True []]]]
   0xFF
 
 tests =
@@ -21,8 +23,8 @@ tests =
       (assertEqual
          "It read custom structure"
          (Just
-            [ "!le24 $111111\n!word $2222\n!byte $33\n"
-            , "!le24 $111111\n!word $2222\n!byte $33\n"])
+            [ "!le24 $111111\n!word $2222\n!byte $33"
+            , "!le24 $111111\n!word $2222\n!byte $33"])
          (P.parseAllToStringSymbolTable
             testContext
             (ByteString.pack

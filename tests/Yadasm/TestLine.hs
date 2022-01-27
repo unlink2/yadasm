@@ -41,6 +41,30 @@ tests =
                , []))))
   , TestCase
       (assertEqual
+         "It should output formatted result for lines and respect new line"
+         (Just "correct:\nlda \n#$10")
+         (resultToString
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "shadowed"
+                                                  , S.address = 0x101
+                                                  , S.shadow = True
+                                                  }
+                                , S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
+            (Just
+               ( [ defaultCodeWord { text = "lda " }
+                 , defaultCodeWord { text = "#$10", newLine = True }]
+               , []))))
+  , TestCase
+      (assertEqual
          "It should output formatted result for lines with custom middle part"
          (Just "correct:\n connector! lda #$10eol!")
          (resultToString'

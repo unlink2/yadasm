@@ -5,11 +5,11 @@ module Yadasm.Archs.Arch6502Bytes where
 import qualified Yadasm.Archs.Arch6502Helpers as A6502H
 import qualified Yadasm.Node as N
 
-readByteNode :: [N.Node] -> N.Node
-readByteNode = A6502H.readByteNode' "!byte " "\n"
+readByteNode :: Bool -> [N.Node] -> N.Node
+readByteNode = A6502H.readByteNode' "!byte " ""
 
-readWordNode :: [N.Node] -> N.Node
-readWordNode = A6502H.readWordNode' "!word " "\n"
+readWordNode :: Bool -> [N.Node] -> N.Node
+readWordNode = A6502H.readWordNode' "!word " ""
 
-readLWordNode :: [N.Node] -> N.Node
-readLWordNode = A6502H.readLWordNode' "!le24 " "\n"
+readLWordNode :: Bool -> [N.Node] -> N.Node
+readLWordNode = A6502H.readLWordNode' "!le24 " ""

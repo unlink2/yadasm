@@ -58,11 +58,12 @@ textConverter text ctx dat size =
 numConverter :: String
              -> String
              -> String
+             -> Bool
              -> C.Context
              -> Integer
              -> Int
              -> Maybe ([L.CodeWord], [S.Symbol])
-numConverter prefix fmt postfix ctx dat size = retDef def
+numConverter prefix fmt postfix newLine ctx dat size = retDef def
   where
     def = C.lookupDefinition dat ctx
 
@@ -71,12 +72,14 @@ numConverter prefix fmt postfix ctx dat size = retDef def
                                 prefix ++ printf "%s" (D.text def) ++ postfix
                             , L.size = size
                             , L.raw = dat
+                            , L.newLine = newLine
                             }]
       , [])
     retDef Nothing = Just
       ( [ L.defaultCodeWord { L.text = prefix ++ printf fmt dat ++ postfix
                             , L.size = size
                             , L.raw = dat
+                            , L.newLine = newLine
                             }]
       , [])
 
@@ -139,44 +142,44 @@ opcodeNodeNoSpace :: String -> Integer -> [N.Node] -> N.Node
 opcodeNodeNoSpace name opcode children =
   (opcodeNode name opcode children) { N.converter = textConverter name }
 
-readByteNode' :: String -> String -> [N.Node] -> N.Node
-readByteNode' prefix postfix children =
+readByteNode' :: String -> String -> Bool -> [N.Node] -> N.Node
+readByteNode' prefix postfix newLine children =
   N.defaultNode { N.reader = B.read1le
-                , N.converter = numConverter prefix "$%02X" postfix
+                , N.converter = numConverter prefix "$%02X" postfix newLine
                 , N.size = 1
                 , N.children = children
                 }
 
 readByteNode :: N.Node
-readByteNode = readByteNode' "" "" []
+readByteNode = readByteNode' "" "" False []
 
 readImmediateNode :: Int -> N.Node
-readImmediateNode
-  1 = readByteNode { N.converter = numConverter "#" "$%02X" "", N.size = 1 }
-readImmediateNode
-  _ = readWordNode { N.converter = numConverter "#" "$%04X" "", N.size = 2 }
+readImmediateNode 1 =
+  readByteNode { N.converter = numConverter "#" "$%02X" "" False, N.size = 1 }
+readImmediateNode _ =
+  readWordNode { N.converter = numConverter "#" "$%04X" "" False, N.size = 2 }
 
-readWordNode' :: String -> String -> [N.Node] -> N.Node
-readWordNode' prefix postfix children =
+readWordNode' :: String -> String -> Bool -> [N.Node] -> N.Node
+readWordNode' prefix postfix newLine children =
   N.defaultNode { N.reader = B.read2le
-                , N.converter = numConverter prefix "$%04X" postfix
+                , N.converter = numConverter prefix "$%04X" postfix newLine
                 , N.size = 2
                 , N.children = children
                 }
 
 readWordNode :: N.Node
-readWordNode = readWordNode' "" "" []
+readWordNode = readWordNode' "" "" False []
 
-readLWordNode' :: String -> String -> [N.Node] -> N.Node
-readLWordNode' prefix postfix children =
+readLWordNode' :: String -> String -> Bool -> [N.Node] -> N.Node
+readLWordNode' prefix postfix newLine children =
   N.defaultNode { N.reader = B.read3le
-                , N.converter = numConverter prefix "$%06X" postfix
+                , N.converter = numConverter prefix "$%06X" postfix newLine
                 , N.size = 3
                 , N.children = children
                 }
 
 readLWordNode :: N.Node
-readLWordNode = readLWordNode' "" "" []
+readLWordNode = readLWordNode' "" "" False []
 
 readRelLabelNode :: N.Node
 readRelLabelNode =
@@ -374,7 +377,8 @@ makeImInfo' :: (InstructionMode -> Integer -> Integer)
 makeImInfo' mask name im opcode = ImInfo name im (mask im opcode)
 
 defaultNode :: N.Node
-defaultNode = N.defaultNode { N.reader = B.read1le
-                            , N.converter = numConverter "!byte " "$%02X" ""
-                            , N.size = 1
-                            }
+defaultNode =
+  N.defaultNode { N.reader = B.read1le
+                , N.converter = numConverter "!byte " "$%02X" "" False
+                , N.size = 1
+                }
