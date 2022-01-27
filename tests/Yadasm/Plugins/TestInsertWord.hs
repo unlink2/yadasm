@@ -39,11 +39,11 @@ tests =
       (assertEqual
          "It should insert comments for all non-existant lines in range"
          (Just
-            [ "nop"
+            [ "nop ; 600"
             , "nop ; 601"
             , "before lda #$EAEA ; insertAfter"
             , "lda #$EAEA ; 605"
-            , "nop"])
+            , "nop ; 608"])
          (P.parseAllToStringSymbolTable
             testContext
             (ByteString.pack
@@ -51,13 +51,10 @@ tests =
             testMap
             (Just A6502H.defaultNode)
             Bin.read1le
-            (IW.parseInsertWord
+            (IW.parseInsertWord'
+               (IW.addressComment " ; ")
                P.parse
-               (IW.addAddressWords
-                  (HashMap.fromList
-                     [ ( 0x602
-                       , ( [L.defaultCodeWord { L.text = "before " }]
-                         , [L.defaultCodeWord { L.text = " ; insertAfter" }]))])
-                  0x601
-                  0x605
-                  " ; "))))]
+               (HashMap.fromList
+                  [ ( 0x602
+                    , ( [L.defaultCodeWord { L.text = "before " }]
+                      , [L.defaultCodeWord { L.text = " ; insertAfter" }]))]))))]

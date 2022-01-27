@@ -16,15 +16,45 @@ import           Numeric (showHex, showIntAtBase)
 insertWord
   :: (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
   -> HashMap Integer ([L.CodeWord], [L.CodeWord])
+  -> (C.Context -> Maybe ([L.CodeWord], [L.CodeWord]))
   -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-insertWord (Just (words, symbols), ctx, bin) wordsMap =
+insertWord (Just (words, symbols), ctx, bin) wordsMap defaultComment =
   ( Just (addWords words (HashMap.lookup (C.address ctx) wordsMap), symbols)
   , ctx
   , bin)
   where
     addWords words (Just (before, after)) = before ++ words ++ after
-    addWords words Nothing = words
-insertWord result wordsMap = result
+    addWords words Nothing
+      | isJust (defaultComment ctx) = addWords words (defaultComment ctx)
+      | otherwise = words
+insertWord result wordsMap defaultComment = result
+
+parseInsertWord'
+  :: (C.Context -> Maybe ([L.CodeWord], [L.CodeWord]))
+  -> (C.Context
+      -> ByteString
+      -> HashMap Integer N.Node
+      -> Maybe N.Node
+      -> (ByteString -> Integer)
+      -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString))
+  -> HashMap Integer ([L.CodeWord], [L.CodeWord])
+  -> C.Context
+  -> ByteString
+  -> HashMap Integer N.Node
+  -> Maybe N.Node
+  -> (ByteString -> Integer)
+  -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
+parseInsertWord' defaultComment parse words ctx bin nodes defaultNode readOp =
+  insertWord (parse ctx bin nodes defaultNode readOp) words defaultComment
+
+noDefaultComment :: p -> Maybe a
+noDefaultComment ctx = Nothing
+
+addressComment :: String -> C.Context -> Maybe ([L.CodeWord], [L.CodeWord])
+addressComment commentPrefix ctx = Just
+  ( []
+  , [ L.defaultCodeWord { L.text = commentPrefix ++ showHex (C.address ctx) ""
+                        }])
 
 parseInsertWord
   :: (C.Context
@@ -40,24 +70,4 @@ parseInsertWord
   -> Maybe N.Node
   -> (ByteString -> Integer)
   -> (Maybe ([L.CodeWord], [S.Symbol]), C.Context, ByteString.ByteString)
-parseInsertWord parse words ctx bin nodes defaultNode readOp =
-  insertWord (parse ctx bin nodes defaultNode readOp) words
-
--- Adds address comments for each key not defined in the list 
-addAddressWords :: HashMap Integer ([L.CodeWord], [L.CodeWord])
-                -> Integer
-                -> Integer
-                -> String
-                -> HashMap Integer ([L.CodeWord], [L.CodeWord])
-addAddressWords words from to commentPrefix
-  | from > to = words
-  | HashMap.member from words =
-    addAddressWords words (from + 1) to commentPrefix
-  | otherwise = addAddressWords
-    (HashMap.insert
-       from
-       ([], [L.defaultCodeWord { L.text = commentPrefix ++ showHex from "" }])
-       words)
-    (from + 1)
-    to
-    commentPrefix
+parseInsertWord = parseInsertWord' noDefaultComment
