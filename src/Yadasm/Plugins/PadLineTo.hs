@@ -19,7 +19,30 @@ pad :: (C.Context -> L.NodeResult -> Maybe String)
     -> Char
     -> P.ParseRes
     -> P.ParseRes
-pad resultToString padding padWith (result, ctx, bin) = (result, ctx, bin)
+pad resultToString padding padWith (Just (words, symbols), ctx, bin) =
+  ( Just
+      ( makePadding (resultToString ctx (Just (words, symbols))) padding
+      , symbols)
+  , ctx
+  , bin)
+  where
+    makePadding (Just str) padding
+      | padding > 0 = words
+        ++ [ L.defaultCodeWord { L.text = concat
+                                   $ replicate
+                                     (max 0 (padding - length str))
+                                     [padWith]
+                               }]
+      | padding < 0 =
+        L.defaultCodeWord { L.text = concat
+                              $ replicate
+                                (max 0 (abs (padding + length str)))
+                                [padWith]
+                          }
+        :words
+      | padding == 0 = words
+    makePadding Nothing padding = []
+pad resultToString padding padWith (Nothing, ctx, bin) = (Nothing, ctx, bin)
 
 parsePadLineTo'
   :: (C.Context -> L.NodeResult -> Maybe String)
@@ -32,7 +55,17 @@ parsePadLineTo'
   -> Maybe N.Node
   -> B.ReadOp
   -> P.ParseRes
-parsePadLineTo' resultToString padding padWith parse = parse
+parsePadLineTo'
+  resultToString
+  padding
+  padWith
+  parse
+  ctx
+  bin
+  nodes
+  defaultNode
+  readOp =
+  pad resultToString padding padWith (parse ctx bin nodes defaultNode readOp)
 
 parsePadLineTo
   :: Int
