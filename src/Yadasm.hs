@@ -61,17 +61,23 @@ toString :: Maybe String -> String
 toString (Just s) = s
 toString Nothing = ""
 
-outputResult
-  :: String -> String -> String -> Handle -> C.Context -> L.NodeResult -> IO ()
-outputResult lineIndent symIndent symPost handle ctx result = do
+outputResult :: String
+             -> String
+             -> String
+             -> String
+             -> Handle
+             -> C.Context
+             -> L.NodeResult
+             -> IO ()
+outputResult eol lineIndent symIndent symPost handle ctx result = do
   hPutStr
     handle
     (toString
        (L.resultToString'
-          (L.wordToString "\n")
-          (S.symbolToString' symIndent symPost)
+          (L.wordToString eol)
+          (S.symbolToString' eol symIndent symPost)
           lineIndent
-          "\n"
+          eol
           ctx
           result))
 
@@ -165,7 +171,7 @@ run' parse initialCtx bin nodes parsed = do
     (getOpReader (arch parsed))
     output
     parse
-    outputResult
+    (outputResult (eol parsed))
   maybeCloseFile output (outfile parsed)
 
 run :: InputData -> IO ()

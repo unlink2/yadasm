@@ -1,7 +1,7 @@
 module Yadasm.Line where
 
-import           Yadasm.Context as C
-import           Yadasm.Symbol as S
+import qualified Yadasm.Context as C
+import qualified Yadasm.Symbol as S
 
 type NodeResult = Maybe ([CodeWord], [S.Symbol])
 

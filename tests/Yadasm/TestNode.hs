@@ -31,8 +31,8 @@ testConverter ctx 3 size = Just
   ( [L.defaultCodeWord { L.text = "test3", L.size = size }]
   , [ S.Symbol { S.address = Ctx.address ctx
                , S.name = "Test3:"
-               , S.shadow = False
                , S.order = 0
+               , S.attr = S.NewLine
                }])
 testConverter ctx _ size = Nothing
 
@@ -74,8 +74,8 @@ tests =
               , L.defaultCodeWord { L.text = "test3", L.size = 2 }]
             , [ S.Symbol { S.address = 0
                          , S.name = "Test3:"
-                         , S.shadow = False
                          , S.order = 0
+                         , S.attr = S.NewLine
                          }]))
          (N.parse
             Ctx.defaultContext

@@ -2,7 +2,7 @@ module Yadasm.TestLine where
 
 import           Test.HUnit
 import           Yadasm.Line
-import           Yadasm.Symbol as S
+import qualified Yadasm.Symbol as S
 import           Yadasm.TestContext
 import qualified Yadasm.Context as C
 import qualified Data.HashMap.Lazy as HashMap
@@ -25,7 +25,7 @@ tests =
                             [ ( 0x101
                               , [ S.defaultSymbol { S.name = "shadowed"
                                                   , S.address = 0x101
-                                                  , S.shadow = True
+                                                  , S.attr = S.Shadow
                                                   }
                                 , S.defaultSymbol { S.name = "correct"
                                                   , S.address = 0x101
@@ -42,17 +42,18 @@ tests =
   , TestCase
       (assertEqual
          "It should output formatted result for lines and respect new line"
-         (Just "correct:\nlda \n#$10")
+         (Just "correct:lda \n#$10")
          (resultToString
             testContext { C.address = 0x101
                         , C.symbols = HashMap.fromList
                             [ ( 0x101
                               , [ S.defaultSymbol { S.name = "shadowed"
                                                   , S.address = 0x101
-                                                  , S.shadow = True
+                                                  , S.attr = S.Shadow
                                                   }
                                 , S.defaultSymbol { S.name = "correct"
                                                   , S.address = 0x101
+                                                  , S.attr = S.Std
                                                   }])
                             , ( 0x100
                               , [ S.defaultSymbol { S.name = "wrong"
