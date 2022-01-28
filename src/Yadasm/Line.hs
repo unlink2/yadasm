@@ -48,7 +48,7 @@ resultToString'
   end
   ctx
   (Just (words, symbols)) = Just
-  (foldl S.symbolToString "" (getSyms syms)
+  (foldl symbolToString "" (getSyms syms)
    ++ connector
    ++ foldl (wordToString connector) "" words
    ++ end)
