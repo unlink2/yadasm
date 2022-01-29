@@ -15,6 +15,7 @@ import qualified Yadasm.Archs.TestArch6502Bytes
 import qualified Yadasm.Plugins.TestAlAs65C816
 import qualified Yadasm.Plugins.TestInsertWord
 import qualified Yadasm.Plugins.TestPadLineTo
+import qualified Yadasm.Plugins.TestPreParser
 
 tests :: [Test.Framework.Test]
 tests = hUnitTestToTests
@@ -32,6 +33,7 @@ tests = hUnitTestToTests
       ++ Yadasm.Plugins.TestInsertWord.tests
       ++ Yadasm.Archs.TestArchRaw.tests
       ++ Yadasm.Archs.TestArch6502Bytes.tests
-      ++ Yadasm.Plugins.TestPadLineTo.tests))
+      ++ Yadasm.Plugins.TestPadLineTo.tests
+      ++ Yadasm.Plugins.TestPreParser.tests))
 
 main = defaultMain tests

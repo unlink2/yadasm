@@ -42,8 +42,9 @@ library
     Yadasm.Archs.ArchRaw,
     Yadasm.Archs.Arch6502Bytes,
     Yadasm.Plugins.AlAs65C816,
-    Yadasm.Plugins.InsertWord
-    Yadasm.Plugins.PadLineTo
+    Yadasm.Plugins.InsertWord,
+    Yadasm.Plugins.PadLineTo,
+    Yadasm.Plugins.PreParser
   default-language: Haskell2010
   other-extensions: BinaryLiterals
 
@@ -62,8 +63,9 @@ Test-Suite yadasm-tests
     Yadasm.Archs.TestArchRaw,
     Yadasm.Archs.TestArch6502Bytes,
     Yadasm.Plugins.TestAlAs65C816,
-    Yadasm.Plugins.TestInsertWord
-    Yadasm.Plugins.TestPadLineTo
+    Yadasm.Plugins.TestInsertWord,
+    Yadasm.Plugins.TestPadLineTo,
+    Yadasm.Plugins.TestPreParser
   build-depends:   base, 
     yadasm-core, 
     HUnit, 
