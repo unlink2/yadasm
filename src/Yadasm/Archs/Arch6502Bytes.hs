@@ -14,3 +14,11 @@ readWordNode = A6502H.readWordNode' "!word " ""
 
 readLWordNode :: L.Attrs -> [N.Node] -> N.Node
 readLWordNode = A6502H.readLWordNode' "!le24 " ""
+
+readStringNode :: Int -> L.Attrs -> N.Node
+readStringNode len attr = A6502H.readCharNode
+  "!text \""
+  ""
+  attr
+  (replicate (len - 2) (A6502H.readCharNode "" "" L.Std [])
+   ++ [A6502H.readCharNode "" "\"" L.Std []])

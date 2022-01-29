@@ -141,6 +141,14 @@ opcodeNodeNoSpace :: String -> Integer -> [N.Node] -> N.Node
 opcodeNodeNoSpace name opcode children =
   (opcodeNode name opcode children) { N.converter = textConverter name }
 
+readCharNode :: String -> String -> L.Attrs -> [N.Node] -> N.Node
+readCharNode prefix postfix attr children =
+  N.defaultNode { N.reader = B.read1le
+                , N.converter = numConverter prefix "%c" postfix attr
+                , N.size = 1
+                , N.children = children
+                }
+
 readByteNode' :: String -> String -> L.Attrs -> [N.Node] -> N.Node
 readByteNode' prefix postfix attr children =
   N.defaultNode { N.reader = B.read1le

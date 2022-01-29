@@ -19,6 +19,8 @@ testMap = P.buildLookup
       [A6502B.readWordNode L.NewLine [A6502B.readByteNode L.NewLine []]]]
   0xFF
 
+testStringMap = P.buildLookup [A6502B.readStringNode 6 L.Std] 0xFF
+
 tests =
   [ TestCase
       (assertEqual
@@ -64,6 +66,17 @@ tests =
                , 0x22
                , 0x22])
             testMap
+            Nothing
+            Bin.read1le
+            P.parse))
+  , TestCase
+      (assertEqual
+         "It should read string"
+         (Just ["!text \"Hello\0\""])
+         (P.parseAllToStringSymbolTable
+            testContext
+            (ByteString.pack [72, 101, 108, 108, 111, 00])
+            testStringMap
             Nothing
             Bin.read1le
             P.parse))]
