@@ -1,4 +1,4 @@
-module Yadasm.Plugins.TestPreParser where
+module Yadasm.Plugins.TestChainParser where
 
 import           Test.HUnit
 import qualified Yadasm.Archs.Arch65C816 as A65C816
@@ -13,7 +13,7 @@ import qualified Yadasm.Binary as Bin
 import qualified Yadasm.Line as L
 import qualified Yadasm.Symbol as S
 import qualified Yadasm.Archs.TestArch6502
-import qualified Yadasm.Plugins.PreParser as PP
+import qualified Yadasm.Plugins.ChainParser as PP
 
 testContext = C.defaultContext { C.address = 0x600 }
 
@@ -24,7 +24,7 @@ testMap6502 = P.buildLookup A6502.nodes 0xFF
 tests =
   [ TestCase
       (assertEqual
-         "It should pre-parse and fall back to regular parser's default node"
+         "It should chain-parse and fall back to regular parser's default node"
          (Just ["!byte $5B"])
          (P.parseAllToStringSymbolTable
             testContext
@@ -32,10 +32,10 @@ tests =
             testMap6502
             (Just A6502H.defaultNode)
             Bin.read1le
-            (PP.preParse testMap6502 P.parse)))
+            (PP.chainParse testMap6502 P.parse)))
   , TestCase
       (assertEqual
-         "It should pre-parse and not fall back to regular parser"
+         "It should chain-parse and not fall back to regular parser"
          (Just ["tcd"])
          (P.parseAllToStringSymbolTable
             testContext
@@ -43,10 +43,10 @@ tests =
             testMap6502
             (Just A6502H.defaultNode)
             Bin.read1le
-            (PP.preParse testMap P.parse)))
+            (PP.chainParse testMap P.parse)))
   , TestCase
       (assertEqual
-         "Pre-parser should have presedence over regular parser (1)"
+         "Chain-parser should have presedence over regular parser (1)"
          (Just ["lda #$5BAA"])
          (P.parseAllToStringSymbolTable
             testContext
@@ -54,10 +54,10 @@ tests =
             testMap6502
             (Just A6502H.defaultNode)
             Bin.read1le
-            (PP.preParse testMap P.parse)))
+            (PP.chainParse testMap P.parse)))
   , TestCase
       (assertEqual
-         "Pre-parser should have presedence over regular parser (2)"
+         "Chain-parser should have presedence over regular parser (2)"
          (Just ["lda #$AA", "tcd"])
          (P.parseAllToStringSymbolTable
             testContext
@@ -65,4 +65,4 @@ tests =
             testMap
             (Just A6502H.defaultNode)
             Bin.read1le
-            (PP.preParse testMap6502 P.parse)))]
+            (PP.chainParse testMap6502 P.parse)))]
