@@ -21,9 +21,9 @@ preParse :: HashMap Integer N.Node
          -> Maybe N.Node
          -> B.ReadOp
          -> P.ParseRes
-preParse altMap parse ctx bin nodes defaultNode readOp = parsePreOr parsePre
+preParse altNodes parse ctx bin nodes defaultNode readOp = parsePreOr parsePre
   where
-    parsePre = parse ctx bin altMap Nothing readOp
+    parsePre = parse ctx bin altNodes Nothing readOp
 
     parseReg = parse ctx bin nodes defaultNode readOp
 
