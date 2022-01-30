@@ -147,6 +147,7 @@ nodes' makeInstructions = nodes1 ++ nodes2 ++ nodes3
     nodes1 = makeInstructions
       (makeLoad "adc" 0x69
        ++ makeLogic "asl" 0x1E
+       ++ makeLoad "and" 0x21
        ++ makeBit "bit" 0x24
        ++ makeBranch "bpl" 0x10
        ++ makeBranch "bmi" 0x30
