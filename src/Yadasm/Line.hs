@@ -8,6 +8,8 @@ type NodeResult = Maybe ([CodeWord], [S.Symbol])
 -- attributes for code words
 data Attrs = Std
            | NewLine
+           | NewLineConnector Int
+           | Connector Int
   deriving (Show, Eq)
 
 -- a single token of a line of code
@@ -20,6 +22,17 @@ data CodeWord =
 defaultCodeWord :: CodeWord
 defaultCodeWord = CodeWord { text = "", size = 0, raw = 0, attr = Std }
 
+dup :: Int -> [a] -> [a]
+dup n str = concat $ replicate n str
+
+getConnectorN :: Attrs -> Int
+getConnectorN (NewLineConnector n) = n
+getConnectorN (Connector n) = n
+getConnectorN _ = 1
+
+dupConnector :: CodeWord -> [a] -> [a]
+dupConnector v = dup (getConnectorN (attr v))
+
 totalSize :: [CodeWord] -> Int
 totalSize = foldl calcSize 0
   where
@@ -27,9 +40,13 @@ totalSize = foldl calcSize 0
     calcSize prev v = size v + prev
 
 wordToString :: String -> String -> String -> CodeWord -> String
-wordToString nl connector prev v
-  | attr v == NewLine = prev ++ nl ++ connector ++ text v
-  | otherwise = prev ++ text v
+wordToString nl connector prev v = matchAttr (attr v)
+  where
+    appendNewLine = prev ++ nl ++ dupConnector v connector ++ text v
+
+    matchAttr NewLine = appendNewLine
+    matchAttr (NewLineConnector n) = appendNewLine
+    matchAttr attr = prev ++ text v
 
 resultToString :: C.Context -> NodeResult -> Maybe String
 resultToString = resultToString' (wordToString "\n") S.symbolToString "" ""
@@ -47,10 +64,10 @@ resultToString'
   connector
   end
   ctx
-  (Just (words, symbols)) = Just
+  (Just (word:words, symbols)) = Just
   (foldl symbolToString "" (getSyms syms)
-   ++ connector
-   ++ foldl (wordToString connector) "" words
+   ++ dupConnector word connector
+   ++ foldl (wordToString connector) "" (word:words)
    ++ end)
   where
     syms = C.getSymbolAt ctx (C.address ctx)

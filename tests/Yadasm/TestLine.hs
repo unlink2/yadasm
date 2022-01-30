@@ -114,6 +114,55 @@ tests =
                , []))))
   , TestCase
       (assertEqual
+         "It should output formatted result for lines and use connector replication"
+         (Just
+            "correct:\n connector!  connector! lda \n connector!  connector! #$10eol!")
+         (resultToString'
+            (wordToString "\n")
+            S.symbolToString
+            " connector! "
+            "eol!"
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
+            (Just
+               ( [ defaultCodeWord { text = "lda ", attr = Connector 2 }
+                 , defaultCodeWord { text = "#$10", attr = NewLineConnector 2 }]
+               , []))))
+  , TestCase
+      (assertEqual
+         "It should output formatted result for lines and use no connector replication"
+         (Just "correct:\nlda \n#$10eol!")
+         (resultToString'
+            (wordToString "\n")
+            S.symbolToString
+            " connector! "
+            "eol!"
+            testContext { C.address = 0x101
+                        , C.symbols = HashMap.fromList
+                            [ ( 0x101
+                              , [ S.defaultSymbol { S.name = "correct"
+                                                  , S.address = 0x101
+                                                  }])
+                            , ( 0x100
+                              , [ S.defaultSymbol { S.name = "wrong"
+                                                  , S.address = 0x100
+                                                  }])]
+                        }
+            (Just
+               ( [ defaultCodeWord { text = "lda ", attr = Connector 0 }
+                 , defaultCodeWord { text = "#$10", attr = NewLineConnector 0 }]
+               , []))))
+  , TestCase
+      (assertEqual
          "It should return Nothing on empty input"
          Nothing
          (resultToString testContext { C.address = 0x101 } Nothing))]
