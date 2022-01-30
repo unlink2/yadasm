@@ -54,6 +54,10 @@ textConverter :: String -> C.Context -> Integer -> Int -> L.NodeResult
 textConverter text ctx dat size =
   Just ([L.defaultCodeWord { L.text = text, L.size = size, L.raw = dat }], [])
 
+noConverter :: C.Context -> Integer -> Int -> L.NodeResult
+noConverter ctx dat size =
+  Just ([L.defaultCodeWord { L.size = size, L.raw = dat }], [])
+
 numConverter :: String
              -> String
              -> String
@@ -132,6 +136,16 @@ opcodeNode :: String -> Integer -> [N.Node] -> N.Node
 opcodeNode name opcode children =
   N.defaultNode { N.reader = B.read1le
                 , N.converter = textConverter (name ++ " ")
+                , N.comparator = opcodeComparator opcode
+                , N.children = children
+                , N.size = 1
+                }
+
+-- consumes a of a certain value byte but does not emit anything 
+consumeByteNode :: Integer -> [N.Node] -> N.Node
+consumeByteNode opcode children =
+  N.defaultNode { N.reader = B.read1le
+                , N.converter = noConverter
                 , N.comparator = opcodeComparator opcode
                 , N.children = children
                 , N.size = 1

@@ -22,3 +22,15 @@ readStringNode len attr = A6502H.readCharNode
   attr
   (replicate (len - 2) (A6502H.readCharNode "" "" L.Std [])
    ++ [A6502H.readCharNode "" "\"" L.Std []])
+
+-- this is meant to be a builder 
+-- for a chain of opcodes that translate to a 
+-- macro call
+-- currently macro definitions need to be 
+-- inserted by hand 
+readMacroNode' :: String -> String -> Integer -> [N.Node] -> N.Node
+readMacroNode' prefix name = A6502H.opcodeNode (prefix ++ name)
+
+-- default macro call 
+readMacroNode :: String -> Integer -> [N.Node] -> N.Node
+readMacroNode = readMacroNode' "+"
