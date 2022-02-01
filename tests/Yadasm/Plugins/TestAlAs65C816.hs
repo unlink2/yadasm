@@ -12,6 +12,7 @@ import qualified Yadasm.Line as L
 import qualified Yadasm.Symbol as S
 import qualified Yadasm.Archs.TestArch6502
 import qualified Yadasm.Plugins.AlAs65C816 as AlAs
+import qualified Data.HashSet as HashSet
 
 testContext = C.defaultContext { C.address = 0x600 }
 
@@ -57,4 +58,48 @@ tests =
             testMap
             (Just A6502H.defaultNode)
             Bin.read1le
-            (AlAs.parseAlAs P.parse)))]
+            (AlAs.parseAlAs P.parse)))
+  , TestCase
+      (assertEqual
+         "It should force al and as"
+         (Just
+            [ "rep #$20\n!al"
+            , "lda #$EAEA"
+            , "sep #$20\n!as"
+            , "lda #$EA"
+            , "rep #$20\n!al"
+            , "lda #$EAEA"
+            , "sep #$20\n!as"
+            , "lda #$EA"
+            , "rep #$20\n!al"])
+         (P.parseAllToStringSymbolTable
+            testContext
+            (ByteString.pack
+               [ 0xC2
+               , 0x20
+               , 0xA9
+               , 0xEA
+               , 0xEA
+               , 0xE2
+               , 0x20
+               , 0xA9
+               , 0xEA
+               , 0xC2
+               , 0x20
+               , 0xA9
+               , 0xEA
+               , 0xEA
+               , 0xE2
+               , 0x20
+               , 0xA9
+               , 0xEA
+               , 0xC2
+               , 0x20])
+            testMap
+            (Just A6502H.defaultNode)
+            Bin.read1le
+            (AlAs.parseForceAs
+               (HashSet.fromList [0x605, 0x60E])
+               (AlAs.parseForceAl
+                  (HashSet.fromList [0x600, 0x609, 0x612])
+                  P.parse))))]
