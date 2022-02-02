@@ -5,25 +5,30 @@ import qualified Yadasm.Symbol
 import           Data.HashMap.Lazy as HashMap
 import           Data.Maybe (isNothing)
 import qualified Yadasm.Definition as D
+import           Yadasm.Error
 
 -- the context is a data structure holding information 
 -- such as the current address, a map of symbols etc
-data Context = Context { symbols :: HashMap.HashMap Integer [Symbol]
-                       , address :: Integer
-                       , endAddress :: Integer
-                         -- flags may be used by plugins to signal 
-                         -- certain values to the caller if desired
-                       , flags :: HashMap.HashMap String String
-                       , definitions :: HashMap.HashMap Integer D.Definition
-                       }
+data Context =
+  Context { symbols :: HashMap.HashMap Integer [Symbol]
+          , address :: Integer
+          , endAddress :: Integer
+            -- flags may be used by plugins to signal 
+            -- certain values to the caller if desired
+          , flags :: HashMap.HashMap String String
+          , definitions :: HashMap.HashMap Integer D.Definition
+          , cerror :: Maybe Error
+          }
   deriving (Show, Eq)
 
-defaultContext = Context { symbols = HashMap.fromList []
-                         , address = 0
-                         , endAddress = 0
-                         , flags = HashMap.fromList []
-                         , definitions = HashMap.fromList []
-                         }
+defaultContext =
+  Context { symbols = HashMap.fromList []
+          , address = 0
+          , endAddress = 0
+          , flags = HashMap.fromList []
+          , definitions = HashMap.fromList []
+          , cerror = Nothing
+          }
 
 isInAddrRange :: Context -> Integer -> Bool
 isInAddrRange ctx addr = address ctx <= addr && endAddress ctx > addr
