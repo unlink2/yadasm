@@ -11,6 +11,7 @@ import qualified Yadasm.Line as L
 import qualified Yadasm.Binary as B
 import           Data.Maybe (isNothing, isJust)
 import qualified Yadasm.Binary
+import qualified Yadasm.Error as E
 
 type ParseFn = C.Context
   -> ByteString
@@ -115,6 +116,11 @@ buildSymbolTable ctx bin nodes defaultNode readOp parseFn =
      readOp
      parseFn) { C.address = C.address ctx, C.flags = HashMap.fromList [] }
 
+setErrorCode :: ParseRes -> ParseRes
+setErrorCode
+  (Nothing, ctx, bin) = (Nothing, ctx { C.cerror = Just E.ParserError }, bin)
+setErrorCode result = result
+
 -- parses the next valid node  
 -- based on the provided lookup and symbol table
 parse :: C.Context
@@ -123,7 +129,8 @@ parse :: C.Context
       -> Maybe N.Node
       -> B.ReadOp
       -> ParseRes
-parse ctx bin nodes defaultNode readOp = (parseNode node, ctx, bin)
+parse ctx bin nodes defaultNode readOp =
+  setErrorCode (parseNode node, ctx, bin)
   where
     node = lookupNodeOr (readOp bin) defaultNode nodes
 

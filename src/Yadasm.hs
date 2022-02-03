@@ -12,12 +12,15 @@ import qualified Yadasm.Symbol as S
 import qualified Yadasm.Context as C
 import qualified Yadasm.Node as N
 import           Data.HashMap.Lazy as HashMap
-import           GHC.IO.StdHandles (openFile, stdout, openBinaryFile)
+import           GHC.IO.StdHandles (openFile, stdout, openBinaryFile, stderr)
 import           GHC.IO.IOMode (IOMode(ReadMode, AppendMode, WriteMode))
 import           GHC.IO.Handle.Types (Handle)
 import           System.IO (hClose, hPutStr)
 import           Yadasm.Binary (slice)
 import           System.Directory (doesFileExist)
+import           System.Exit
+import           Data.Maybe (isJust)
+import           Data.ByteString.Lazy.Char8 (hPut)
 
 data InputData =
   InputData { file :: String
@@ -114,17 +117,23 @@ parseUntil input ctx bin nodes defaultNode readOp handle parse outputResult
         handle
         ctx
         result
-      parseUntil
-        input
-        (P.advanceCtx ctx result)
-        (P.advanceBin bin result)
-        nodes
-        defaultNode
-        readOp
-        handle
-        parse
-        outputResult
-      return ()
+      if isJust (C.cerror ctx)
+        then do
+          -- TODO better error handling!
+          hPutStr stderr (show $ C.cerror ctx)
+          return exitFailure
+        else do
+          parseUntil
+            input
+            (P.advanceCtx ctx result)
+            (P.advanceBin bin result)
+            nodes
+            defaultNode
+            readOp
+            handle
+            parse
+            outputResult
+          return exitSuccess
 
 getArch "6502" = A6502.nodes
 getArch "65c02" = A65C02.nodes
@@ -159,7 +168,7 @@ run' parse initialCtx bin nodes parsed = do
         (getDefaultNode (arch parsed))
         (getOpReader (arch parsed))
         parse
-  parseUntil
+  exitCode <- parseUntil
     parsed
     symCtx
     (B.slice
@@ -173,6 +182,7 @@ run' parse initialCtx bin nodes parsed = do
     parse
     (outputResult (eol parsed))
   maybeCloseFile output (outfile parsed)
+  return exitCode
 
 run :: InputData -> IO ()
 run parsed = do

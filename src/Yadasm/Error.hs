@@ -1,5 +1,5 @@
 module Yadasm.Error where
 
-data Error = ParserErrir
+data Error = ParserError
            | OutOfDataError
   deriving (Show, Eq)

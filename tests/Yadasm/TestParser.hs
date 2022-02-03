@@ -11,6 +11,7 @@ import qualified Yadasm.Binary as Bin
 import qualified Yadasm.Line as L
 import qualified Yadasm.Symbol as S
 import qualified Yadasm.Node as N
+import qualified Yadasm.Error as E
 
 testNode1 = TN.testNode1 { N.size = 1 }
 
@@ -86,6 +87,18 @@ tests =
          , testContext
          , testData)
          (P.parse testContext testData testLookup Nothing Bin.read1le))
+  , TestCase
+      (assertEqual
+         "It should fail with error"
+         ( Nothing
+         , testContext { C.cerror = Just E.ParserError }
+         , ByteString.pack [4, 2])
+         (P.parse
+            testContext
+            (ByteString.pack [4, 2])
+            testLookup
+            Nothing
+            Bin.read1le))
   , TestCase
       (assertEqual
          "It should build a symbol table"
