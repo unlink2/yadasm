@@ -1,13 +1,13 @@
 use crate::Word;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SymbolAttribute {
+pub enum SymbolAttributes {
     Std,
     NewLine,
     Shadow,
 }
 
-impl ToString for SymbolAttribute {
+impl ToString for SymbolAttributes {
     fn to_string(&self) -> String {
         match self {
             Self::NewLine => "\n".into(),
@@ -18,7 +18,7 @@ impl ToString for SymbolAttribute {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Symbol {
-    pub attr: SymbolAttribute,
+    pub attr: SymbolAttributes,
     pub address: Word,
     pub name: String,
     pub order: u16,
@@ -27,14 +27,14 @@ pub struct Symbol {
 impl ToString for Symbol {
     fn to_string(&self) -> String {
         match self.attr {
-            SymbolAttribute::Shadow => "".into(),
+            SymbolAttributes::Shadow => "".into(),
             _ => self.name.clone(),
         }
     }
 }
 
 impl Symbol {
-    pub fn new(address: Word, name: &str, order: u16, attr: SymbolAttribute) -> Self {
+    pub fn new(address: Word, name: &str, order: u16, attr: SymbolAttributes) -> Self {
         Self {
             address,
             name: name.into(),
@@ -45,7 +45,7 @@ impl Symbol {
 
     pub fn output(&self, prefix: &str, postfix: &str) -> String {
         match self.attr {
-            SymbolAttribute::Shadow => "".into(),
+            SymbolAttributes::Shadow => "".into(),
             _ => format!(
                 "{}{}{}{}",
                 prefix,
