@@ -1,12 +1,25 @@
-use crate::{Context, Symbol, Word};
+use crate::{Context, Word};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Node(Vec<Token>);
+pub struct Parsed {
+    pub tokens: Vec<Token>,
+}
 
-impl Node {
-    pub fn output(&self, ctx: &Context, connector: &str, end: &str) -> String {
-        if self.0.is_empty() {
-            return "".into();
+impl Parsed {
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Self { tokens }
+    }
+
+    pub fn output(
+        &self,
+        ctx: &Context,
+        token_prefix: &str,
+        token_postfix: &str,
+        lable_prefix: &str,
+        label_postfix: &str,
+    ) -> String {
+        if self.tokens.is_empty() {
+            "".into()
         } else {
             format!(
                 "{}{}",
@@ -14,13 +27,25 @@ impl Node {
                     .unwrap_or(&vec![])
                     .iter()
                     .fold(String::new(), |prev, s| {
-                        format!("{}{}", prev, s.output("", ""))
+                        format!("{}{}", prev, s.output(lable_prefix, label_postfix))
                     }),
-                self.0.iter().fold(String::new(), |prev, t| {
-                    format!("{}{}", prev, t.output(connector, end))
+                self.tokens.iter().fold(String::new(), |prev, t| {
+                    format!("{}{}", prev, t.output(token_prefix, token_postfix))
                 }),
             )
         }
+    }
+
+    pub fn push(&mut self, token: Token) {
+        self.tokens.push(token);
+    }
+
+    pub fn append(&mut self, mut other: Self) {
+        self.tokens.append(&mut other.tokens);
+    }
+
+    pub fn size(&self) -> usize {
+        self.tokens.size()
     }
 }
 
@@ -30,6 +55,15 @@ pub enum TokenAttributes {
     NewLine,
 }
 
+impl ToString for TokenAttributes {
+    fn to_string(&self) -> String {
+        match self {
+            Self::NewLine => "\n".into(),
+            _ => "".into(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Token {
     pub text: String,
@@ -37,7 +71,8 @@ pub struct Token {
     pub raw: Word,
     pub ptr: Option<Word>,
     pub attr: TokenAttributes,
-    pub rep_connector: usize,
+    pub prefix_rep: usize,
+    pub postfix_rep: usize,
 }
 
 impl ToString for Token {
@@ -52,7 +87,6 @@ impl Token {
         size: usize,
         raw: Word,
         attr: TokenAttributes,
-        rep_connector: usize,
         ptr: Option<Word>,
     ) -> Self {
         Self {
@@ -61,24 +95,19 @@ impl Token {
             raw,
             ptr,
             attr,
-            rep_connector,
+            prefix_rep: 1,
+            postfix_rep: 1,
         }
     }
 
-    pub fn output(&self, connector: &str, end: &str) -> String {
-        match self.attr {
-            TokenAttributes::NewLine => format!(
-                "{}{}{}",
-                connector.repeat(self.rep_connector),
-                self.to_string(),
-                end
-            ),
-            _ => format!(
-                "{}{}",
-                connector.repeat(self.rep_connector),
-                self.to_string()
-            ),
-        }
+    pub fn output(&self, prefix: &str, postfix: &str) -> String {
+        format!(
+            "{}{}{}{}",
+            prefix.repeat(self.prefix_rep),
+            self.to_string(),
+            postfix.repeat(self.postfix_rep),
+            self.attr.to_string()
+        )
     }
 }
 
@@ -95,9 +124,10 @@ impl Line for [Token] {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::Symbol;
     use crate::SymbolAttributes;
 
-    use super::*;
     fn test_context() -> Context {
         let ctx = Context::new(0x100, 0x110);
 
@@ -107,8 +137,8 @@ mod tests {
     #[test]
     fn it_should_calculate_total_size_of_tokens() {
         let cws = [
-            Token::new("test", 1, 0, TokenAttributes::Std, 1, None),
-            Token::new("test", 3, 0, TokenAttributes::Std, 1, None),
+            Token::new("test", 1, 0, TokenAttributes::Std, None),
+            Token::new("test", 3, 0, TokenAttributes::Std, None),
         ];
 
         assert_eq!(4, cws.size());
@@ -120,13 +150,35 @@ mod tests {
         ctx.address = 0x101;
 
         ctx.add_symbol(Symbol::new(0x101, "shadowed", 0, SymbolAttributes::Shadow));
-        ctx.add_symbol(Symbol::new(0x101, "correct", 0, SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new(0x101, "correct", 0, SymbolAttributes::NewLine));
         ctx.add_symbol(Symbol::new(0x100, "wrong", 0, SymbolAttributes::Std));
 
-        let node = Node(vec![
-            Token::new("lda", 1, 0, TokenAttributes::Std, 1, None),
-            Token::new("#$10", 1, 0, TokenAttributes::Std, 1, None),
+        let node = Parsed::new(vec![
+            Token {
+                prefix_rep: 0,
+                ..Token::new("lda", 1, 0, TokenAttributes::Std, None)
+            },
+            Token::new("#$10", 1, 0, TokenAttributes::NewLine, None),
         ]);
-        assert_eq!("correct:\nlda #$10", node.output(&ctx, " ", "\n"));
+        assert_eq!(
+            ">>correct:\nlda #$10\n",
+            node.output(&ctx, " ", "", ">>", ":")
+        );
+    }
+
+    #[test]
+    fn it_should_return_nothing_with_empty_input() {
+        let ctx = test_context();
+
+        let node = Parsed::new(vec![]);
+        assert_eq!("", node.output(&ctx, "", "", "", ""));
+    }
+
+    #[test]
+    fn it_should_use_prefix_dup() {
+        let mut t = Token::new("test", 1, 0, TokenAttributes::Std, None);
+        t.prefix_rep = 2;
+        t.postfix_rep = 3;
+        assert_eq!(">>test<<<", t.output(">", "<"));
     }
 }

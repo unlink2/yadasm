@@ -1,5 +1,5 @@
 pub type ReadOp = fn(usize, &[u8]) -> Option<Word>;
-pub type Word = usize;
+pub type Word = u64;
 
 pub fn readnle(n: usize, bytes: &[u8]) -> Option<Word> {
     if n <= bytes.len() {

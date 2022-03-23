@@ -4,10 +4,18 @@ use crate::{Definition, Symbol, Word};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Context {
+    // symbols are used for address labels
     pub symbols: HashMap<Word, Vec<Symbol>>,
+
+    // the address space
     pub address: Word,
+    pub start_address: Word,
     pub end_address: Word,
+
+    // flags may be used by parsers to store temporary values
     pub flags: HashMap<String, String>,
+
+    // definitions are used for text replacement
     pub definitions: HashMap<Word, Definition>,
 }
 
@@ -16,10 +24,24 @@ impl Context {
         Self {
             symbols: HashMap::default(),
             address,
+            start_address: address,
             end_address,
             flags: HashMap::default(),
             definitions: HashMap::default(),
         }
+    }
+
+    /// resets the current address back to start
+    pub fn reset(&mut self) {
+        self.address = self.start_address;
+    }
+
+    /// clears the entire context and resets it to its initial state
+    pub fn clear(&mut self) {
+        self.reset();
+        self.symbols.clear();
+        self.flags.clear();
+        self.definitions.clear();
     }
 
     pub fn is_in_range(&self, addr: Word) -> bool {
@@ -30,14 +52,20 @@ impl Context {
         !self.is_in_range(self.address)
     }
 
+    /// adds a symbol the the symbol list
     pub fn add_symbol(&mut self, symbol: Symbol) {
         let address = symbol.address;
         if let Some(sl) = self.symbols.get_mut(&address) {
             sl.push(symbol);
             sl.sort_by(|l, r| l.order.cmp(&r.order));
         } else {
-            self.symbols.insert(address, vec![symbol]);
+            self.add_first_symbol(symbol);
         }
+    }
+
+    /// adds a symbol if no other symbol for the given address exists
+    pub fn add_first_symbol(&mut self, symbol: Symbol) {
+        self.symbols.entry(symbol.address).or_insert_with(|| vec![symbol]);
     }
 
     pub fn get_symbols(&self, addr: Word) -> Option<&Vec<Symbol>> {

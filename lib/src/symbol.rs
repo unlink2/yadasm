@@ -22,6 +22,8 @@ pub struct Symbol {
     pub address: Word,
     pub name: String,
     pub order: u16,
+    pub prefix_rep: usize,
+    pub postfix_rep: usize,
 }
 
 impl ToString for Symbol {
@@ -40,6 +42,8 @@ impl Symbol {
             name: name.into(),
             order,
             attr,
+            prefix_rep: 1,
+            postfix_rep: 1,
         }
     }
 
@@ -48,11 +52,24 @@ impl Symbol {
             SymbolAttributes::Shadow => "".into(),
             _ => format!(
                 "{}{}{}{}",
-                prefix,
+                prefix.repeat(self.prefix_rep),
                 self.to_string(),
-                postfix,
+                postfix.repeat(self.postfix_rep),
                 self.attr.to_string()
             ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_use_prefix_dup() {
+        let mut t = Symbol::new(0, "test", 0, SymbolAttributes::Std);
+        t.prefix_rep = 2;
+        t.postfix_rep = 1;
+        assert_eq!(">>test:", t.output(">", ":"));
     }
 }
