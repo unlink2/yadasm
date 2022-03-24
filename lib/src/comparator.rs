@@ -1,4 +1,4 @@
-pub type Comparator<T> = fn(T) -> bool;
+pub type Comparator<T> = dyn Fn(T) -> bool;
 
 pub fn always_true<T>(_n: T) -> bool {
     true

@@ -1,6 +1,8 @@
+use std::{rc::Rc, cell::RefCell};
+
 use crate::{Comparator, Context, Error, ErrorKind, Parsed, ReadOp, Word};
 
-type Converter = fn(&mut Context, Word, usize) -> Parsed;
+type Converter = dyn Fn(&mut Context, Word, usize) -> Parsed;
 
 #[derive(Clone)]
 pub struct Node {
@@ -8,8 +10,8 @@ pub struct Node {
     pub reader: ReadOp,
     pub size: usize,
     pub read: usize,
-    pub converter: Converter,
-    pub comparator: Comparator<Word>,
+    pub converter: Rc<RefCell<Converter>>,
+    pub comparator: Rc<RefCell<Comparator<Word>>>,
 }
 
 impl PartialEq for Node {
@@ -33,16 +35,16 @@ impl Node {
         size: usize,
         read: usize,
         reader: ReadOp,
-        converter: Converter,
-        comparator: Comparator<Word>,
+        converter: impl Fn(&mut Context, Word, usize) -> Parsed + 'static,
+        comparator: impl Fn(Word) -> bool + 'static,
     ) -> Self {
         Self {
             children: vec![],
             size,
             reader,
             read,
-            converter,
-            comparator,
+            converter: Rc::new(RefCell::new(converter)),
+            comparator: Rc::new(RefCell::new(comparator)),
         }
     }
 
@@ -55,8 +57,8 @@ impl Node {
             Some(read) => read,
             None => return Err(Error::new(ErrorKind::OutOfData)),
         };
-        if (self.comparator)(read) {
-            parsed.append((self.converter)(ctx, read, self.size));
+        if (self.comparator.borrow())(read) {
+            parsed.append((self.converter.borrow())(ctx, read, self.size));
 
             for c in &self.children {
                 if let Err(err) = c.parse_with(ctx, &bin[parsed.size()..], parsed) {
@@ -138,13 +140,13 @@ mod tests {
     }
 
     fn test_node1() -> Node {
-        Node::new(1, 1, readnle, test_converter, test_comparator1)
+        Node::new(1, 1, readnle, &test_converter, test_comparator1)
     }
 
     fn test_node2() -> Node {
         let mut n = test_node1();
-        n.comparator = test_comparator2;
-        n.push(Node::new(2, 1, readnle, test_converter, test_comparator3));
+        n.comparator = Rc::new(RefCell::new(test_comparator2));
+        n.push(Node::new(2, 1, readnle, &test_converter, test_comparator3));
 
         n
     }

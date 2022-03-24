@@ -11,7 +11,7 @@ fn raw_converter(_ctx: &mut Context, dat: Word, size: usize) -> Parsed {
 }
 
 fn arch_raw_nodes() -> Vec<Node> {
-    vec![Node::new(1, 1, readnle, raw_converter, always_true)]
+    vec![Node::new(1, 1, readnle, &raw_converter, always_true)]
 }
 
 pub fn arch_raw() -> Arch {

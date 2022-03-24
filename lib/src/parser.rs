@@ -11,7 +11,7 @@ pub fn build_lookup(nodes: Vec<Node>, read: usize) -> NodeLookup {
 
     for i in 0..2_u64.pow(read as u32 * 8) {
         for node in &nodes {
-            if (node.comparator)(i as Word) {
+            if (node.comparator.borrow())(i as Word) {
                 lookup.insert(i, node.clone());
             }
         }
@@ -155,6 +155,8 @@ pub fn parse_to_strings(
 
 #[cfg(test)]
 mod tests {
+    use std::{cell::RefCell, rc::Rc};
+
     use crate::{readnle, Symbol, SymbolAttributes, Token, TokenAttributes};
 
     use super::*;
@@ -216,19 +218,19 @@ mod tests {
     }
 
     fn test_node1() -> Node {
-        Node::new(1, 1, readnle, test_converter, test_comparator1)
+        Node::new(1, 1, readnle, &test_converter, test_comparator1)
     }
 
     fn test_node2() -> Node {
         let mut n = test_node1();
-        n.comparator = test_comparator2;
-        n.push(Node::new(1, 1, readnle, test_converter, test_comparator3));
+        n.comparator = Rc::new(RefCell::new(test_comparator2));
+        n.push(Node::new(1, 1, readnle, &test_converter, test_comparator3));
 
         n
     }
 
     fn test_node3() -> Node {
-        Node::new(1, 1, readnle, test_converter, test_comparator4)
+        Node::new(1, 1, readnle, &test_converter, test_comparator4)
     }
 
     fn test_arch() -> Arch {
