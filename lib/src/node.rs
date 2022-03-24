@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{Comparator, Context, Error, ErrorKind, Parsed, ReadOp, Word};
 
@@ -38,8 +38,19 @@ impl Node {
         converter: impl Fn(&mut Context, Word, usize) -> Parsed + 'static,
         comparator: impl Fn(Word) -> bool + 'static,
     ) -> Self {
+        Self::with_children(size, read, reader, converter, comparator, vec![])
+    }
+
+    pub fn with_children(
+        size: usize,
+        read: usize,
+        reader: ReadOp,
+        converter: impl Fn(&mut Context, Word, usize) -> Parsed + 'static,
+        comparator: impl Fn(Word) -> bool + 'static,
+        children: Vec<Node>,
+    ) -> Self {
         Self {
-            children: vec![],
+            children,
             size,
             reader,
             read,

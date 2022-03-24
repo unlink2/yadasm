@@ -1,5 +1,5 @@
 use crate::{
-    always_true, readnle, Context, IWord, Node, Parsed, Symbol, SymbolAttributes, Token,
+    always_false, always_true, readnle, Context, Node, Parsed, Symbol, SymbolAttributes, Token,
     TokenAttributes, Word,
 };
 
@@ -42,6 +42,21 @@ pub struct ImInfo {
     pub name: String,
     pub im: InstructionModes,
     pub opcode: Word,
+}
+
+impl ImInfo {
+    pub fn new(
+        mask: fn(InstructionModes, Word) -> Word,
+        im: InstructionModes,
+        name: &str,
+        opcode: Word,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            im,
+            opcode: (mask)(im, opcode),
+        }
+    }
 }
 
 pub fn text_converter(text: &str, ctx: &mut Context, dat: Word, size: usize) -> Parsed {
@@ -142,12 +157,241 @@ pub fn opcode_comparator(expected: Word, dat: Word) -> bool {
 }
 
 pub fn append_string_node(text: &str) -> Node {
-    let text_owned = text.to_owned();
+    let text = text.to_owned();
     Node::new(
         0,
         0,
         readnle,
-        move |ctx, dat, size| text_converter(&text_owned, ctx, dat, size),
+        move |ctx, dat, size| text_converter(&text, ctx, dat, size),
         always_true,
     )
+}
+
+pub fn opcode_node(name: &str, opcode: Word, children: Vec<Node>) -> Node {
+    let name = name.to_owned();
+
+    Node::with_children(
+        1,
+        1,
+        readnle,
+        move |ctx, dat, size| text_converter(&name, ctx, dat, size),
+        move |dat| opcode_comparator(opcode, dat),
+        children,
+    )
+}
+
+/// Consumes a byte of a certain value. Does not emit anything
+pub fn consume_byte_node(opcode: Word, children: Vec<Node>) -> Node {
+    Node::with_children(
+        1,
+        1,
+        readnle,
+        no_converter,
+        move |dat| opcode_comparator(opcode, dat),
+        children,
+    )
+}
+
+pub fn read_char_node(
+    prefix: &str,
+    postfix: &str,
+    attr: TokenAttributes,
+    children: Vec<Node>,
+) -> Node {
+    let prefix = prefix.to_owned();
+    let postfix = postfix.to_owned();
+    Node::with_children(
+        1,
+        1,
+        readnle,
+        move |ctx, dat, size| {
+            number_converter(
+                |dat| format!("{}", dat as u8 as char),
+                &prefix,
+                &postfix,
+                attr,
+                ctx,
+                dat,
+                size,
+            )
+        },
+        always_true,
+        children,
+    )
+}
+
+pub fn read_byte_node(
+    prefix: &str,
+    postfix: &str,
+    attr: TokenAttributes,
+    children: Vec<Node>,
+) -> Node {
+    let prefix = prefix.to_owned();
+    let postfix = postfix.to_owned();
+    Node::with_children(
+        1,
+        1,
+        readnle,
+        move |ctx, dat, size| {
+            number_converter(
+                |dat| format!("{:02X}", dat as u8),
+                &prefix,
+                &postfix,
+                attr,
+                ctx,
+                dat,
+                size,
+            )
+        },
+        always_true,
+        children,
+    )
+}
+
+pub fn read_immediate_node(size: usize) -> Node {
+    match size {
+        1 => read_byte_node("#", "", TokenAttributes::Std, vec![]),
+        _ => read_word_node("#", "", TokenAttributes::Std, vec![]),
+    }
+}
+
+pub fn read_word_node(
+    prefix: &str,
+    postfix: &str,
+    attr: TokenAttributes,
+    children: Vec<Node>,
+) -> Node {
+    let prefix = prefix.to_owned();
+    let postfix = postfix.to_owned();
+    Node::with_children(
+        2,
+        2,
+        readnle,
+        move |ctx, dat, size| {
+            number_converter(
+                |dat| format!("{:04X}", dat as u8),
+                &prefix,
+                &postfix,
+                attr,
+                ctx,
+                dat,
+                size,
+            )
+        },
+        always_true,
+        children,
+    )
+}
+
+pub fn read_lword_node(
+    prefix: &str,
+    postfix: &str,
+    attr: TokenAttributes,
+    children: Vec<Node>,
+) -> Node {
+    let prefix = prefix.to_owned();
+    let postfix = postfix.to_owned();
+    Node::with_children(
+        3,
+        3,
+        readnle,
+        move |ctx, dat, size| {
+            number_converter(
+                |dat| format!("{:06X}", dat as u8),
+                &prefix,
+                &postfix,
+                attr,
+                ctx,
+                dat,
+                size,
+            )
+        },
+        always_true,
+        children,
+    )
+}
+
+pub fn read_rel_label_node() -> Node {
+    Node::new(
+        1,
+        1,
+        readnle,
+        move |ctx, dat, size| label_converter(rel_addr_converter, ctx, dat, size),
+        always_true,
+    )
+}
+
+pub fn read_rel_word_label_node() -> Node {
+    Node::new(
+        2,
+        2,
+        readnle,
+        move |ctx, dat, size| label_converter(rel_word_addr_converter, ctx, dat, size),
+        always_true,
+    )
+}
+
+pub fn read_abs_label_node() -> Node {
+    Node::new(
+        2,
+        2,
+        readnle,
+        move |ctx, dat, size| label_converter(abs_addr_converter, ctx, dat, size),
+        always_true,
+    )
+}
+
+pub fn read_abs_long_label_node() -> Node {
+    Node::new(
+        3,
+        3,
+        readnle,
+        move |ctx, dat, size| label_converter(abs_addr_converter, ctx, dat, size),
+        always_true,
+    )
+}
+
+pub fn extract_cc_bits(opcode: Word) -> Word {
+    opcode & 0b00000011
+}
+
+pub fn apply_mask(opcode: Word) -> Word {
+    opcode & 0b00011100
+}
+
+pub fn extract_opcode(opcode: Word) -> Word {
+    opcode & 0b11100011
+}
+
+pub fn is_cc01(opcode: Word) -> bool {
+    extract_cc_bits(opcode) == 0x01
+}
+
+pub fn is_cc10(opcode: Word) -> bool {
+    extract_cc_bits(opcode) == 0x02
+}
+
+pub fn is_cc00(opcode: Word) -> bool {
+    extract_cc_bits(opcode) == 0x00
+}
+
+pub fn is_cc11(opcode: Word) -> bool {
+    extract_cc_bits(opcode) == 0x03
+}
+
+pub fn make_opcode(base: Word, opcode: Word) -> Word {
+    apply_mask(base) | extract_opcode(opcode)
+}
+
+// alternative maks implementation
+// for opcodes that break the rules and just
+// need to be echoed
+pub fn mask_echo(_im: InstructionModes, opcode: Word) -> Word {
+    opcode
+}
+
+pub fn make_instruction(immediate_size: usize, iminfo: ImInfo) -> Node {
+    match iminfo.im {
+        _ => Node::new(0, 0, readnle, no_converter, always_false),
+    }
 }
