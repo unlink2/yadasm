@@ -121,8 +121,8 @@ mod tests {
             )]),
             _ => {
                 ctx.add_symbol(Symbol::new(
-                    ctx.address,
                     "Test3:",
+                    ctx.address,
                     0,
                     crate::SymbolAttributes::NewLine,
                 ));
@@ -179,8 +179,8 @@ mod tests {
         );
         assert_eq!(
             Some(&vec![Symbol::new(
-                0x100,
                 "Test3:",
+                0x100,
                 0,
                 crate::SymbolAttributes::NewLine
             )]),

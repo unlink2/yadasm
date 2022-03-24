@@ -65,7 +65,9 @@ impl Context {
 
     /// adds a symbol if no other symbol for the given address exists
     pub fn add_first_symbol(&mut self, symbol: Symbol) {
-        self.symbols.entry(symbol.address).or_insert_with(|| vec![symbol]);
+        self.symbols
+            .entry(symbol.address)
+            .or_insert_with(|| vec![symbol]);
     }
 
     pub fn get_symbols(&self, addr: Word) -> Option<&Vec<Symbol>> {
@@ -131,7 +133,7 @@ mod tests {
     #[test]
     fn it_should_add_symbols_and_definitions() {
         let mut ctx = test_context();
-        ctx.add_symbol(Symbol::new(0x100, "", 0, crate::SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new("", 0x100, 0, crate::SymbolAttributes::Std));
         ctx.add_def(Definition::new("test", 0x100, 1));
 
         assert_eq!(1, ctx.symbols.len());
@@ -141,13 +143,13 @@ mod tests {
     #[test]
     fn it_should_find_symbols() {
         let mut ctx = test_context();
-        ctx.add_symbol(Symbol::new(0x100, "1", 0, crate::SymbolAttributes::Std));
-        ctx.add_symbol(Symbol::new(0x100, "2", 0, crate::SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new("1", 0x100, 0, crate::SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new("2", 0x100, 0, crate::SymbolAttributes::Std));
 
         assert_eq!(
             Some(&vec![
-                Symbol::new(0x100, "1", 0, crate::SymbolAttributes::Std),
-                Symbol::new(0x100, "2", 0, crate::SymbolAttributes::Std),
+                Symbol::new("1", 0x100, 0, crate::SymbolAttributes::Std),
+                Symbol::new("2", 0x100, 0, crate::SymbolAttributes::Std),
             ]),
             ctx.get_symbols(0x100),
             "Get symbols"

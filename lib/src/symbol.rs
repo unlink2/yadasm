@@ -36,7 +36,7 @@ impl ToString for Symbol {
 }
 
 impl Symbol {
-    pub fn new(address: Word, name: &str, order: u16, attr: SymbolAttributes) -> Self {
+    pub fn new(name: &str, address: Word, order: u16, attr: SymbolAttributes) -> Self {
         Self {
             address,
             name: name.into(),
@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn it_should_use_prefix_dup() {
-        let mut t = Symbol::new(0, "test", 0, SymbolAttributes::Std);
+        let mut t = Symbol::new("test", 0, 0, SymbolAttributes::Std);
         t.prefix_rep = 2;
         t.postfix_rep = 1;
         assert_eq!(">>test:", t.output(">", ":"));

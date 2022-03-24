@@ -69,6 +69,7 @@ pub struct Token {
     pub text: String,
     pub size: usize,
     pub raw: Word,
+    pub address: Option<Word>,
     pub ptr: Option<Word>,
     pub attr: TokenAttributes,
     pub prefix_rep: usize,
@@ -87,14 +88,15 @@ impl Token {
         size: usize,
         raw: Word,
         attr: TokenAttributes,
-        ptr: Option<Word>,
+        address: Option<Word>,
     ) -> Self {
         Self {
             text: text.into(),
             size,
             raw,
-            ptr,
+            address,
             attr,
+            ptr: None,
             prefix_rep: 1,
             postfix_rep: 1,
         }
@@ -149,9 +151,9 @@ mod tests {
         let mut ctx = test_context();
         ctx.address = 0x101;
 
-        ctx.add_symbol(Symbol::new(0x101, "shadowed", 0, SymbolAttributes::Shadow));
-        ctx.add_symbol(Symbol::new(0x101, "correct", 0, SymbolAttributes::NewLine));
-        ctx.add_symbol(Symbol::new(0x100, "wrong", 0, SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new( "shadowed",0x101, 0, SymbolAttributes::Shadow));
+        ctx.add_symbol(Symbol::new( "correct", 0x101, 0, SymbolAttributes::NewLine));
+        ctx.add_symbol(Symbol::new( "wrong", 0x100, 0, SymbolAttributes::Std));
 
         let node = Parsed::new(vec![
             Token {
