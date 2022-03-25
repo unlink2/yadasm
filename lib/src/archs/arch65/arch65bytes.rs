@@ -28,7 +28,7 @@ pub fn bytes_read_string_node(len: usize, attr: TokenAttributes) -> Node {
             &[],
         ))
         .take(len - 1)
-        .chain(vec![append_string_node("\"")])
+        .chain([append_string_node("\"")])
         .collect::<Vec<Node>>(),
     )
 }
