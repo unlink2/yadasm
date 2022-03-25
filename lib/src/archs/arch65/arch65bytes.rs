@@ -5,15 +5,15 @@ use crate::{Node, TokenAttributes, Word};
 use super::{append_string_node, arch65helpers::opcode_node};
 
 pub fn bytes_read_byte_node(attr: TokenAttributes, children: &[Node]) -> Node {
-    super::arch65helpers::read_byte_node("!byte $", "", attr, children)
+    super::arch65helpers::read_byte_node("!byte ", "", attr, children)
 }
 
 pub fn bytes_read_word_node(attr: TokenAttributes, children: &[Node]) -> Node {
-    super::arch65helpers::read_word_node("!word $", "", attr, children)
+    super::arch65helpers::read_word_node("!word ", "", attr, children)
 }
 
 pub fn bytes_read_lword_node(attr: TokenAttributes, children: &[Node]) -> Node {
-    super::arch65helpers::read_lword_node("!le24 $", "", attr, children)
+    super::arch65helpers::read_lword_node("!le24 ", "", attr, children)
 }
 
 pub fn bytes_read_string_node(len: usize, attr: TokenAttributes) -> Node {
@@ -71,10 +71,10 @@ mod tests {
             "testMacro",
             0xA9,
             &[
-                read_byte_node(" $", "", TokenAttributes::Std, &[]),
+                read_byte_node("", "", TokenAttributes::Std, &[]),
                 consume_byte_node(0xA9, &[]),
                 append_string_node(", "),
-                read_byte_node("$", "", TokenAttributes::Std, &[]),
+                read_byte_node("", "", TokenAttributes::Std, &[]),
             ],
         )
     }

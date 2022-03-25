@@ -16,11 +16,11 @@ fn mask(im: InstModes, opcode: Word) -> Word {
         InstModes::ZeroPageX if is_cc01(opcode) => make_opcode(0x75, opcode),
         InstModes::ZeroPageX if is_cc10(opcode) => make_opcode(0x75, opcode),
 
-        InstModes::ZeroPageY if is_cc10(opcode) => make_opcode(0xEC, opcode),
+        InstModes::ZeroPageY if is_cc10(opcode) => make_opcode(0xB6, opcode),
 
-        InstModes::Absolute if is_cc00(opcode) => make_opcode(0xBC, opcode),
-        InstModes::Absolute if is_cc01(opcode) => make_opcode(0x7D, opcode),
-        InstModes::Absolute if is_cc10(opcode) => make_opcode(0x7D, opcode),
+        InstModes::Absolute if is_cc00(opcode) => make_opcode(0xEC, opcode),
+        InstModes::Absolute if is_cc01(opcode) => make_opcode(0x6D, opcode),
+        InstModes::Absolute if is_cc10(opcode) => make_opcode(0xAE, opcode),
 
         InstModes::AbsoluteJump if is_cc00(opcode) => make_opcode(0xEC, opcode),
 
@@ -269,7 +269,7 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{archs::make_arch, parse_to_strings, Arch, Context};
+    use crate::{archs::make_arch, parse_to_strings, Arch, Context, Error};
 
     fn test_context() -> Context {
         let ctx = Context::new(0x600, 0x700);
@@ -281,33 +281,59 @@ mod tests {
         make_arch(&make_instructions6502(1), None)
     }
 
-    #[test]
-    fn it_should_parse_immediate() {
+    fn parser_helper(data: &[u8], expected: &[&str]) -> (Vec<String>, Result<Vec<String>, Error>) {
         let mut ctx = test_context();
         let arch = test_arch();
 
-        let result = parse_to_strings(
-            &mut ctx,
+        let result = parse_to_strings(&mut ctx, data, &[arch]);
+        let expected = expected.iter().map(|s| s.to_string()).collect();
+
+        (expected, result)
+    }
+
+    #[test]
+    fn it_should_parse_immediate() {
+        let (expected, result) = parser_helper(
             &[
                 0xA9, 0xAB, 0xA5, 0xAB, 0xB5, 0xAB, 0xAD, 0x00, 0x02, 0xBD, 0x00, 0x02, 0xB9, 0x00,
                 0x02, 0xA1, 0xAb, 0xB1, 0xAB,
             ],
-            &[arch],
+            &[
+                "lda #$AB",
+                "lda $AB",
+                "lda $AB, x",
+                "lda $0200",
+                "lda $0200, x",
+                "lda $0200, y",
+                "lda ($AB, x)",
+                "lda ($AB), y",
+            ],
         );
-        let expected = vec![
-            "lda #$AB",
-            "lda $AB",
-            "lda $AB, x",
-            "lda $0200",
-            "lda $0200, x",
-            "lda $0200, y",
-            "lda ($AB, x)",
-            "lda ($AB), y",
-        ]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+        assert_eq!(Ok(expected), result);
+    }
 
+    #[test]
+    fn it_should_parse_logic() {
+        let (expected, result) = parser_helper(
+            &[
+                0x0A, 0x06, 0x44, 0x16, 0x44, 0x0E, 0x00, 0x44, 0x1E, 0x00, 0x44,
+            ],
+            &[
+                "asl A",
+                "asl $44",
+                "asl $44, x",
+                "asl $4400",
+                "asl $4400, x",
+            ],
+        );
+
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_bit() {
+        let (expected, result) =
+            parser_helper(&[0x24, 0x44, 0x2C, 0x00, 0x44], &["bit $44", "bit $4400"]);
         assert_eq!(Ok(expected), result);
     }
 }

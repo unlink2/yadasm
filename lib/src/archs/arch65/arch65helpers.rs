@@ -166,7 +166,11 @@ pub fn append_string_node(text: &str) -> Node {
 }
 
 pub fn opcode_node(name: &str, opcode: Word, children: &[Node]) -> Node {
-    let name = name.to_owned();
+    let name = if children.is_empty() {
+        name.to_owned()
+    } else {
+        format!("{} ", name)
+    };
 
     Node::with_children(
         1,
@@ -232,7 +236,7 @@ pub fn read_byte_node(
         readnle,
         move |ctx, dat, size| {
             number_converter(
-                |dat| format!("{:02X}", dat as u8),
+                |dat| format!("${:02X}", dat as u8),
                 &prefix,
                 &postfix,
                 attr,
@@ -267,7 +271,7 @@ pub fn read_word_node(
         readnle,
         move |ctx, dat, size| {
             number_converter(
-                |dat| format!("{:04X}", dat as u16),
+                |dat| format!("${:04X}", dat as u16),
                 &prefix,
                 &postfix,
                 attr,
@@ -295,7 +299,7 @@ pub fn read_lword_node(
         readnle,
         move |ctx, dat, size| {
             number_converter(
-                |dat| format!("{:06X}", dat as u32),
+                |dat| format!("${:06X}", dat as u32),
                 &prefix,
                 &postfix,
                 attr,

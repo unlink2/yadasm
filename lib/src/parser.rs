@@ -85,7 +85,7 @@ pub trait Parser {
         if let Some(frst) = next.get(0) {
             frst.parse(ctx, bin, self.tail(next))
         } else {
-            Err(Error::new(ErrorKind::ParserFailed))
+            Err(Error::new(ErrorKind::ParserFailed).set_address(ctx.address))
         }
     }
 
@@ -423,7 +423,7 @@ mod tests {
         );
         ctx.reset();
         assert_eq!(
-            Err(Error::new(ErrorKind::ParserFailed)),
+            Err(Error::new(ErrorKind::ParserFailed).set_address(0x100)),
             parse(&mut ctx, &data_parser_failed, &[test_arch()])
         );
     }
