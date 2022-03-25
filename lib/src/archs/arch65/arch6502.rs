@@ -22,8 +22,7 @@ fn mask(im: InstModes, opcode: Word) -> Word {
         InstModes::Absolute if is_cc01(opcode) => make_opcode(0x6D, opcode),
         InstModes::Absolute if is_cc10(opcode) => make_opcode(0xAE, opcode),
 
-        InstModes::AbsoluteJump if is_cc00(opcode) => make_opcode(0xEC, opcode),
-
+        InstModes::AbsoluteJump if is_cc00(opcode) => mask_echo(im, opcode),
         InstModes::AbsoluteX if is_cc00(opcode) => make_opcode(0xBC, opcode),
         InstModes::AbsoluteX if is_cc01(opcode) => make_opcode(0x7D, opcode),
         InstModes::AbsoluteX if is_cc10(opcode) => make_opcode(0x7D, opcode),
@@ -112,10 +111,9 @@ fn make_implied(name: &str, opcode: Word) -> Vec<ImInfo> {
 fn make_compare_index(name: &str, opcode: Word) -> Vec<ImInfo> {
     make_im_from(
         &[
+            InstModes::Immediate,
             InstModes::ZeroPage,
-            InstModes::ZeroPageX,
             InstModes::Absolute,
-            InstModes::AbsoluteX,
         ],
         name,
         opcode,
@@ -269,7 +267,10 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{archs::make_arch, parse_to_strings, Arch, Context, Error};
+    use crate::{
+        archs::{bytes_read_byte_node, make_arch},
+        parse_to_strings, Arch, Context, Definition, Error, TokenAttributes,
+    };
 
     fn test_context() -> Context {
         let ctx = Context::new(0x600, 0x700);
@@ -334,6 +335,156 @@ mod tests {
     fn it_should_parse_bit() {
         let (expected, result) =
             parser_helper(&[0x24, 0x44, 0x2C, 0x00, 0x44], &["bit $44", "bit $4400"]);
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_branch() {
+        let (expected, result) = parser_helper(
+            &[
+                0x00, 0x00, 0x00, 0x10, 0xFB, 0x10, 0xFA, 0x10, 0x03, 0x00, 0x00, 0x00, 0x10, 0xE0,
+            ],
+            &[
+                "label_600:\nbrk",
+                "label_601:\nbrk",
+                "brk",
+                "bpl label_600",
+                "bpl label_601",
+                "bpl label_60C",
+                "brk",
+                "brk",
+                "brk",
+                "label_60C:\nbpl label_5EE",
+            ],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_comapre_index() {
+        let (expected, result) = parser_helper(
+            &[0xE0, 0x44, 0xE4, 0x44, 0xEC, 0x00, 0x44],
+            &["cpx #$44", "cpx $44", "cpx $4400"],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_dec() {
+        let (expected, result) = parser_helper(
+            &[0xC6, 0x44, 0xD6, 0x44, 0xCE, 0x00, 0x44, 0xDE, 0x00, 0x44],
+            &["dec $44", "dec $44, x", "dec $4400", "dec $4400, x"],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_jump() {
+        let (expected, result) = parser_helper(
+            &[0x4C, 0x03, 0x06, 0x6C, 0x20, 0x54],
+            &["jmp label_603", "label_603:\njmp (label_5420)"],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_jsr() {
+        let (expected, result) = parser_helper(&[0x20, 0x20, 0x54], &["jsr label_5420"]);
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_ldx() {
+        let (expected, result) = parser_helper(
+            &[
+                0xA2, 0x44, 0xA6, 0x44, 0xB6, 0x44, 0xAE, 0x55, 0x44, 0xBE, 0x55, 0x44,
+            ],
+            &[
+                "ldx #$44",
+                "ldx $44",
+                "ldx $44, y",
+                "ldx $4455",
+                "ldx $4455, y",
+            ],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_ldy() {
+        let (expected, result) = parser_helper(
+            &[
+                0xA0, 0x44, 0xA4, 0x44, 0xB4, 0x44, 0xAC, 0x55, 0x44, 0xBC, 0x55, 0x44,
+            ],
+            &[
+                "ldy #$44",
+                "ldy $44",
+                "ldy $44, x",
+                "ldy $4455",
+                "ldy $4455, x",
+            ],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_stx() {
+        let (expected, result) = parser_helper(
+            &[0x86, 0x44, 0x96, 0x44, 0x8E, 0x55, 0x44],
+            &["stx $44", "stx $44, y", "stx $4455"],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_sty() {
+        let (expected, result) = parser_helper(
+            &[0x84, 0x44, 0x94, 0x44, 0x8C, 0x55, 0x44],
+            &["sty $44", "sty $44, x", "sty $4455"],
+        );
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_parse_default() {
+        let mut ctx = test_context();
+        let mut arch = test_arch();
+        arch.default = Some(bytes_read_byte_node(TokenAttributes::NewLine, &[]));
+
+        let data: [u8; 1] = [0xFF];
+        let expected = ["!byte $FF\n"];
+
+        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let expected = expected.iter().map(|s| s.to_string()).collect();
+        assert_eq!(Ok(expected), result);
+    }
+
+    #[test]
+    fn it_should_fail_without_default() {
+        let mut ctx = test_context();
+        let arch = test_arch();
+
+        let data: [u8; 1] = [0xFF];
+
+        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        assert_eq!(
+            Err(Error::new(crate::ErrorKind::ParserFailed).set_address(0x600)),
+            result
+        );
+    }
+
+    #[test]
+    fn it_should_lookup_definitions() {
+        let mut ctx = test_context();
+        ctx.add_def(Definition::new("d1", 0x44, 1));
+        ctx.add_def(Definition::new("d2", 0x4455, 1));
+        let arch = test_arch();
+
+        let data = [0xA9, 0x44, 0xAD, 0x55, 0x44, 0xA9, 0x45];
+        let expected = ["lda #d1", "lda d2", "lda #$45"];
+
+        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let expected = expected.iter().map(|s| s.to_string()).collect();
         assert_eq!(Ok(expected), result);
     }
 }

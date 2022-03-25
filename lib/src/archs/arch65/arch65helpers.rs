@@ -107,7 +107,7 @@ pub fn number_converter(
 
 pub fn rel_addr_converter(ctx: &Context, dat: Word) -> Word {
     if dat & 0x80 > 0 {
-        ctx.address - (!dat + 0xFF)
+        ctx.address - (!dat & 0xFF) + 1
     } else {
         ctx.address + dat + 2
     }
@@ -137,7 +137,7 @@ pub fn label_converter(
         syms[0].name.clone()
     } else {
         let name = format!("label_{:X}", addr);
-        let sym = Symbol::new(&name, addr, 0xFF, SymbolAttributes::Std);
+        let sym = Symbol::new(&name, addr, 0xFF, SymbolAttributes::NewLine);
         ctx.add_symbol(sym);
         name
     };

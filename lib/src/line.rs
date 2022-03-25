@@ -23,7 +23,7 @@ impl Parsed {
         } else {
             format!(
                 "{}{}",
-                ctx.get_symbols(ctx.address)
+                ctx.get_symbols(self.tokens[0].address.unwrap_or(ctx.address))
                     .unwrap_or(&vec![])
                     .iter()
                     .fold(String::new(), |prev, s| {
@@ -151,9 +151,9 @@ mod tests {
         let mut ctx = test_context();
         ctx.address = 0x101;
 
-        ctx.add_symbol(Symbol::new( "shadowed",0x101, 0, SymbolAttributes::Shadow));
-        ctx.add_symbol(Symbol::new( "correct", 0x101, 0, SymbolAttributes::NewLine));
-        ctx.add_symbol(Symbol::new( "wrong", 0x100, 0, SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new("shadowed", 0x101, 0, SymbolAttributes::Shadow));
+        ctx.add_symbol(Symbol::new("correct", 0x101, 0, SymbolAttributes::NewLine));
+        ctx.add_symbol(Symbol::new("wrong", 0x100, 0, SymbolAttributes::Std));
 
         let node = Parsed::new(vec![
             Token {
