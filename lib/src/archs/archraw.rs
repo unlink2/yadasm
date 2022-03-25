@@ -16,7 +16,7 @@ fn arch_raw_nodes() -> Vec<Node> {
 
 pub fn arch_raw() -> Arch {
     Arch::new(
-        arch_raw_nodes(),
+        &arch_raw_nodes(),
         build_lookup,
         Some(arch_raw_nodes()[0].clone()),
         1,
@@ -45,12 +45,10 @@ mod tests {
             &[0xA9, 0x44, 0xAD, 0x00, 0xFF, 0x55, 0x44, 0xA9, 0x45],
             &[arch_raw()],
         );
-        let expected = vec![
-            "© ", "D ", "\u{ad} ", "\u{0} ", "ÿ ", "U ", "D ", "© ", "E ",
-        ]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+        let expected = vec!["©", "D", "\u{ad}", "\u{0}", "ÿ", "U", "D", "©", "E"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
 
         assert_eq!(Ok(expected), result);
     }

@@ -4,13 +4,13 @@ use crate::{Context, Error, ErrorKind, Node, Parsed, ReadOp, Word};
 
 pub type NodeLookup = HashMap<Word, Node>;
 
-pub type BuildLookup = fn(nodes: Vec<Node>, read: usize) -> NodeLookup;
+pub type BuildLookup = fn(nodes: &[Node], read: usize) -> NodeLookup;
 
-pub fn build_lookup(nodes: Vec<Node>, read: usize) -> NodeLookup {
+pub fn build_lookup(nodes: &[Node], read: usize) -> NodeLookup {
     let mut lookup = NodeLookup::default();
 
     for i in 0..2_u64.pow(read as u32 * 8) {
-        for node in &nodes {
+        for node in nodes {
             if (node.comparator.borrow())(i as Word) {
                 lookup.insert(i, node.clone());
             }
@@ -30,7 +30,7 @@ pub struct Arch {
 
 impl Arch {
     pub fn new(
-        nodes: Vec<Node>,
+        nodes: &[Node],
         build_lookup: BuildLookup,
         default: Option<Node>,
         read: usize,
@@ -148,7 +148,7 @@ pub fn parse_to_strings(
 
     let mut strs = vec![];
     for p in parsed {
-        strs.push(p.output(ctx, "", " ", "", ":"));
+        strs.push(p.output(ctx, "", "", "", ":"));
     }
     Ok(strs)
 }
@@ -235,7 +235,7 @@ mod tests {
 
     fn test_arch() -> Arch {
         Arch::new(
-            vec![test_node1(), test_node2(), test_node3()],
+            &[test_node1(), test_node2(), test_node3()],
             build_lookup,
             None,
             1,
@@ -245,7 +245,7 @@ mod tests {
 
     fn test_arch_default() -> Arch {
         Arch::new(
-            vec![test_node1(), test_node2(), test_node3()],
+            &[test_node1(), test_node2(), test_node3()],
             build_lookup,
             Some(test_node3()),
             1,

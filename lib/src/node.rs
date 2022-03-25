@@ -38,7 +38,7 @@ impl Node {
         converter: impl Fn(&mut Context, Word, usize) -> Parsed + 'static,
         comparator: impl Fn(Word) -> bool + 'static,
     ) -> Self {
-        Self::with_children(size, read, reader, converter, comparator, vec![])
+        Self::with_children(size, read, reader, converter, comparator, &[])
     }
 
     pub fn with_children(
@@ -47,10 +47,10 @@ impl Node {
         reader: ReadOp,
         converter: impl Fn(&mut Context, Word, usize) -> Parsed + 'static,
         comparator: impl Fn(Word) -> bool + 'static,
-        children: Vec<Node>,
+        children: &[Node],
     ) -> Self {
         Self {
-            children,
+            children: children.to_vec(),
             size,
             reader,
             read,
@@ -72,8 +72,9 @@ impl Node {
             parsed.append((self.converter.borrow())(ctx, read, self.size));
 
             for c in &self.children {
-                if let Err(err) = c.parse_with(ctx, &bin[parsed.size()..], parsed) {
-                    return Err(err);
+                match c.parse(ctx, &bin[parsed.size()..]) {
+                    Err(err) => return Err(err),
+                    Ok(p) => parsed.append(p)
                 }
             }
             Ok(())

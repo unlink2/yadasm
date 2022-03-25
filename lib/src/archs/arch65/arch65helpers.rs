@@ -1,10 +1,10 @@
 use crate::{
-    always_false, always_true, readnle, Context, Node, Parsed, Symbol, SymbolAttributes, Token,
-    TokenAttributes, Word,
+    always_true, build_lookup, readnle, Arch, Context, Node, Parsed, Symbol, SymbolAttributes,
+    Token, TokenAttributes, Word,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum InstructionModes {
+pub enum InstModes {
     Immediate,     // dynamically sized
     ImmediateByte, // always 1 byte
     ZeroPage,
@@ -19,7 +19,6 @@ pub enum InstructionModes {
     Implied,
     Relative,
     AbsoluteJump,
-    ZeropageY,
     IndirectJump,
     ZeroPageIndirect,
     JumpAbsoluteX,
@@ -40,22 +39,21 @@ pub enum InstructionModes {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ImInfo {
     pub name: String,
-    pub im: InstructionModes,
+    pub im: InstModes,
     pub opcode: Word,
 }
 
 impl ImInfo {
-    pub fn new(
-        mask: fn(InstructionModes, Word) -> Word,
-        im: InstructionModes,
-        name: &str,
-        opcode: Word,
-    ) -> Self {
+    pub fn new(mask: fn(InstModes, Word) -> Word, im: InstModes, name: &str, opcode: Word) -> Self {
         Self {
             name: name.into(),
             im,
             opcode: (mask)(im, opcode),
         }
+    }
+
+    pub fn to_node(&self, children: &[Node]) -> Node {
+        opcode_node(&self.name, self.opcode, children)
     }
 }
 
@@ -167,7 +165,7 @@ pub fn append_string_node(text: &str) -> Node {
     )
 }
 
-pub fn opcode_node(name: &str, opcode: Word, children: Vec<Node>) -> Node {
+pub fn opcode_node(name: &str, opcode: Word, children: &[Node]) -> Node {
     let name = name.to_owned();
 
     Node::with_children(
@@ -181,7 +179,7 @@ pub fn opcode_node(name: &str, opcode: Word, children: Vec<Node>) -> Node {
 }
 
 /// Consumes a byte of a certain value. Does not emit anything
-pub fn consume_byte_node(opcode: Word, children: Vec<Node>) -> Node {
+pub fn consume_byte_node(opcode: Word, children: &[Node]) -> Node {
     Node::with_children(
         1,
         1,
@@ -196,7 +194,7 @@ pub fn read_char_node(
     prefix: &str,
     postfix: &str,
     attr: TokenAttributes,
-    children: Vec<Node>,
+    children: &[Node],
 ) -> Node {
     let prefix = prefix.to_owned();
     let postfix = postfix.to_owned();
@@ -224,7 +222,7 @@ pub fn read_byte_node(
     prefix: &str,
     postfix: &str,
     attr: TokenAttributes,
-    children: Vec<Node>,
+    children: &[Node],
 ) -> Node {
     let prefix = prefix.to_owned();
     let postfix = postfix.to_owned();
@@ -250,8 +248,8 @@ pub fn read_byte_node(
 
 pub fn read_immediate_node(size: usize) -> Node {
     match size {
-        1 => read_byte_node("#", "", TokenAttributes::Std, vec![]),
-        _ => read_word_node("#", "", TokenAttributes::Std, vec![]),
+        1 => read_byte_node("#", "", TokenAttributes::Std, &[]),
+        _ => read_word_node("#", "", TokenAttributes::Std, &[]),
     }
 }
 
@@ -259,7 +257,7 @@ pub fn read_word_node(
     prefix: &str,
     postfix: &str,
     attr: TokenAttributes,
-    children: Vec<Node>,
+    children: &[Node],
 ) -> Node {
     let prefix = prefix.to_owned();
     let postfix = postfix.to_owned();
@@ -269,7 +267,7 @@ pub fn read_word_node(
         readnle,
         move |ctx, dat, size| {
             number_converter(
-                |dat| format!("{:04X}", dat as u8),
+                |dat| format!("{:04X}", dat as u16),
                 &prefix,
                 &postfix,
                 attr,
@@ -287,7 +285,7 @@ pub fn read_lword_node(
     prefix: &str,
     postfix: &str,
     attr: TokenAttributes,
-    children: Vec<Node>,
+    children: &[Node],
 ) -> Node {
     let prefix = prefix.to_owned();
     let postfix = postfix.to_owned();
@@ -297,7 +295,7 @@ pub fn read_lword_node(
         readnle,
         move |ctx, dat, size| {
             number_converter(
-                |dat| format!("{:06X}", dat as u8),
+                |dat| format!("{:06X}", dat as u32),
                 &prefix,
                 &postfix,
                 attr,
@@ -386,12 +384,91 @@ pub fn make_opcode(base: Word, opcode: Word) -> Word {
 // alternative maks implementation
 // for opcodes that break the rules and just
 // need to be echoed
-pub fn mask_echo(_im: InstructionModes, opcode: Word) -> Word {
+pub fn mask_echo(_im: InstModes, opcode: Word) -> Word {
     opcode
 }
 
-pub fn make_instruction(immediate_size: usize, iminfo: ImInfo) -> Node {
-    match iminfo.im {
-        _ => Node::new(0, 0, readnle, no_converter, always_false),
+pub fn make_instruction(i: &ImInfo, immediate_size: usize) -> Node {
+    match i.im {
+        InstModes::Immediate => i.to_node(&[read_immediate_node(immediate_size)]),
+        InstModes::ImmediateByte => i.to_node(&[read_immediate_node(1)]),
+
+        InstModes::Relative => i.to_node(&[read_rel_label_node()]),
+        InstModes::Implied => i.to_node(&[]),
+
+        InstModes::ZeroPage => i.to_node(&[read_byte_node("", "", TokenAttributes::Std, &[])]),
+        InstModes::ZeroPageX => i.to_node(&[read_byte_node("", ", x", TokenAttributes::Std, &[])]),
+        InstModes::ZeroPageY => i.to_node(&[read_byte_node("", ", y", TokenAttributes::Std, &[])]),
+
+        InstModes::Absolute => i.to_node(&[read_word_node("", "", TokenAttributes::Std, &[])]),
+        InstModes::AbsoluteX => i.to_node(&[read_word_node("", ", x", TokenAttributes::Std, &[])]),
+        InstModes::AbsoluteY => i.to_node(&[read_word_node("", ", y", TokenAttributes::Std, &[])]),
+
+        InstModes::IndirectX => {
+            i.to_node(&[read_byte_node("(", ", x)", TokenAttributes::Std, &[])])
+        }
+        InstModes::IndirectY => {
+            i.to_node(&[read_byte_node("(", "), y", TokenAttributes::Std, &[])])
+        }
+
+        InstModes::Accumulator => i.to_node(&[append_string_node("A")]),
+        InstModes::AbsoluteJump => i.to_node(&[read_abs_label_node()]),
+        InstModes::IndirectJump => i.to_node(&[
+            append_string_node("("),
+            read_abs_label_node(),
+            append_string_node(")"),
+        ]),
+        InstModes::ZeroPageIndirect => {
+            i.to_node(&[read_byte_node("(", ")", TokenAttributes::Std, &[])])
+        }
+        InstModes::JumpAbsoluteX => {
+            i.to_node(&[read_byte_node("(", ", x)", TokenAttributes::Std, &[])])
+        }
+        InstModes::AbsoluteLong => i.to_node(&[read_lword_node("", "", TokenAttributes::Std, &[])]),
+        InstModes::AbsoluteLongX => {
+            i.to_node(&[read_lword_node("", ", x", TokenAttributes::Std, &[])])
+        }
+        InstModes::DirectPageIndirectLong => {
+            i.to_node(&[read_byte_node("[", "]", TokenAttributes::Std, &[])])
+        }
+        InstModes::DirectPageIndirectLongY => {
+            i.to_node(&[read_byte_node("[", "], y", TokenAttributes::Std, &[])])
+        }
+        InstModes::StackS => i.to_node(&[read_byte_node("", ", s", TokenAttributes::Std, &[])]),
+        InstModes::StackSY => {
+            i.to_node(&[read_byte_node("(", ", s), y", TokenAttributes::Std, &[])])
+        }
+        InstModes::JumpAbsoluteLong => i.to_node(&[read_abs_long_label_node()]),
+        InstModes::Per => i.to_node(&[read_abs_label_node()]),
+        InstModes::BranchLong => i.to_node(&[read_rel_word_label_node()]),
+        InstModes::Move => i.to_node(&[
+            read_immediate_node(1),
+            append_string_node(", "),
+            read_immediate_node(1),
+        ]),
+        InstModes::Jml => i.to_node(&[
+            append_string_node("["),
+            read_abs_label_node(),
+            append_string_node("]"),
+        ]),
+        InstModes::Jsrx => i.to_node(&[
+            append_string_node("("),
+            read_abs_label_node(),
+            append_string_node(", x)"),
+        ]),
     }
+}
+
+pub fn make_instructions(ims: &[ImInfo], immediate_size: usize) -> Vec<Node> {
+    let mut res = vec![];
+
+    for im in ims {
+        res.push(make_instruction(im, immediate_size));
+    }
+
+    res
+}
+
+pub fn make_arch(nodes: &[Node], default: Option<Node>) -> Arch {
+    Arch::new(nodes, build_lookup, default, 1, readnle)
 }
