@@ -270,7 +270,7 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
 mod tests {
     use super::*;
     use crate::{
-        archs::{bytes_read_byte_node, make_arch},
+        archs::{bytes_read_byte_node, make_arch, IMMEDIATE_SIZE8},
         parse_to_strings, Arch, Context, Definition, Error, TokenAttributes,
     };
 
@@ -281,7 +281,7 @@ mod tests {
     }
 
     fn test_arch() -> Arch {
-        make_arch(&make_instructions6502(1), None)
+        make_arch(&make_instructions6502(IMMEDIATE_SIZE8), None)
     }
 
     fn parser_helper(data: &[u8], expected: &[&str]) -> (Vec<String>, Result<Vec<String>, Error>) {

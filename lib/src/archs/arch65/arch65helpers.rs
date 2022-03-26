@@ -115,7 +115,7 @@ pub fn rel_addr_converter(ctx: &Context, dat: Word) -> Word {
 
 pub fn rel_word_addr_converter(ctx: &Context, dat: Word) -> Word {
     if dat & 0x8000 > 0 {
-        ctx.address - (!dat + 0xFFFF)
+        ctx.address - (!dat & 0xFFFF) + 1
     } else {
         ctx.address + dat + 2
     }
@@ -392,6 +392,10 @@ pub fn mask_echo(_im: InstModes, opcode: Word) -> Word {
     opcode
 }
 
+pub fn make_im_info_echo(im: InstModes, name: &str, opcode: Word) -> ImInfo {
+    ImInfo::new(mask_echo, im, name, opcode)
+}
+
 pub fn make_instruction(i: &ImInfo, immediate_size: usize) -> Node {
     match i.im {
         InstModes::Immediate => i.to_node(&[read_immediate_node(immediate_size)]),
@@ -478,3 +482,6 @@ pub fn make_instructions(ims: &[ImInfo], immediate_size: usize) -> Vec<Node> {
 pub fn make_arch(nodes: &[Node], default: Option<Node>) -> Arch {
     Arch::new(nodes, build_lookup, default, 1, readnle)
 }
+
+pub const IMMEDIATE_SIZE8: usize = 1;
+pub const IMMEDIATE_SIZE16: usize = 2;

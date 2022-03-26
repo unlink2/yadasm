@@ -1,4 +1,4 @@
-use crate::{Node, Word};
+use crate::{Node, Word, archs::make_im_info_echo};
 
 use super::{
     is_cc00, is_cc10, make_branch, make_implied, make_instructions6502, make_opcode, mask_echo,
@@ -20,10 +20,6 @@ pub fn mask(im: InstModes, opcode: Word) -> Word {
 
 fn make_im_info(im: InstModes, name: &str, opcode: Word) -> ImInfo {
     ImInfo::new(mask, im, name, opcode)
-}
-
-fn make_im_info_echo(im: InstModes, name: &str, opcode: Word) -> ImInfo {
-    ImInfo::new(mask_echo, im, name, opcode)
 }
 
 fn make_im_from(ims: &[InstModes], name: &str, opcode: Word) -> Vec<ImInfo> {
@@ -110,7 +106,7 @@ pub fn make_instructions65c02(immediate_size: usize) -> Vec<Node> {
 mod tests {
     use super::*;
     use crate::{
-        archs::{bytes_read_byte_node, make_arch},
+        archs::{bytes_read_byte_node, make_arch, IMMEDIATE_SIZE8},
         parse_to_strings, Arch, Context, Error, TokenAttributes,
     };
 
@@ -121,7 +117,7 @@ mod tests {
     }
 
     fn test_arch() -> Arch {
-        make_arch(&make_instructions65c02(1), None)
+        make_arch(&make_instructions65c02(IMMEDIATE_SIZE8), None)
     }
 
     fn parser_helper(data: &[u8], expected: &[&str]) -> (Vec<String>, Result<Vec<String>, Error>) {
