@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::Read,
-    io::Write,
+    io::{Write, stdout},
     path::PathBuf,
 };
 
@@ -12,7 +12,7 @@ use crate::{
         arch_raw, bytes_read_byte_node, make_arch, make_instructions6502, make_instructions65c02,
         make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
     },
-    parse_to_strings, Context, TokenAttributes, Word,
+     parse_with, Context, TokenAttributes, Word,
 };
 
 #[derive(ArgEnum, Debug, Copy, Clone)]
@@ -93,22 +93,20 @@ pub fn exec_cli(args: &[String]) {
         args.read = Some(buffer.len() - args.start)
     }
 
+    let mut out: Box<dyn Write> = if let Some(out) = args.out {
+        Box::new(File::create(out).expect("Unable to create output file"))
+    } else {
+        Box::new(stdout()) 
+    };
+
     let mut ctx = Context::new(args.base, args.base + args.read.unwrap_or(0) as Word);
-    let result = parse_to_strings(
+    parse_with(
         &mut ctx,
         &buffer[args.start..args.start + args.read.unwrap_or(0)],
         &arch_refs,
+        &mut |ctx, parsed| {
+            writeln!(out, "{}", parsed.output(ctx, "", "", "", &args.label_postfix)).expect("Write error");
+        },
     )
     .expect("Parser error");
-
-    if let Some(out) = args.out {
-        let mut out = File::create(out).expect("Unable to create output file");
-        for line in result {
-            writeln!(out, "{}", line).expect("Write error");
-        }
-    } else {
-        for line in result {
-            println!("{}", line);
-        }
-    }
 }

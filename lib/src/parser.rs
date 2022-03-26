@@ -102,41 +102,54 @@ fn parse_pass(
     ctx: &mut Context,
     bin: &[u8],
     parsers: &[&dyn Parser],
-) -> Result<Vec<Parsed>, Error> {
+    on_data: &mut dyn FnMut(&Context, &Parsed),
+) -> Result<(), Error> {
     let mut offset = 0;
-    let mut parsed = vec![];
 
     // if there are no parsers... there is nothing to parse
     if parsers.is_empty() {
-        Ok(parsed)
+        Ok(())
     } else {
         while !ctx.is_at_end() && !bin[offset..].is_empty() {
             let next = parsers[0].parse(ctx, &bin[offset..], parsers)?;
             offset += next.size();
+            (on_data)(ctx, &next);
             ctx.advance(next.size() as Word);
-            parsed.push(next);
         }
 
-        Ok(parsed)
+        Ok(())
     }
 }
 
-pub fn parse(ctx: &mut Context, bin: &[u8], parsers: &[&dyn Parser]) -> Result<Vec<Parsed>, Error> {
+pub fn parse_with(
+    ctx: &mut Context,
+    bin: &[u8],
+    parsers: &[&dyn Parser],
+    on_data: &mut dyn FnMut(&Context, &Parsed),
+) -> Result<(), Error> {
     // pass 1 -> build symbol database
-    parse_pass(ctx, bin, parsers)?;
+    parse_pass(ctx, bin, parsers, &mut |_, _| {})?;
     ctx.reset();
+    parse_no_symbols(ctx, bin, parsers, on_data)
+}
 
+pub fn parse(ctx: &mut Context, bin: &[u8], parsers: &[&dyn Parser]) -> Result<Vec<Parsed>, Error> {
     // pass 2 -> parse actual results
-    parse_no_symbols(ctx, bin, parsers)
+    let mut result = vec![];
+    parse_with(ctx, bin, parsers, &mut |_ctx, parsed| {
+        result.push(parsed.clone())
+    })?;
+    Ok(result)
 }
 
 pub fn parse_no_symbols(
     ctx: &mut Context,
     bin: &[u8],
     parsers: &[&dyn Parser],
-) -> Result<Vec<Parsed>, Error> {
+    on_data: &mut dyn FnMut(&Context, &Parsed),
+) -> Result<(), Error> {
     // pass 2 -> parse actual results
-    parse_pass(ctx, bin, parsers)
+    parse_pass(ctx, bin, parsers, on_data)
 }
 
 pub fn parse_to_strings(
