@@ -43,7 +43,7 @@ mod tests {
         let result = parse_to_strings(
             &mut ctx,
             &[0xA9, 0x44, 0xAD, 0x00, 0xFF, 0x55, 0x44, 0xA9, 0x45],
-            &[arch_raw()],
+            &[&arch_raw()],
         );
         let expected = vec!["©", "D", "\u{ad}", "\u{0}", "ÿ", "U", "D", "©", "E"]
             .iter()

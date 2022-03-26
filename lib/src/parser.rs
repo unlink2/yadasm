@@ -53,7 +53,7 @@ impl Arch {
 }
 
 impl Parser for Arch {
-    fn parse(&self, ctx: &mut Context, bin: &[u8], next: &[impl Parser]) -> Result<Parsed, Error> {
+    fn parse(&self, ctx: &mut Context, bin: &[u8], next: &[&dyn Parser]) -> Result<Parsed, Error> {
         // read the opcode
         let opcode = match (self.reader)(self.read, bin) {
             Some(opcode) => opcode,
@@ -74,13 +74,13 @@ impl Parser for Arch {
 pub trait Parser {
     /// Default implementation just calls the next parser in line
     /// or errors if no parsers are left
-    fn parse(&self, ctx: &mut Context, bin: &[u8], next: &[impl Parser]) -> Result<Parsed, Error>;
+    fn parse(&self, ctx: &mut Context, bin: &[u8], next: &[&dyn Parser]) -> Result<Parsed, Error>;
 
     fn default_parse(
         &self,
         ctx: &mut Context,
         bin: &[u8],
-        next: &[impl Parser],
+        next: &[&dyn Parser],
     ) -> Result<Parsed, Error> {
         if let Some(frst) = next.get(0) {
             frst.parse(ctx, bin, self.tail(next))
@@ -89,7 +89,7 @@ pub trait Parser {
         }
     }
 
-    fn tail<'a, T>(&self, next: &'a [T]) -> &'a [T] {
+    fn tail<'a>(&self, next: &'a [&'a dyn Parser]) -> &'a [&'a dyn Parser] {
         if !next.is_empty() {
             &next[1..]
         } else {
@@ -101,7 +101,7 @@ pub trait Parser {
 fn parse_pass(
     ctx: &mut Context,
     bin: &[u8],
-    parsers: &[impl Parser],
+    parsers: &[&dyn Parser],
 ) -> Result<Vec<Parsed>, Error> {
     let mut offset = 0;
     let mut parsed = vec![];
@@ -111,7 +111,7 @@ fn parse_pass(
         Ok(parsed)
     } else {
         while !ctx.is_at_end() && !bin[offset..].is_empty() {
-            let next = parsers[0].parse(ctx, &bin[offset..], &parsers[1..])?;
+            let next = parsers[0].parse(ctx, &bin[offset..], &parsers)?;
             offset += next.size();
             ctx.advance(next.size() as Word);
             parsed.push(next);
@@ -121,7 +121,7 @@ fn parse_pass(
     }
 }
 
-pub fn parse(ctx: &mut Context, bin: &[u8], parsers: &[impl Parser]) -> Result<Vec<Parsed>, Error> {
+pub fn parse(ctx: &mut Context, bin: &[u8], parsers: &[&dyn Parser]) -> Result<Vec<Parsed>, Error> {
     // pass 1 -> build symbol database
     parse_pass(ctx, bin, parsers)?;
     ctx.reset();
@@ -133,7 +133,7 @@ pub fn parse(ctx: &mut Context, bin: &[u8], parsers: &[impl Parser]) -> Result<V
 pub fn parse_no_symbols(
     ctx: &mut Context,
     bin: &[u8],
-    parsers: &[impl Parser],
+    parsers: &[&dyn Parser],
 ) -> Result<Vec<Parsed>, Error> {
     // pass 2 -> parse actual results
     parse_pass(ctx, bin, parsers)
@@ -142,7 +142,7 @@ pub fn parse_no_symbols(
 pub fn parse_to_strings(
     ctx: &mut Context,
     bin: &[u8],
-    parsers: &[impl Parser],
+    parsers: &[&dyn Parser],
 ) -> Result<Vec<String>, Error> {
     let parsed = parse(ctx, bin, parsers)?;
 
@@ -405,7 +405,7 @@ mod tests {
 
         assert_eq!(
             Ok(expected),
-            parse(&mut ctx, &data, &[arch]),
+            parse(&mut ctx, &data, &[&arch]),
             "Parser output"
         );
         assert_eq!(symbols, ctx.symbols, "Symbol table");
@@ -419,12 +419,12 @@ mod tests {
 
         assert_eq!(
             Err(Error::new(ErrorKind::OutOfData)),
-            parse(&mut ctx, &data_out_of_data, &[test_arch()])
+            parse(&mut ctx, &data_out_of_data, &[&test_arch()])
         );
         ctx.reset();
         assert_eq!(
             Err(Error::new(ErrorKind::ParserFailed).set_address(0x100)),
-            parse(&mut ctx, &data_parser_failed, &[test_arch()])
+            parse(&mut ctx, &data_parser_failed, &[&test_arch()])
         );
     }
 }

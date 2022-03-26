@@ -33,6 +33,7 @@ impl Context {
 
     /// resets the current address back to start
     pub fn reset(&mut self) {
+        self.flags.clear();
         self.address = self.start_address;
     }
 

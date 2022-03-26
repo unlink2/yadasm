@@ -76,7 +76,7 @@ fn make_jsrx(name: &str, opcode: Word) -> Vec<ImInfo> {
 }
 
 pub fn make_instructions65c816(immediate_size: usize) -> Vec<Node> {
-    let mut res = make_instructions65c02(2);
+    let mut res = make_instructions65c02(immediate_size);
 
     [
         make_extended("ora", 0x03),
@@ -148,7 +148,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = test_arch();
 
-        let result = parse_to_strings(&mut ctx, data, &[arch]);
+        let result = parse_to_strings(&mut ctx, data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
 
         (expected, result)

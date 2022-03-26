@@ -89,7 +89,7 @@ mod tests {
             &[
                 0x11, 0x11, 0x11, 0x22, 0x22, 0x33, 0x11, 0x11, 0x11, 0x22, 0x22, 0x33,
             ],
-            &[arch],
+            &[&arch],
         );
 
         assert_eq!(
@@ -111,7 +111,7 @@ mod tests {
             &[
                 0x11, 0x11, 0x11, 0x22, 0x22, 0x33, 0x11, 0x11, 0x11, 0x22, 0x22,
             ],
-            &[arch],
+            &[&arch],
         );
 
         assert_eq!(Err(Error::new(ErrorKind::OutOfData)), parsed);
@@ -122,7 +122,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = make_arch(&[test_string_node()], None);
 
-        let parsed = parse_to_strings(&mut ctx, &[72, 101, 108, 108, 111], &[arch]);
+        let parsed = parse_to_strings(&mut ctx, &[72, 101, 108, 108, 111], &[&arch]);
 
         assert_eq!(Ok(vec!["!text \"Hello\"".to_owned(),]), parsed);
     }
@@ -132,7 +132,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = make_arch(&[test_macro_node()], None);
 
-        let parsed = parse_to_strings(&mut ctx, &[0xA9, 0x11, 0xA9, 0x22], &[arch]);
+        let parsed = parse_to_strings(&mut ctx, &[0xA9, 0x11, 0xA9, 0x22], &[&arch]);
 
         assert_eq!(Ok(vec!["+testMacro $11, $22".to_owned(),]), parsed);
     }
@@ -142,7 +142,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = make_arch(&[test_macro_node()], None);
 
-        let parsed = parse_to_strings(&mut ctx, &[0xA9, 0x11, 0xA8, 0x22], &[arch]);
+        let parsed = parse_to_strings(&mut ctx, &[0xA9, 0x11, 0xA8, 0x22], &[&arch]);
 
         assert_eq!(Err(Error::new(ErrorKind::NoMatch)), parsed);
     }

@@ -124,7 +124,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = test_arch();
 
-        let result = parse_to_strings(&mut ctx, data, &[arch]);
+        let result = parse_to_strings(&mut ctx, data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
 
         (expected, result)
@@ -198,7 +198,7 @@ mod tests {
         let data: [u8; 2] = [0xEA, 0xFF];
         let expected = ["nop", "!byte $FF\n"];
 
-        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
         assert_eq!(Ok(expected), result);
     }
@@ -210,7 +210,7 @@ mod tests {
 
         let data: [u8; 2] = [0xEA, 0xFF];
 
-        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         assert_eq!(
             Err(Error::new(crate::ErrorKind::ParserFailed).set_address(0x601)),
             result

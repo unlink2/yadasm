@@ -288,7 +288,7 @@ mod tests {
         let mut ctx = test_context();
         let arch = test_arch();
 
-        let result = parse_to_strings(&mut ctx, data, &[arch]);
+        let result = parse_to_strings(&mut ctx, data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
 
         (expected, result)
@@ -456,7 +456,7 @@ mod tests {
         let data: [u8; 1] = [0xFF];
         let expected = ["!byte $FF\n"];
 
-        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
         assert_eq!(Ok(expected), result);
     }
@@ -468,7 +468,7 @@ mod tests {
 
         let data: [u8; 1] = [0xFF];
 
-        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         assert_eq!(
             Err(Error::new(crate::ErrorKind::ParserFailed).set_address(0x600)),
             result
@@ -485,7 +485,7 @@ mod tests {
         let data = [0xA9, 0x44, 0xAD, 0x55, 0x44, 0xA9, 0x45];
         let expected = ["lda #d1", "lda d2", "lda #$45"];
 
-        let result = parse_to_strings(&mut ctx, &data, &[arch]);
+        let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         let expected = expected.iter().map(|s| s.to_string()).collect();
         assert_eq!(Ok(expected), result);
     }
