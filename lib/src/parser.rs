@@ -111,7 +111,7 @@ fn parse_pass(
         Ok(parsed)
     } else {
         while !ctx.is_at_end() && !bin[offset..].is_empty() {
-            let next = parsers[0].parse(ctx, &bin[offset..], &parsers)?;
+            let next = parsers[0].parse(ctx, &bin[offset..], parsers)?;
             offset += next.size();
             ctx.advance(next.size() as Word);
             parsed.push(next);

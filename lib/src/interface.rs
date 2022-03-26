@@ -87,7 +87,7 @@ pub fn exec_cli(args: &[String]) {
     let mut f = File::open(&args.input).expect("No file found");
     let meta = fs::metadata(&args.input).expect("Unable to access file");
     let mut buffer = vec![0; meta.len() as usize];
-    f.read(&mut buffer).expect("Read error");
+    f.read_exact(&mut buffer).expect("Read error");
 
     if args.read.is_none() {
         args.read = Some(buffer.len() - args.start)
@@ -104,7 +104,7 @@ pub fn exec_cli(args: &[String]) {
     if let Some(out) = args.out {
         let mut out = File::create(out).expect("Unable to create output file");
         for line in result {
-            write!(out, "{}\n", line).expect("Write error");
+            writeln!(out, "{}", line).expect("Write error");
         }
     } else {
         for line in result {

@@ -53,10 +53,12 @@ impl Parser for PadLine {
                     crate::TokenAttributes::Std,
                     None,
                 );
-                if self.padding > 0 {
-                    parsed.push(token);
-                } else if self.padding < 0 {
-                    parsed.tokens.insert(0, token);
+                match self.padding {
+                    padding if padding > 0 =>
+                    parsed.push(token),
+                    padding if padding < 0 =>
+                    parsed.tokens.insert(0, token),
+                    _ => {}
                 }
                 Ok(parsed)
             }
