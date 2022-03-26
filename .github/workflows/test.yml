@@ -17,9 +17,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: haskell/actions/hlint-setup@v1
-    - uses: haskell/actions/setup@v1.2
-    - name: Run lint
-      run: hlint ./
+    - name: Check clippy
+      run: cargo clippy -- -D warnings
     - name: Run tests
-      run: cabal test
+      run: cargo test --verbose

@@ -17,6 +17,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: haskell/actions/setup@v1.2
     - name: Build
-      run: cabal build
+      run: cargo build --verbose

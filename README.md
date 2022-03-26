@@ -1,4 +1,3 @@
-
 # yadasm
 
 ![](https://github.com/unlink2/yadasm/actions/workflows/build.yml/badge.svg)
