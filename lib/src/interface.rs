@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::Read,
-    io::{Write, stdout},
+    io::{stdout, Write},
     path::PathBuf,
 };
 
@@ -12,7 +12,7 @@ use crate::{
         arch_raw, bytes_read_byte_node, make_arch, make_instructions6502, make_instructions65c02,
         make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
     },
-     parse_with, Context, TokenAttributes, Word,
+    parse_with, Context, TokenAttributes, Word,
 };
 
 #[derive(ArgEnum, Debug, Copy, Clone)]
@@ -65,8 +65,15 @@ pub struct Cli {
     #[clap(short, long, default_value = "0")]
     base: Word,
 
-    #[clap(short, long, default_value = ":")]
+    #[clap(long, default_value = ":")]
     label_postfix: String,
+    #[clap(long, default_value = "")]
+    line_postfix: String,
+
+    #[clap(long, default_value = "")]
+    label_prefix: String,
+    #[clap(long, default_value = "    ")]
+    line_prefix: String,
 
     #[clap(required = true)]
     input: PathBuf,
@@ -96,7 +103,7 @@ pub fn exec_cli(args: &[String]) {
     let mut out: Box<dyn Write> = if let Some(out) = args.out {
         Box::new(File::create(out).expect("Unable to create output file"))
     } else {
-        Box::new(stdout()) 
+        Box::new(stdout())
     };
 
     let mut ctx = Context::new(args.base, args.base + args.read.unwrap_or(0) as Word);
@@ -105,7 +112,18 @@ pub fn exec_cli(args: &[String]) {
         &buffer[args.start..args.start + args.read.unwrap_or(0)],
         &arch_refs,
         &mut |ctx, parsed| {
-            writeln!(out, "{}", parsed.output(ctx, "", "", "", &args.label_postfix)).expect("Write error");
+            writeln!(
+                out,
+                "{}",
+                parsed.output(
+                    ctx,
+                    &args.line_prefix,
+                    &args.line_postfix,
+                    &args.label_prefix,
+                    &args.label_postfix
+                )
+            )
+            .expect("Write error");
         },
     )
     .expect("Parser error");
