@@ -425,9 +425,11 @@ pub fn make_instruction(i: &ImInfo, immediate_size: usize) -> Node {
         InstModes::ZeroPageIndirect => {
             i.to_node(&[read_byte_node("(", ")", TokenAttributes::Std, &[])])
         }
-        InstModes::JumpAbsoluteX => {
-            i.to_node(&[read_byte_node("(", ", x)", TokenAttributes::Std, &[])])
-        }
+        InstModes::JumpAbsoluteX => i.to_node(&[
+            append_string_node("("),
+            read_abs_label_node(),
+            append_string_node(", x)"),
+        ]),
         InstModes::AbsoluteLong => i.to_node(&[read_lword_node("", "", TokenAttributes::Std, &[])]),
         InstModes::AbsoluteLongX => {
             i.to_node(&[read_lword_node("", ", x", TokenAttributes::Std, &[])])

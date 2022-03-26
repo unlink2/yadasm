@@ -100,11 +100,11 @@ fn make_bit(name: &str, opcode: Word) -> Vec<ImInfo> {
     make_im_from(&[InstModes::ZeroPage, InstModes::Absolute], name, opcode)
 }
 
-fn make_branch(name: &str, opcode: Word) -> Vec<ImInfo> {
+pub fn make_branch(name: &str, opcode: Word) -> Vec<ImInfo> {
     make_im_from(&[InstModes::Relative], name, opcode)
 }
 
-fn make_implied(name: &str, opcode: Word) -> Vec<ImInfo> {
+pub fn make_implied(name: &str, opcode: Word) -> Vec<ImInfo> {
     make_im_from(&[InstModes::Implied], name, opcode)
 }
 
@@ -231,6 +231,8 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
         make_loadx("ldx", 0xA2),
         make_loady("ldy", 0xA0),
         make_logic("lsr", 0x4A),
+        make_implied("nop", 0xEA),
+        make_implied("ora", 0x09),
         make_implied("tax", 0xAA),
         make_implied("txa", 0x8A),
         make_implied("dex", 0xCA),
