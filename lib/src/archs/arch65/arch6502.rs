@@ -209,6 +209,7 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
         make_branch("bmi", 0x30),
         make_branch("bvc", 0x50),
         make_branch("bvs", 0x70),
+        make_branch("bcc", 0x90),
         make_branch("bne", 0xD0),
         make_branch("beq", 0xF0),
         make_implied("brk", 0x00),

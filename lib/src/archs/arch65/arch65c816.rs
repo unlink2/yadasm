@@ -98,6 +98,7 @@ pub fn make_instructions65c816(immediate_size: usize) -> Vec<Node> {
         make_implied("tcs", 0x1B),
         make_implied("tsc", 0x3B),
         make_implied("tcd", 0x5B),
+        make_implied("tdc", 0x7B),
         make_implied("txy", 0x9B),
         make_implied("tyx", 0xBB),
         make_implied("stp", 0xDB),
