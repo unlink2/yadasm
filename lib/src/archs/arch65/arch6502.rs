@@ -233,7 +233,7 @@ pub fn make_instructions6502(immediate_size: usize) -> Vec<Node> {
         make_loady("ldy", 0xA0),
         make_logic("lsr", 0x4A),
         make_implied("nop", 0xEA),
-        make_implied("ora", 0x09),
+        make_load("ora", 0x09),
         make_implied("tax", 0xAA),
         make_implied("txa", 0x8A),
         make_implied("dex", 0xCA),
