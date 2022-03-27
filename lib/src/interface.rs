@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     fs::{self, File},
     io::Read,
     io::{stdout, Write},
@@ -12,7 +13,7 @@ use crate::{
         arch_raw, bytes_read_byte_node, make_arch, make_instructions6502, make_instructions65c02,
         make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
     },
-    parse_with, Context, TokenAttributes, Word,
+    parse_with, Context, Definition, Symbol, TokenAttributes, Word,
 };
 
 #[derive(ArgEnum, Debug, Copy, Clone)]
@@ -80,6 +81,25 @@ pub struct Cli {
 
     #[clap(arg_enum, long, short, default_value = "a6502")]
     archs: Vec<Archs>,
+
+    #[clap(long, parse(try_from_str = parse_def), multiple_occurrences(true))]
+    sym: Vec<(String, Word)>,
+
+    #[clap(long, parse(try_from_str = parse_def), multiple_occurrences(true))]
+    def: Vec<(String, Word)>,
+}
+
+fn parse_def<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
+where
+    T: std::str::FromStr,
+    T::Err: Error + Send + Sync + 'static,
+    U: std::str::FromStr,
+    U::Err: Error + Send + Sync + 'static,
+{
+    let pos = s
+        .find('=')
+        .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{}`", s))?;
+    Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
 }
 
 pub fn exec_cli(args: &[String]) {
@@ -107,6 +127,15 @@ pub fn exec_cli(args: &[String]) {
     };
 
     let mut ctx = Context::new(args.base, args.base + args.read.unwrap_or(0) as Word);
+
+    args.sym
+        .iter()
+        .for_each(|s| ctx.add_symbol(Symbol::new(&s.0, s.1, 0, crate::SymbolAttributes::NewLine)));
+
+    args.def
+        .iter()
+        .for_each(|s| ctx.add_def(Definition::new(&s.0, s.1, 0)));
+
     parse_with(
         &mut ctx,
         &buffer[args.start..args.start + args.read.unwrap_or(0)],
