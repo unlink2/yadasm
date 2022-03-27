@@ -102,6 +102,16 @@ impl Token {
         }
     }
 
+    pub fn prefix_rep(mut self, prefix_rep: usize) -> Self {
+        self.prefix_rep = prefix_rep;
+        self
+    }
+
+    pub fn postfix_rep(mut self, postfix_rep: usize) -> Self {
+        self.postfix_rep = postfix_rep;
+        self
+    }
+
     pub fn output(&self, prefix: &str, postfix: &str) -> String {
         format!(
             "{}{}{}{}",

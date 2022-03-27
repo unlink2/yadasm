@@ -64,7 +64,14 @@ pub fn text_converter(text: &str, ctx: &mut Context, dat: Word, size: usize) -> 
         dat,
         crate::TokenAttributes::Std,
         Some(ctx.address),
-    )])
+    )
+    .prefix_rep(0)])
+}
+
+pub fn text_converter_prefix(text: &str, ctx: &mut Context, dat: Word, size: usize) -> Parsed {
+    let mut parsed = text_converter(text, ctx, dat, size);
+    parsed.tokens.iter_mut().for_each(|p| p.prefix_rep = 1);
+    parsed
 }
 
 pub fn no_converter(ctx: &mut Context, dat: Word, size: usize) -> Parsed {
@@ -74,7 +81,8 @@ pub fn no_converter(ctx: &mut Context, dat: Word, size: usize) -> Parsed {
         dat,
         crate::TokenAttributes::Std,
         Some(ctx.address),
-    )])
+    )
+    .prefix_rep(0)])
 }
 
 pub fn number_converter(
@@ -93,7 +101,8 @@ pub fn number_converter(
             dat,
             attr,
             Some(ctx.address),
-        )])
+        )
+        .prefix_rep(0)])
     } else {
         Parsed::new(vec![Token::new(
             &format!("{}{}{}", prefix, (ftm)(dat), postfix),
@@ -101,7 +110,8 @@ pub fn number_converter(
             dat,
             attr,
             Some(ctx.address),
-        )])
+        )
+        .prefix_rep(0)])
     }
 }
 
@@ -147,7 +157,8 @@ pub fn label_converter(
         dat,
         TokenAttributes::Std,
         Some(ctx.address),
-    )])
+    )
+    .prefix_rep(0)])
 }
 
 pub fn opcode_comparator(expected: Word, dat: Word) -> bool {
@@ -176,7 +187,7 @@ pub fn opcode_node(name: &str, opcode: Word, children: &[Node]) -> Node {
         1,
         1,
         readnle,
-        move |ctx, dat, size| text_converter(&name, ctx, dat, size),
+        move |ctx, dat, size| text_converter_prefix(&name, ctx, dat, size),
         move |dat| opcode_comparator(opcode, dat),
         children,
     )
