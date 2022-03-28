@@ -29,20 +29,19 @@ pub enum Archs {
 }
 
 impl Archs {
-    pub fn into_parser(&self) -> Box<dyn crate::Parser + 'static> {
+    pub fn into_parser(&self, no_default: bool) -> Box<dyn crate::Parser + 'static> {
+        let default = if no_default {
+            None
+        } else {
+            Some(bytes_read_byte_node(TokenAttributes::NewLine, &[]))
+        };
         Box::new(match self {
-            Self::A6502 => make_arch(
-                &make_instructions6502(IMMEDIATE_SIZE8),
-                Some(bytes_read_byte_node(TokenAttributes::NewLine, &[])),
-            ),
-            Self::A65C02 => make_arch(
-                &make_instructions65c02(IMMEDIATE_SIZE8),
-                Some(bytes_read_byte_node(TokenAttributes::NewLine, &[])),
-            ),
-            Self::A65C816 => make_arch(
-                &make_instructions65c816(IMMEDIATE_SIZE16),
-                Some(bytes_read_byte_node(TokenAttributes::NewLine, &[])),
-            ),
+            Self::A6502 => make_arch(&make_instructions6502(IMMEDIATE_SIZE8), default),
+
+            Self::A65C02 => make_arch(&make_instructions65c02(IMMEDIATE_SIZE8), default),
+
+            Self::A65C816 => make_arch(&make_instructions65c816(IMMEDIATE_SIZE16), default),
+
             _ => arch_raw(),
         })
     }
@@ -53,6 +52,9 @@ impl Archs {
 pub struct Cli {
     #[clap(long)]
     append: bool,
+
+    #[clap(long)]
+    no_default: bool,
 
     #[clap(short, long)]
     out: Option<PathBuf>,
@@ -106,7 +108,7 @@ pub fn exec_cli(args: &[String]) {
     let mut args = Cli::parse_from(args);
 
     let mut archs = vec![];
-    args.archs.iter().for_each(|a| archs.push(a.into_parser()));
+    args.archs.iter().for_each(|a| archs.push(a.into_parser(args.no_default)));
 
     let mut arch_refs = vec![];
     archs.iter().for_each(|a| arch_refs.push(a.as_ref()));
