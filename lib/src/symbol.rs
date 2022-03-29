@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
+
 use crate::Word;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SymbolAttributes {
     Std,
     NewLine,
@@ -16,7 +18,7 @@ impl ToString for SymbolAttributes {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Symbol {
     pub attr: SymbolAttributes,
     pub address: Word,

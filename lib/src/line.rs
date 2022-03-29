@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use crate::{Context, Word};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -49,7 +51,7 @@ impl Parsed {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TokenAttributes {
     Std,
     NewLine,
@@ -64,7 +66,7 @@ impl ToString for TokenAttributes {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Token {
     pub text: String,
     pub size: usize,

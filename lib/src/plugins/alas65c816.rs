@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
     archs::{
         bytes_read_byte_node, make_arch, make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
@@ -7,24 +9,45 @@ use crate::{
     Arch, Context, Parsed, Parser, Token, TokenAttributes, Word,
 };
 
+pub fn default_aas() -> Arch {
+    make_arch(
+        &make_instructions65c816(IMMEDIATE_SIZE8),
+        Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
+    )
+}
+
+pub fn default_aal() -> Arch {
+    make_arch(
+        &make_instructions65c816(IMMEDIATE_SIZE16),
+        Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
+    )
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AlAs65c816 {
     at: HashSet<Word>,
+
+    #[serde(skip, default = "default_aal")]
     aal: Arch,
+    #[serde(skip, default = "default_aas")]
     aas: Arch,
+}
+
+impl Default for AlAs65c816 {
+    fn default() -> Self {
+        Self {
+            aal: default_aal(),
+            aas: default_aas(),
+            at: HashSet::default(),
+        }
+    }
 }
 
 impl AlAs65c816 {
     pub fn new(at: HashSet<Word>) -> Self {
         Self {
             at,
-            aal: make_arch(
-                &make_instructions65c816(IMMEDIATE_SIZE16),
-                Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
-            ),
-            aas: make_arch(
-                &make_instructions65c816(IMMEDIATE_SIZE8),
-                Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
-            ),
+            ..Default::default()
         }
     }
 

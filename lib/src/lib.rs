@@ -1,6 +1,7 @@
 pub mod archs;
 mod binary;
 mod comparator;
+mod config;
 mod context;
 mod definition;
 mod error;
@@ -13,6 +14,7 @@ mod symbol;
 
 pub use binary::*;
 pub use comparator::*;
+pub use config::*;
 pub use context::*;
 pub use definition::*;
 pub use error::*;

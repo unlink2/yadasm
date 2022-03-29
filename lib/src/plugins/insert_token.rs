@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
+
 use crate::{Parser, Token, Word};
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct InsertToken {
     pub before: HashMap<Word, Token>,
     pub after: HashMap<Word, Token>,

@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
 use crate::{Definition, Symbol, Word};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Context {
     // symbols are used for address labels
     pub symbols: HashMap<Word, Vec<Symbol>>,

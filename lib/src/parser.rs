@@ -28,6 +28,16 @@ pub struct Arch {
     pub reader: ReadOp,
 }
 
+impl std::fmt::Debug for Arch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Arch")
+            .field("lookup", &self.lookup)
+            .field("default", &self.default)
+            .field("read", &self.read)
+            .finish()
+    }
+}
+
 impl Arch {
     pub fn new(
         nodes: &[Node],

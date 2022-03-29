@@ -10,7 +10,7 @@ use clap::{ArgEnum, Parser};
 
 use crate::{
     archs::{
-        arch_raw, bytes_read_byte_node, make_arch, make_instructions6502, make_instructions65c02,
+        bytes_read_byte_node, make_arch, make_instructions6502, make_instructions65c02,
         make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
     },
     parse_with, Context, Definition, Symbol, TokenAttributes, Word,
@@ -21,11 +21,6 @@ pub enum Archs {
     A6502,
     A65C02,
     A65C816,
-    AlAs65C816,
-    A6502Bytes,
-    ARaw,
-    InsertToken,
-    PadLine,
 }
 
 impl Archs {
@@ -41,8 +36,7 @@ impl Archs {
             Self::A65C02 => make_arch(&make_instructions65c02(IMMEDIATE_SIZE8), default),
 
             Self::A65C816 => make_arch(&make_instructions65c816(IMMEDIATE_SIZE16), default),
-
-            _ => arch_raw(),
+            // _ => arch_raw(),
         })
     }
 }
@@ -50,6 +44,7 @@ impl Archs {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 pub struct Cli {
+    // TODO handle append
     #[clap(long)]
     append: bool,
 
@@ -108,7 +103,9 @@ pub fn exec_cli(args: &[String]) {
     let mut args = Cli::parse_from(args);
 
     let mut archs = vec![];
-    args.archs.iter().for_each(|a| archs.push(a.into_parser(args.no_default)));
+    args.archs
+        .iter()
+        .for_each(|a| archs.push(a.into_parser(args.no_default)));
 
     let mut arch_refs = vec![];
     archs.iter().for_each(|a| arch_refs.push(a.as_ref()));

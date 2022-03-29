@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
+
 use crate::Word;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Definition {
     pub text: String,
     pub value: Word,
