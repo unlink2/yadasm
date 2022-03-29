@@ -23,7 +23,7 @@ pub fn default_aal() -> Arch {
     )
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AlAs65c816 {
     at: HashSet<Word>,
 

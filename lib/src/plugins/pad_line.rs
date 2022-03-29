@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::{Parser, Token};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PadLine {
     pub c: char,
     pub padding: isize,
