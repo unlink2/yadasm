@@ -1,34 +1,63 @@
 use std::collections::HashSet;
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
-    archs::{
+    dasm::archs::{
         bytes_read_byte_node, make_arch, make_instructions65c816, IMMEDIATE_SIZE16, IMMEDIATE_SIZE8,
     },
-    Arch, Context, Parsed, Parser, Token, TokenAttributes, Word,
+    dasm::{Arch, Context, Parsed, Parser, Token, TokenAttributes, Word},
 };
 
+pub fn default_aas() -> Arch {
+    make_arch(
+        &make_instructions65c816(IMMEDIATE_SIZE8),
+        Some(bytes_read_byte_node(
+            crate::dasm::TokenAttributes::NewLine,
+            &[],
+        )),
+    )
+}
+
+pub fn default_aal() -> Arch {
+    make_arch(
+        &make_instructions65c816(IMMEDIATE_SIZE16),
+        Some(bytes_read_byte_node(
+            crate::dasm::TokenAttributes::NewLine,
+            &[],
+        )),
+    )
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AlAs65c816 {
     at: HashSet<Word>,
+
+    #[serde(skip, default = "default_aal")]
     aal: Arch,
+    #[serde(skip, default = "default_aas")]
     aas: Arch,
+}
+
+impl Default for AlAs65c816 {
+    fn default() -> Self {
+        Self {
+            aal: default_aal(),
+            aas: default_aas(),
+            at: HashSet::default(),
+        }
+    }
 }
 
 impl AlAs65c816 {
     pub fn new(at: HashSet<Word>) -> Self {
         Self {
             at,
-            aal: make_arch(
-                &make_instructions65c816(IMMEDIATE_SIZE16),
-                Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
-            ),
-            aas: make_arch(
-                &make_instructions65c816(IMMEDIATE_SIZE8),
-                Some(bytes_read_byte_node(crate::TokenAttributes::NewLine, &[])),
-            ),
+            ..Default::default()
         }
     }
 
-    fn is_as(ctx: &crate::Context) -> bool {
+    fn is_as(ctx: &crate::dasm::Context) -> bool {
         ctx.get_flag("as").is_some()
     }
 
@@ -56,7 +85,7 @@ impl AlAs65c816 {
         }
     }
 
-    fn modify(&self, ctx: &mut crate::Context, parsed: &mut Parsed) {
+    fn modify(&self, ctx: &mut crate::dasm::Context, parsed: &mut Parsed) {
         if self.force_al(ctx) || Self::is_al_tokens(parsed) {
             ctx.unset_flag("as");
             parsed.push(Token::new("\n!al", 0, 0, TokenAttributes::Std, None))
@@ -70,10 +99,10 @@ impl AlAs65c816 {
 impl Parser for AlAs65c816 {
     fn parse(
         &self,
-        ctx: &mut crate::Context,
+        ctx: &mut crate::dasm::Context,
         bin: &[u8],
         next: &[&dyn Parser],
-    ) -> Result<crate::Parsed, crate::Error> {
+    ) -> Result<crate::dasm::Parsed, crate::dasm::Error> {
         let mut parsed = if Self::is_as(ctx) {
             self.aas.parse(ctx, bin, self.tail(next))
         } else {
@@ -91,7 +120,7 @@ impl Parser for AlAs65c816 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{parse_to_strings, Context, Error};
+    use crate::dasm::{parse_to_strings, Context, Error};
 
     fn test_context() -> Context {
         let ctx = Context::new(0x600, 0x700);

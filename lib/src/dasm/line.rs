@@ -1,4 +1,6 @@
-use crate::{Context, Word};
+use serde::{Deserialize, Serialize};
+
+use crate::dasm::{Context, Word};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Parsed {
@@ -49,7 +51,7 @@ impl Parsed {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TokenAttributes {
     Std,
     NewLine,
@@ -64,7 +66,7 @@ impl ToString for TokenAttributes {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Token {
     pub text: String,
     pub size: usize,
@@ -137,8 +139,8 @@ impl Line for [Token] {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Symbol;
-    use crate::SymbolAttributes;
+    use crate::dasm::Symbol;
+    use crate::dasm::SymbolAttributes;
 
     fn test_context() -> Context {
         let ctx = Context::new(0x100, 0x110);

@@ -1,4 +1,4 @@
-use crate::{Node, Word};
+use crate::dasm::{Node, Word};
 
 use super::{
     is_cc11, make_implied, make_instructions65c02, make_opcode, mask_echo, ImInfo, InstModes,
@@ -131,8 +131,8 @@ pub fn make_instructions65c816(immediate_size: usize) -> Vec<Node> {
 mod tests {
     use super::*;
     use crate::{
-        archs::{make_arch, IMMEDIATE_SIZE16},
-        parse_to_strings, Arch, Context, Error,
+        dasm::archs::{make_arch, IMMEDIATE_SIZE16},
+        dasm::{parse_to_strings, Arch, Context, Error},
     };
 
     fn test_context() -> Context {

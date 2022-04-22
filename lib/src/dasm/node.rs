@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{Comparator, Context, Error, ErrorKind, Parsed, ReadOp, Word};
+use crate::dasm::{Comparator, Context, Error, ErrorKind, Parsed, ReadOp, Word};
 
 type Converter = dyn Fn(&mut Context, Word, usize) -> Parsed;
 
@@ -74,7 +74,7 @@ impl Node {
             for c in &self.children {
                 match c.parse(ctx, &bin[parsed.size()..]) {
                     Err(err) => return Err(err),
-                    Ok(p) => parsed.append(p)
+                    Ok(p) => parsed.append(p),
                 }
             }
             Ok(())
@@ -95,7 +95,7 @@ impl Node {
 
 #[cfg(test)]
 mod tests {
-    use crate::{readnle, Symbol, Token, TokenAttributes};
+    use crate::dasm::{readnle, Symbol, Token, TokenAttributes};
 
     use super::*;
 
@@ -138,7 +138,7 @@ mod tests {
                     "Test3:",
                     ctx.address,
                     0,
-                    crate::SymbolAttributes::NewLine,
+                    crate::dasm::SymbolAttributes::NewLine,
                 ));
                 Parsed::new(vec![Token::new(
                     "test3",
@@ -196,7 +196,7 @@ mod tests {
                 "Test3:",
                 0x100,
                 0,
-                crate::SymbolAttributes::NewLine
+                crate::dasm::SymbolAttributes::NewLine
             )]),
             ctx.symbols.get(&0x100),
             "Expected symbols"

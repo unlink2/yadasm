@@ -1,24 +1,5 @@
-pub mod archs;
-mod binary;
-mod comparator;
-mod context;
-mod definition;
-mod error;
+pub mod asm;
+pub mod dasm;
 mod interface;
-mod line;
-mod node;
-mod parser;
-pub mod plugins;
-mod symbol;
 
-pub use binary::*;
-pub use comparator::*;
-pub use context::*;
-pub use definition::*;
-pub use error::*;
 pub use interface::*;
-pub use line::*;
-pub use node::*;
-pub use parser::*;
-pub use plugins::*;
-pub use symbol::*;

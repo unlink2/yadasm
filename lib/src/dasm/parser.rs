@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Context, Error, ErrorKind, Node, Parsed, ReadOp, Word};
+use crate::dasm::{Context, Error, ErrorKind, Node, Parsed, ReadOp, Word};
 
 pub type NodeLookup = HashMap<Word, Node>;
 
@@ -26,6 +26,16 @@ pub struct Arch {
     pub default: Option<Node>,
     pub read: usize,
     pub reader: ReadOp,
+}
+
+impl std::fmt::Debug for Arch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Arch")
+            .field("lookup", &self.lookup)
+            .field("default", &self.default)
+            .field("read", &self.read)
+            .finish()
+    }
 }
 
 impl Arch {
@@ -170,7 +180,7 @@ pub fn parse_to_strings(
 mod tests {
     use std::{cell::RefCell, rc::Rc};
 
-    use crate::{readnle, Symbol, SymbolAttributes, Token, TokenAttributes};
+    use crate::dasm::{readnle, Symbol, SymbolAttributes, Token, TokenAttributes};
 
     use super::*;
 
@@ -217,7 +227,7 @@ mod tests {
                     "Test3:",
                     ctx.address,
                     0,
-                    crate::SymbolAttributes::NewLine,
+                    crate::dasm::SymbolAttributes::NewLine,
                 ));
                 Parsed::new(vec![Token::new(
                     "test3",

@@ -1,4 +1,4 @@
-use crate::Word;
+use crate::dasm::Word;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum ErrorKind {
