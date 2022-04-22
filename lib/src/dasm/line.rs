@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{Context, Word};
+use crate::dasm::{Context, Word};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Parsed {
@@ -139,8 +139,8 @@ impl Line for [Token] {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Symbol;
-    use crate::SymbolAttributes;
+    use crate::dasm::Symbol;
+    use crate::dasm::SymbolAttributes;
 
     fn test_context() -> Context {
         let ctx = Context::new(0x100, 0x110);

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{Parser, Token, Word};
+use crate::dasm::{Parser, Token, Word};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InsertToken {
@@ -26,10 +26,10 @@ impl InsertToken {
 impl Parser for InsertToken {
     fn parse(
         &self,
-        ctx: &mut crate::Context,
+        ctx: &mut crate::dasm::Context,
         bin: &[u8],
         next: &[&dyn Parser],
-    ) -> Result<crate::Parsed, crate::Error> {
+    ) -> Result<crate::dasm::Parsed, crate::dasm::Error> {
         // call the next parser and modify the result as needed
         let result = self.default_parse(ctx, bin, self.tail(next));
 
@@ -45,7 +45,7 @@ impl Parser for InsertToken {
                         &format!("{}{:X}", self.default_prefix, ctx.address),
                         0,
                         0,
-                        crate::TokenAttributes::Std,
+                        crate::dasm::TokenAttributes::Std,
                         None,
                     ))
                 }
@@ -60,8 +60,11 @@ impl Parser for InsertToken {
 mod tests {
     use super::*;
     use crate::{
-        archs::{make_arch, make_instructions65c816, IMMEDIATE_SIZE16},
-        parse_to_strings, Arch, Context, TokenAttributes,
+        dasm::archs::{make_arch, make_instructions65c816, IMMEDIATE_SIZE16},
+        dasm::parse_to_strings,
+        dasm::Arch,
+        dasm::Context,
+        dasm::TokenAttributes,
     };
 
     fn test_context() -> Context {

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AlAs65c816, Context, InsertToken, PadLine};
+use crate::dasm::{AlAs65c816, Context, InsertToken, PadLine};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Archs {

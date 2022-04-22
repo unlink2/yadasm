@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Deserialize};
-use crate::{Definition, Symbol, Word};
+use crate::dasm::{Definition, Symbol, Word};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Context {
@@ -135,7 +135,12 @@ mod tests {
     #[test]
     fn it_should_add_symbols_and_definitions() {
         let mut ctx = test_context();
-        ctx.add_symbol(Symbol::new("", 0x100, 0, crate::SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new(
+            "",
+            0x100,
+            0,
+            crate::dasm::SymbolAttributes::Std,
+        ));
         ctx.add_def(Definition::new("test", 0x100, 1));
 
         assert_eq!(1, ctx.symbols.len());
@@ -145,13 +150,23 @@ mod tests {
     #[test]
     fn it_should_find_symbols() {
         let mut ctx = test_context();
-        ctx.add_symbol(Symbol::new("1", 0x100, 0, crate::SymbolAttributes::Std));
-        ctx.add_symbol(Symbol::new("2", 0x100, 0, crate::SymbolAttributes::Std));
+        ctx.add_symbol(Symbol::new(
+            "1",
+            0x100,
+            0,
+            crate::dasm::SymbolAttributes::Std,
+        ));
+        ctx.add_symbol(Symbol::new(
+            "2",
+            0x100,
+            0,
+            crate::dasm::SymbolAttributes::Std,
+        ));
 
         assert_eq!(
             Some(&vec![
-                Symbol::new("1", 0x100, 0, crate::SymbolAttributes::Std),
-                Symbol::new("2", 0x100, 0, crate::SymbolAttributes::Std),
+                Symbol::new("1", 0x100, 0, crate::dasm::SymbolAttributes::Std),
+                Symbol::new("2", 0x100, 0, crate::dasm::SymbolAttributes::Std),
             ]),
             ctx.get_symbols(0x100),
             "Get symbols"

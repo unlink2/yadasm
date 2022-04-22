@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::Word;
+use crate::dasm::Word;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Definition {

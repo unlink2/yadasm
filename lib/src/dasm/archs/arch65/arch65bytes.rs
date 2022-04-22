@@ -1,6 +1,6 @@
 use std::iter;
 
-use crate::{Node, TokenAttributes, Word};
+use crate::dasm::{Node, TokenAttributes, Word};
 
 use super::{append_string_node, arch65helpers::opcode_node};
 
@@ -40,8 +40,8 @@ pub fn bytes_read_macro_node(name: &str, opcode: Word, children: &[Node]) -> Nod
 #[cfg(test)]
 mod tests {
     use crate::{
-        archs::{append_string_node, consume_byte_node, make_arch, read_byte_node},
-        parse_to_strings, Context, Error, ErrorKind,
+        dasm::archs::{append_string_node, consume_byte_node, make_arch, read_byte_node},
+        dasm::{parse_to_strings, Context, Error, ErrorKind},
     };
 
     use super::*;

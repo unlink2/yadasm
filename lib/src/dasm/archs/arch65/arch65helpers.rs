@@ -1,4 +1,4 @@
-use crate::{
+use crate::dasm::{
     always_true, build_lookup, readnle, Arch, Context, Node, Parsed, Symbol, SymbolAttributes,
     Token, TokenAttributes, Word,
 };
@@ -62,7 +62,7 @@ pub fn text_converter(text: &str, ctx: &mut Context, dat: Word, size: usize) -> 
         text,
         size,
         dat,
-        crate::TokenAttributes::Std,
+        crate::dasm::TokenAttributes::Std,
         Some(ctx.address),
     )
     .prefix_rep(0)])
@@ -79,7 +79,7 @@ pub fn no_converter(ctx: &mut Context, dat: Word, size: usize) -> Parsed {
         "",
         size,
         dat,
-        crate::TokenAttributes::Std,
+        crate::dasm::TokenAttributes::Std,
         Some(ctx.address),
     )
     .prefix_rep(0)])

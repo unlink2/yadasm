@@ -1,11 +1,11 @@
-use crate::{always_true, build_lookup, readnle, Arch, Context, Node, Parsed, Token, Word};
+use crate::dasm::{always_true, build_lookup, readnle, Arch, Context, Node, Parsed, Token, Word};
 
 fn raw_converter(_ctx: &mut Context, dat: Word, size: usize) -> Parsed {
     Parsed::new(vec![Token::new(
         &((dat as u8) as char).to_string(),
         size,
         dat,
-        crate::TokenAttributes::Std,
+        crate::dasm::TokenAttributes::Std,
         None,
     )])
 }
@@ -26,7 +26,7 @@ pub fn arch_raw() -> Arch {
 
 #[cfg(test)]
 mod tests {
-    use crate::parse_to_strings;
+    use crate::dasm::parse_to_strings;
 
     use super::*;
 

@@ -1,4 +1,4 @@
-use crate::{Node, Word, archs::make_im_info_echo};
+use crate::dasm::{archs::make_im_info_echo, Node, Word};
 
 use super::{
     is_cc00, is_cc10, make_branch, make_implied, make_instructions6502, make_opcode, mask_echo,
@@ -106,8 +106,8 @@ pub fn make_instructions65c02(immediate_size: usize) -> Vec<Node> {
 mod tests {
     use super::*;
     use crate::{
-        archs::{bytes_read_byte_node, make_arch, IMMEDIATE_SIZE8},
-        parse_to_strings, Arch, Context, Error, TokenAttributes,
+        dasm::archs::{bytes_read_byte_node, make_arch, IMMEDIATE_SIZE8},
+        dasm::{parse_to_strings, Arch, Context, Error, TokenAttributes},
     };
 
     fn test_context() -> Context {
@@ -212,7 +212,7 @@ mod tests {
 
         let result = parse_to_strings(&mut ctx, &data, &[&arch]);
         assert_eq!(
-            Err(Error::new(crate::ErrorKind::ParserFailed).set_address(0x601)),
+            Err(Error::new(crate::dasm::ErrorKind::ParserFailed).set_address(0x601)),
             result
         );
     }
