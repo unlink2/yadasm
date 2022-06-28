@@ -2,9 +2,10 @@
 #![cfg_attr(feature = "no_std", feature(alloc))]
 pub mod dasm;
 
-#[cfg(feature = "interface")]
-mod interface;
+pub mod error;
 pub mod prelude;
 
+#[cfg(feature = "interface")]
+pub mod interface;
 #[cfg(feature = "interface")]
 pub use interface::*;
