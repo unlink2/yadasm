@@ -49,7 +49,7 @@ impl Parser for PadLine {
                         .len() as isize);
                 let token = Token::new(
                     &std::iter::repeat(self.c)
-                        .take(0.max(padding.abs() as usize))
+                        .take(0.max(padding.unsigned_abs()))
                         .collect::<String>(),
                     0,
                     0,

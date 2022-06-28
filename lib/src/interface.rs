@@ -56,7 +56,6 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum SubCommands {
     Dasm(Dasm),
-    Asm(Asm),
 }
 
 #[derive(Args, Debug)]
@@ -123,11 +122,8 @@ pub fn exec_cli(args: &[String]) {
     let args = Cli::parse_from(args);
     match args.cmds {
         SubCommands::Dasm(dasm) => exec_cli_dasm(dasm),
-        SubCommands::Asm(asm) => exec_cli_asm(asm),
     }
 }
-
-pub fn exec_cli_asm(_args: Asm) {}
 
 pub fn exec_cli_dasm(mut args: Dasm) {
     let mut archs = vec![];

@@ -11,9 +11,9 @@ pub enum Archs {
     A65C816,
     A6502Bytes,
     ARaw,
-    InsertToken(InsertToken),
-    PadLine(PadLine),
-    AlAs65C816(AlAs65c816),
+    InsertToken(Box<InsertToken>),
+    PadLine(Box<PadLine>),
+    AlAs65C816(Box<AlAs65c816>),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
