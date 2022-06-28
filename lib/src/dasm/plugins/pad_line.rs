@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::dasm::{Parser, Token};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
 pub struct PadLine {
     pub c: char,
     pub padding: isize,

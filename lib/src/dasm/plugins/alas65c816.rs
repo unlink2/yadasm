@@ -29,7 +29,8 @@ pub fn default_aal() -> Arch {
     )
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
 pub struct AlAs65c816 {
     at: HashSet<Word>,
 

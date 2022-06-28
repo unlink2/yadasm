@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::dasm::{Parser, Token, Word};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
 pub struct InsertToken {
     pub before: HashMap<Word, Token>,
     pub after: HashMap<Word, Token>,

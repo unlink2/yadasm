@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::dasm::{AlAs65c816, Context, InsertToken, PadLine};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
 pub enum Archs {
     A6502,
     A65C02,
@@ -16,7 +17,8 @@ pub enum Archs {
     AlAs65C816(Box<AlAs65c816>),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct Config {
     archs: Vec<Archs>,
     ctx: Context,

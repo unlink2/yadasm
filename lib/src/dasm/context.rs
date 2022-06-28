@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use crate::dasm::{Definition, Symbol, Word};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Context {
     // symbols are used for address labels
     pub symbols: HashMap<Word, Vec<Symbol>>,
